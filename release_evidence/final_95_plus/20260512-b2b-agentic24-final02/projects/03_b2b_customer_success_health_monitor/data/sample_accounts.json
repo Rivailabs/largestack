@@ -1,0 +1,26 @@
+[
+  {
+    "account_id": "acme_corp",
+    "usage_percent": 35,
+    "open_p1_tickets": 2,
+    "nps": 4,
+    "renewal_days": 45,
+    "executive_sponsor": false
+  },
+  {
+    "account_id": "globex",
+    "usage_percent": 95,
+    "open_p1_tickets": 0,
+    "nps": 10,
+    "renewal_days": 200,
+    "executive_sponsor": true
+  },
+  {
+    "account_id": "initech",
+    "usage_percent": 70,
+    "open_p1_tickets": 1,
+    "nps": 7,
+    "renewal_days": 30,
+    "executive_sponsor": false
+  }
+]

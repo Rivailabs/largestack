@@ -1,0 +1,29 @@
+# LARGESTACK Agentic AI Configuration — all options
+default_llm: openai/gpt-4o-mini
+max_turns: 25
+cost_budget: 5.0
+
+# Observability
+trace_enabled: true
+metrics_enabled: true
+
+# Guardrails
+guardrails_enabled: true
+pii_detection: true
+injection_detection: true
+hallucination_detection: false
+toxicity_detection: false
+# topic_blocklist: "politics,religion"  # Comma-separated
+
+# Kill switch
+kill_switch_backend: file   # file or redis
+# redis_url: redis://localhost:6379
+
+# Smart features
+smart_routing: false        # Thompson Sampling model selection
+semantic_cache: true        # 3-tier cache (exact + semantic + prefix)
+context_compression: false  # LLMLingua compression for long contexts
+
+# Dashboard
+dashboard_host: 127.0.0.1
+dashboard_port: 8787

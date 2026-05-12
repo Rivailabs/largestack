@@ -1,0 +1,22 @@
+name: multi-agent-workflow
+agents:
+  researcher:
+    model: openai/gpt-4o-mini
+    instructions: Gather facts and cite sources
+    tools: [web_search]
+    guardrails: [pii, injection]
+  writer:
+    model: openai/gpt-4o-mini
+    instructions: Write clear prose from research
+    guardrails: [pii]
+  critic:
+    model: openai/gpt-4o-mini
+    instructions: Find flaws and suggest improvements
+    guardrails: [pii]
+graph:
+  nodes: [researcher, writer, critic]
+  edges:
+    - {from: START, to: researcher}
+    - {from: researcher, to: writer}
+    - {from: writer, to: critic}
+    - {from: critic, to: END}

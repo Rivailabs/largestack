@@ -1,0 +1,65 @@
+services:
+  largestack:
+    build: .
+    ports: ["8787:8787"]
+    environment:
+      LARGESTACK_ENV: ${LARGESTACK_ENV:-development}
+      LARGESTACK_OPENAI_API_KEY: ${LARGESTACK_OPENAI_API_KEY:-}
+      LARGESTACK_ANTHROPIC_API_KEY: ${LARGESTACK_ANTHROPIC_API_KEY:-}
+      LARGESTACK_DEEPSEEK_API_KEY: ${LARGESTACK_DEEPSEEK_API_KEY:-}
+      LARGESTACK_DASHBOARD_KEY: ${LARGESTACK_DASHBOARD_KEY:-}
+      LARGESTACK_API_KEY: ${LARGESTACK_API_KEY:-}
+      # v0.3.6: LARGESTACK_DATABASE_URL is the canonical env. LARGESTACK_POSTGRES_DSN kept
+      # as an alias for backward compatibility — both are read by Database.create().
+      LARGESTACK_DATABASE_URL: postgresql://largestack:${POSTGRES_PASSWORD:-largestack_dev_change_me}@postgres:5432/largestack
+      LARGESTACK_POSTGRES_DSN: postgresql://largestack:${POSTGRES_PASSWORD:-largestack_dev_change_me}@postgres:5432/largestack
+      LARGESTACK_REDIS_URL: redis://redis:6379/0
+    volumes:
+      - largestack-data:/home/largestack/.largestack  # P1.5: matches non-root USER largestack from Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import largestack"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: largestack
+      POSTGRES_USER: largestack
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-largestack_dev_change_me}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # P1.5: only expose to host in dev (override via override file for prod)
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U largestack -d largestack"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  largestack-data:
+  pgdata:
+  redis-data:

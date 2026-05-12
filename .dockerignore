@@ -1,0 +1,64 @@
+# Version control and local editor state
+.git
+.gitignore
+.vscode/
+.idea/
+
+# Python environments and caches
+.venv/
+.venv*/
+venv/
+venv*/
+env/
+env*/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Build/test artifacts
+dist/
+build/
+*.egg-info/
+*.log
+logs/
+*.tmp
+
+# Large/generated local artifacts
+release_evidence/
+*.zip
+*.tar.gz
+*.whl
+*.tgz
+*.db
+*.sqlite
+*.sqlite3
+tmp/
+tmp*/
+data/
+outputs/
+
+# Node artifacts
+node_modules/
+sdk/typescript/node_modules/
+sdk/typescript/dist/
+sdk/typescript/*.tgz
+.npm/
+.npm-global/
+
+# Local secrets/configs
+.env
+.env.*
+!.env.example
+!deploy/.env.example
+*.pem
+*.key
+*.crt

@@ -1,0 +1,6 @@
+{
+  "priority_order": ["high", "medium", "low"],
+  "overbooking_allowed": false,
+  "skill_match_required": true,
+  "region_match_required": true
+}

@@ -1,0 +1,3 @@
+schema_version: '1.0'
+llm: deepseek/deepseek-chat
+max_turns: 12

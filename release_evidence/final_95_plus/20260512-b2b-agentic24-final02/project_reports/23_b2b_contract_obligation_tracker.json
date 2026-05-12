@@ -1,0 +1,136 @@
+{
+  "features": [
+    "typed_decorator_api",
+    "observability_trace"
+  ],
+  "fixture_ok": true,
+  "passed": true,
+  "readme_ok": true,
+  "report": {
+    "actual_cost": 0.003812,
+    "artifact_count": 9,
+    "attempts": [
+      {
+        "actual_cost": 0.002249,
+        "estimated_cost": 0.001223,
+        "failure_summary": "pytest,acceptance",
+        "files_changed": [
+          "README.md",
+          "data/obligations_fixture.json",
+          "largestack_app.py",
+          "obligation_tracker.py",
+          "policies/escalation_policy.json",
+          "tests/test_largestack_features.py",
+          "tests/test_obligation_tracker.py"
+        ],
+        "json_valid": true,
+        "mode": "generate",
+        "round": 1,
+        "tokens": 5823,
+        "trace_id": "60433ae7-459e-481c-b7d7-9273eb5ba695",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 6, in <module>\nAssertionError: [{'type': 'soc2_report', 'owner': 'security.', 'due_date': datetime.date(2026, 5, 20), 'renewal_date': None, 'audit_evidence': [], 'status': 'active'}]\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 5.86,
+          "failed_checks": [
+            "pytest",
+            "acceptance"
+          ],
+          "pytest_passed": false,
+          "validation_output": "compile ok largestack_app.py\ncompile ok obligation_tracker.py\ncompile ok tests/test_largestack_features.py\ncompile ok tests/test_obligation_tracker.py\n..F.F                                                                    [100%]\n=================================== FAILURES ===================================\n________________________________ test_due_soon _________________________________\ntests/test_obligation_tracker.py:16: in test_due_soon\n    assert soon and soon[0]['owner'] == 'security', f\"Soon: {soon}\"\nE   AssertionError: Soon: [{'type': 'soc2_report', 'owner': 'security.', 'due_date': datetime.date(2026, 5, 20), 'renewal_date': None, 'audit_evidence': [], 'status': 'active'}]\nE   assert ([{'audit_evidence': [], 'due_date': datetime.date(2026, 5, 20), 'owner': 'security.', 'renewal_date': None, ...}] and 'security.' == 'security'\nE     \nE     - security\nE     + security.\nE     ?         +)\n_____________________________ test_public_contract _____________________________\ntests/test_obligation_tracker.py:30: in test_public_contract\n    assert soon and soon[0]['owner'] == 'security', soon\nE   AssertionError: [{'audit_evidence': [], 'due_date': datetime.date(2026, 5, 20), 'owner': 'security.', 'renewal_date': None, ...}]\nE   assert ([{'audit_evidence': [], 'due_date': datetime.date(2026, 5, 20), 'owner': 'security.', 'renewal_date': None, ...}] and 'security.' == 'security'\nE     \nE     - security\nE     + security.\nE     ?         +)\n=========================== short test summary info ============================\nFAILED tests/test_obligation_tracker.py::test_due_soon - AssertionError: Soon...\nFAILED tests/test_obligation_tracker.py::test_public_contract - AssertionErro...\n2 failed, 3 passed in 3.48s\n"
+        }
+      },
+      {
+        "actual_cost": 0.001421,
+        "estimated_cost": 0.001172,
+        "failure_summary": "none",
+        "files_changed": [
+          "largestack_app.py",
+          "obligation_tracker.py"
+        ],
+        "json_valid": true,
+        "mode": "patch",
+        "round": 2,
+        "tokens": 5581,
+        "trace_id": "c00a4a96-4e19-496d-8bef-149c84c57613",
+        "validation": {
+          "acceptance_output": "",
+          "acceptance_passed": true,
+          "compile_passed": true,
+          "duration_seconds": 10.93,
+          "failed_checks": [],
+          "pytest_passed": true,
+          "validation_output": "compile ok largestack_app.py\ncompile ok obligation_tracker.py\ncompile ok tests/test_largestack_features.py\ncompile ok tests/test_obligation_tracker.py\n.....                                                                    [100%]\n5 passed in 4.24s\n"
+        }
+      }
+    ],
+    "budget_exceeded": false,
+    "estimated_cost": 0.002842,
+    "generated_files": [
+      "README.md",
+      "data/obligations_fixture.json",
+      "largestack_app.py",
+      "obligation_tracker.py",
+      "policies/escalation_policy.json",
+      "tests/test_largestack_features.py",
+      "tests/test_obligation_tracker.py"
+    ],
+    "name": "b2b_contract_obligation_tracker",
+    "notes": "Fixed owner extraction to strip trailing period, corrected typo in largestack_app.py (total_cos -> total_cost), and fixed incomplete regex pattern in obligation_tracker.py.",
+    "passed": true,
+    "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-b2b-agentic24-final02/projects/23_b2b_contract_obligation_tracker",
+    "tokens": 13534,
+    "trace_ids": [
+      "f633965c-f8eb-49d8-b64f-5a191865f5ec",
+      "60433ae7-459e-481c-b7d7-9273eb5ba695",
+      "c00a4a96-4e19-496d-8bef-149c84c57613"
+    ],
+    "validation": {
+      "acceptance_output": "",
+      "acceptance_passed": true,
+      "compile_passed": true,
+      "duration_seconds": 10.93,
+      "failed_checks": [],
+      "pytest_passed": true,
+      "validation_output": "compile ok largestack_app.py\ncompile ok obligation_tracker.py\ncompile ok tests/test_largestack_features.py\ncompile ok tests/test_obligation_tracker.py\n.....                                                                    [100%]\n5 passed in 4.24s\n"
+    }
+  },
+  "reviewer": {
+    "critical_blocker": "",
+    "json_valid": true,
+    "notes": "All checks pass. Project correctly uses typed_decorator_api and observability_trace with TestModel overrides, no network side effects.",
+    "passed": true,
+    "score": 95
+  },
+  "score": 99,
+  "security_issues": [],
+  "security_ok": true,
+  "source_issues": [],
+  "source_ok": true,
+  "spec": {
+    "acceptance": "from obligation_tracker import extract_obligations, due_soon, escalation_plan\ntext='Vendor must deliver SOC2 report by 2026-05-20. Customer must renew by 2026-06-01. Owner: security.'\nitems=extract_obligations(text)\nassert any(i['type']=='soc2_report' for i in items), items\nsoon=due_soon(items, today='2026-05-12', days=10)\nassert soon and soon[0]['owner']=='security', soon\nesc=escalation_plan(soon)\nassert esc['approval_required'] is False and esc['actions'], esc\n\n\nfrom pathlib import Path\nimport ast, asyncio\nfrom largestack.testing import block_model_requests\n\nsrc = Path(\"largestack_app.py\").read_text()\ntree = ast.parse(src)\ncalls = set()\nnames = set()\nattrs = set()\nimports = set()\nfor node in ast.walk(tree):\n    if isinstance(node, ast.ImportFrom):\n        imports.add(node.module or \"\")\n        for alias in node.names:\n            names.add(alias.asname or alias.name)\n    elif isinstance(node, ast.Import):\n        for alias in node.names:\n            imports.add(alias.name)\n            names.add(alias.asname or alias.name.split(\".\")[0])\n    elif isinstance(node, ast.Name):\n        names.add(node.id)\n    elif isinstance(node, ast.Attribute):\n        attrs.add(node.attr)\n    elif isinstance(node, ast.Call):\n        fn = node.func\n        if isinstance(fn, ast.Name):\n            calls.add(fn.id)\n        elif isinstance(fn, ast.Attribute):\n            calls.add(fn.attr)\n            attrs.add(fn.attr)\n        elif isinstance(fn, ast.Subscript):\n            base = fn.value\n            if isinstance(base, ast.Name):\n                calls.add(base.id)\n            elif isinstance(base, ast.Attribute):\n                calls.add(base.attr)\n                attrs.add(base.attr)\n\nclass_names = {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}\nfor forbidden_class in {\"Agent\", \"Team\", \"Workflow\", \"Orchestrator\", \"TestModel\", \"FunctionModel\", \"Tool\"}:\n    assert forbidden_class not in class_names, (\n        \"Do not define local mocks/replacements for LARGESTACK classes\",\n        forbidden_class,\n        class_names,\n    )\nassert any(m == \"largestack\" or m.startswith(\"largestack.\") for m in imports), (\n    \"largestack_app.py must import the real largestack package; \"\n    \"do not create local Agent/TestModel/Tool mocks\",\n    imports,\n)\nassert Path(\"README.md\").exists(), \"README.md required\"\nassert Path(\"largestack_app.py\").exists(), \"largestack_app.py required\"\nfiles = [p for p in Path(\".\").rglob(\"*\") if p.is_file() and \"__pycache__\" not in p.parts]\nassert len(files) >= 5, f\"expected at least 5 project files, got {len(files)}\"\nassert Path(\"data\").exists() or Path(\"policies\").exists(), \"expected data/ or policies/ evidence files\"\n\nall_text = \"\\n\".join(p.read_text(errors=\"ignore\") for p in files if p.suffix in {\".py\", \".md\", \".json\", \".txt\"})\nimport re\nassert not re.search(r\"\\bsk-[A-Za-z0-9_-]{12,}\\b\", all_text), \"project must not contain real-looking API keys\"\n\nfrom largestack_app import run_largestack_smoke\nwith block_model_requests():\n    out = asyncio.run(run_largestack_smoke())\nassert out[\"status\"] == \"ok\", out\nassert isinstance(out.get(\"evidence\"), dict), out\nfeatures = set(out.get(\"features\", []))\nevidence = out[\"evidence\"]\nassert 'typed_decorator_api' in features, out\nassert 'observability_trace' in features, out\nassert 'Agent' in calls, ('missing call', 'Agent', calls)\nassert 'TestModel' in calls, ('missing call', 'TestModel', calls)\nassert 'TypedAgent' in calls, ('missing call', 'TypedAgent', calls)\nassert 'ModelRetry' in names, ('missing name', 'ModelRetry', names)\nassert 'RunContext' in names, ('missing name', 'RunContext', names)\nassert 'capture_run_messages' in names, ('missing name', 'capture_run_messages', names)\nassert 'output_validator' in attrs, ('missing attr', 'output_validator', attrs)\nassert 'override' in attrs, ('missing attr', 'override', attrs)\nassert 'run' in attrs, ('missing attr', 'run', attrs)\nassert 'tool' in attrs, ('missing attr', 'tool', attrs)\nassert 'tool_plain' in attrs, ('missing attr', 'tool_plain', attrs)\nassert 'captured_messages' in evidence, ('missing evidence', 'captured_messages', evidence)\nassert 'redacted_log' in evidence, ('missing evidence', 'redacted_log', evidence)\nassert 'total_cost' in evidence, ('missing evidence', 'total_cost', evidence)\nassert 'trace_id' in evidence, ('missing evidence', 'trace_id', evidence)\nassert 'typed_output' in evidence, ('missing evidence', 'typed_output', evidence)\nassert 'typed_tools' in evidence, ('missing evidence', 'typed_tools', evidence)\nassert len(set(evidence[\"typed_tools\"])) >= 2, evidence\nassert len(str(evidence[\"typed_output\"])) > 0, evidence\nassert evidence[\"trace_id\"], evidence\ncaptured_value = evidence[\"captured_messages\"]\ncaptured_count = len(captured_value) if hasattr(captured_value, \"__len__\") and not isinstance(captured_value, (str, bytes, int, float)) else int(captured_value)\nassert captured_count >= 2, evidence\nassert float(evidence[\"total_cost\"]) >= 0, evidence\nassert not re.search(r\"\\bsk-[A-Za-z0-9_-]{12,}\\b\", evidence[\"redacted_log\"]), evidence\n",
+    "classification": "DEEPSEEK-BUILT-LARGESTACK-B2B-AGENTIC-PROJECT",
+    "evidence_required": [
+      "typed_decorator_api",
+      "observability_trace"
+    ],
+    "forbidden_actions": [
+      "send_email",
+      "refund_payment",
+      "delete_file",
+      "publish_social",
+      "write_production",
+      "charge_card",
+      "wire_transfer",
+      "submit_regulatory_filing",
+      "external_api_call"
+    ],
+    "name": "b2b_contract_obligation_tracker",
+    "required_files": [
+      "README.md",
+      "largestack_app.py"
+    ],
+    "requirements": "Create obligation_tracker.py with extract_obligations, due_soon, and escalation_plan. Track obligation owner, due date, renewal date, audit evidence, and escalation for overdue/high-risk obligations.\nPublic usage contract that the generated project must pass exactly:\n```python\nfrom obligation_tracker import extract_obligations, due_soon, escalation_plan\ntext='Vendor must deliver SOC2 report by 2026-05-20. Customer must renew by 2026-06-01. Owner: security.'\nitems=extract_obligations(text)\nassert any(i['type']=='soc2_report' for i in items), items\nsoon=due_soon(items, today='2026-05-12', days=10)\nassert soon and soon[0]['owner']=='security', soon\nesc=escalation_plan(soon)\nassert esc['approval_required'] is False and esc['actions'], esc\n```\n\nBuild a real, runnable B2B agentic product slice: deterministic business logic module, pytest tests, README.md with run/test instructions, and at least one realistic fixture under data/ or policy file under policies/. Use Python standard library only for product logic. Do not include secrets, network calls, external side effects, fake production writes, payments, or real notifications. Risky actions must return approval_required True and executed False.\n\nReal LARGESTACK feature requirement:\n- Create largestack_app.py with async def run_largestack_smoke() -> dict.\n- The function must execute the selected LARGESTACK features, not only mention them.\n- Use llm='deepseek/deepseek-chat' on Agents, but wrap generated project tests and smoke\n  checks with TestModel/FunctionModel overrides so the generated project has no network\n  side effects.\n- Never define local mock/replacement classes named Agent, Team, Workflow, Orchestrator,\n  TestModel, FunctionModel, or Tool. Import real APIs from largestack, largestack.testing,\n  and largestack.decorators.\n- Use Agent.override as a context manager: with agent.override(model=TestModel(...)):\n  result = await agent.run(...). Calling agent.override(...) without a with block is invalid.\n- The hidden gate wraps run_largestack_smoke() in block_model_requests(), so any accidental\n  real provider/network call inside the generated project fails.\n- Agent.run is async. Always call result = await agent.run(...), never result = agent.run(...).\n- Agent.run returns an AgentResult object, not a dict. Use result.content, result.tool_calls_made,\n  result.total_cost, result.trace_id. Do not use result.get(...).\n- Valid core imports look like:\n  from largestack import Agent, Team, Workflow, Orchestrator, tool, create_rag, create_guardrails\n  from largestack.memory import create_memory\n  from largestack.testing import TestModel, FunctionModel, capture_run_messages\n- Correct Agent/TestModel pattern:\n  agent = Agent(name=\"x\", llm=\"deepseek/deepseek-chat\", tools=[some_tool], cost_budget=0.1, max_turns=3)\n  with agent.override(model=TestModel(call_tools=[\"some_tool\"], custom_tool_args={\"some_tool\": {\"query\": \"refund\"}})):\n      result = await agent.run(\"prompt\")\n  calls = result.tool_calls_made\n- Correct map-reduce pattern:\n  mapper = Agent(name=\"mapper\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  reducer = Agent(name=\"reducer\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  orch = Orchestrator(strategy=\"map_reduce\", mapper=mapper, reducer=reducer)\n  with mapper.override(model=TestModel(\"mapped\")), reducer.override(model=TestModel(\"summary\")):\n      result = await orch.run({\"items\": [\"a\", \"b\", \"c\"]})\n- Correct router pattern:\n  classifier = Agent(name=\"classifier\", llm=\"deepseek/deepseek-chat\")\n  specialist = Agent(name=\"billing\", llm=\"deepseek/deepseek-chat\")\n  orch = Orchestrator(strategy=\"router\", classifier=classifier, routes={\"billing\": specialist}, default_route=\"billing\")\n  with classifier.override(model=TestModel(\"billing\")), specialist.override(model=TestModel(\"routed ok\")):\n      route_result = await orch.run(\"route this\")\n  route_output = route_result.output\n- Correct Team pattern:\n  team = Team(agents=[agent_a, agent_b], strategy=\"parallel\", cost_budget=0.2)\n  with agent_a.override(model=TestModel(\"a\")), agent_b.override(model=TestModel(\"b\")):\n      team_result = await team.run(\"task\")\n  team_output = team_result.content\n- Correct typed decorator pattern:\n  from dataclasses import dataclass\n  from largestack.decorators import Agent as TypedAgent, RunContext, ModelRetry\n  @dataclass\n  class Deps:\n      value: str = \"demo\"\n  typed_agent = TypedAgent[Deps, str](\"deepseek/deepseek-chat\", deps_type=Deps, output_type=str, instructions=\"demo\", name=\"typed\", max_retries=1, cost_budget=0.1)\n  # Then register @typed_agent.tool, @typed_agent.tool_plain, and @typed_agent.output_validator.\n  with typed_agent.override(model=TestModel(custom_output_text=\"typed ok\", call_tools=[])):\n      typed_result = await typed_agent.run(\"prompt\", deps=Deps())\n  typed_tools = list(typed_agent.tools.keys())\n  typed_output = typed_result.output\n- Memory reference:\n  memory = create_memory(\"buffer\")\n  await memory.add_message({\"role\": \"user\", \"content\": \"hello user1\"})\n  messages = memory.get_messages()\n- Workflow reference:\n  wf = Workflow(name=\"pipe\", mode=\"dag\", cost_budget=0.2)\n  wf.add_agent(agent_a)\n  wf.add_agent(agent_b, deps=[\"agent_a\"])\n  result = await wf.run({\"task\": \"go\"})\n  workflow_steps = len(result.steps)\n- Guardrails reference:\n  from types import SimpleNamespace\n  guardrails = create_guardrails(pii=True, injection=True, pii_action=\"redact\")\n  response = SimpleNamespace(content=\"Email test@example.com\")\n  await guardrails.check_output(response)\n  redacted_text = response.content\n- Return exactly this shape: {\"status\": \"ok\", \"features\": [...], \"evidence\": {...}}.\n- Include each selected feature name in the returned features list.\n- Evidence keys that must be present: captured_messages, redacted_log, total_cost, trace_id, typed_output, typed_tools.\n- Include at least one realistic fixture file under data/ or policy file under policies/.\n- Include tests/test_largestack_features.py that runs run_largestack_smoke().\n- No real API keys, no network imports, no destructive actions.\n\nSelected feature contracts:\n- typed_decorator_api: Use from largestack.decorators import Agent as TypedAgent, RunContext, ModelRetry. Create a dataclass dependency, register one context tool with @agent.tool, one plain tool with @agent.tool_plain, and one output_validator that can raise ModelRetry. Constructor is TypedAgent[Deps, str]('deepseek/deepseek-chat', deps_type=Deps, output_type=str, instructions='...', name='typed', max_retries=1, cost_budget=0.1). It does not accept llm= or max_turns=. Run under TestModel(custom_output_text='typed ok', call_tools=[]) and report typed_tools=list(agent.tools.keys()) and typed_output=result.output.\n- observability_trace: Use capture_run_messages around an Agent run with TestModel. Evidence must include trace_id, captured_messages as an integer count >= 2, total_cost >= 0, and redacted_log that does not contain any raw real-looking sk- key. Prefer text like '[REDACTED] no secret keys present'.\n"
+  }
+}

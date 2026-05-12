@@ -1,0 +1,46 @@
+# LARGESTACK Agentic AI — production compose
+# Use: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Required env vars (no fallbacks):
+#   - POSTGRES_PASSWORD: strong random password
+#   - LARGESTACK_DASHBOARD_KEY: API key for dashboard access
+#   - LARGESTACK_API_KEY: API key for serve endpoint
+#   - LARGESTACK_ENCRYPTION_KEY: 32-byte hex for at-rest encryption
+#
+# Recommended:
+#   - At least one of: LARGESTACK_OPENAI_API_KEY, LARGESTACK_ANTHROPIC_API_KEY, LARGESTACK_DEEPSEEK_API_KEY
+version: "3.8"
+services:
+  largestack:
+    environment:
+      LARGESTACK_ENV: production
+      # Required — fail-loud if unset
+      LARGESTACK_DASHBOARD_KEY: ${LARGESTACK_DASHBOARD_KEY:?LARGESTACK_DASHBOARD_KEY is required in production}
+      LARGESTACK_API_KEY: ${LARGESTACK_API_KEY:?LARGESTACK_API_KEY is required in production}
+      LARGESTACK_ENCRYPTION_KEY: ${LARGESTACK_ENCRYPTION_KEY:?LARGESTACK_ENCRYPTION_KEY is required in production}
+      # Inherit from parent compose
+      LARGESTACK_OPENAI_API_KEY: ${LARGESTACK_OPENAI_API_KEY:-}
+      LARGESTACK_ANTHROPIC_API_KEY: ${LARGESTACK_ANTHROPIC_API_KEY:-}
+      LARGESTACK_DEEPSEEK_API_KEY: ${LARGESTACK_DEEPSEEK_API_KEY:-}
+      LARGESTACK_POSTGRES_DSN: postgresql://largestack:${POSTGRES_PASSWORD}@postgres:5432/largestack
+      LARGESTACK_REDIS_URL: redis://redis:6379/0
+    healthcheck:
+      # Override parent compose's import-only healthcheck with real HTTP check
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8787/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: always
+
+  postgres:
+    environment:
+      POSTGRES_DB: largestack
+      POSTGRES_USER: largestack
+      # Strict — no fallback
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required in production}
+    restart: always
+
+  redis:
+    restart: always
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-}"]

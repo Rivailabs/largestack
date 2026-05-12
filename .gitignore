@@ -1,0 +1,60 @@
+# Python
+.git/
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Build / cache directories (v0.3.10: these accidentally landed in a release zip)
+.cache/
+.config/
+.local/
+.npm/
+.npm-global/
+.npmrc
+.wget-hsts
+node_modules/
+sdk/typescript/node_modules/
+sdk/typescript/dist/
+sdk/typescript/*.tgz
+
+# Test artifacts (v0.3.10: tmp/test_priority.db was committed accidentally)
+tmp/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+.largestack/
+
+# Tooling
+.mypy_cache/
+.ruff_cache/
+.tox/
+.venv/
+.venv-*/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# License keys — NEVER commit
+private_key.hex
+private.pem
+*.pem

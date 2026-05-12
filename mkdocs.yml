@@ -1,0 +1,64 @@
+site_name: LARGESTACK Agentic AI
+site_description: Universal agentic AI framework for Python
+site_url: https://docs.rivailabs.com
+repo_url: https://github.com/rivailabs/largestack-agentic-ai
+repo_name: rivailabs/largestack-agentic-ai
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - search.suggest
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_root_heading: true
+            members_order: source
+            separate_signature: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+
+nav:
+  - Home: index.md
+  - Quick Start: quickstart.md
+  - Concepts:
+    - Agents: concepts/agents.md
+    - Tools: concepts/tools.md
+    - Memory: concepts/memory.md
+    - Workflows: concepts/workflows.md
+    - Guardrails: concepts/guardrails.md
+  - Cookbook:
+    - cookbook/index.md
+    - Customer Support: cookbook/support-bot.md
+    - RAG with PDFs: cookbook/rag-pdf.md
+    - Multi-Agent: cookbook/multi-agent.md
+  - Protocols:
+    - MCP: protocols/mcp.md
+    - A2A: protocols/a2a.md
+    - AG-UI: protocols/agui.md
+  - API Reference:
+    - Agent: api/agent.md
+    - Decorators: api/decorators.md
+    - Testing: api/testing.md

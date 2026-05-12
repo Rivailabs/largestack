@@ -1,0 +1,858 @@
+{
+  "all_projects_passed": true,
+  "final_decision": "GO",
+  "live_deepseek_smoke_passed": true,
+  "outdir": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06",
+  "project_count": 24,
+  "project_min_score": 90,
+  "projects": [
+    {
+      "actual_cost": 0.001976,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "agent_tool_cost",
+        "tool_policy_approval"
+      ],
+      "generated_files": [
+        "README.md",
+        "largestack_app.py",
+        "policies/approval_policy.txt",
+        "support_ticket.py",
+        "tests/test_largestack_features.py",
+        "tests/test_support_ticket.py"
+      ],
+      "name": "support_ticket_automation_api",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/01_support_ticket_automation_api",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/01_support_ticket_automation_api.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses Largestack APIs (Agent, tool, TestModel) and demonstrates agent_tool_cost and tool_policy_approval features. Tests are deterministic and avoid network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 9966,
+      "trace_ids": [
+        "5d54c5d7-b42e-4bda-a998-886b30cf8ebd",
+        "97dbce80-f0c0-478a-add9-85f06e0efc27",
+        "f5910cdb-b0ba-41b2-9d65-f85cb6d4621d"
+      ]
+    },
+    {
+      "actual_cost": 0.00384,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "team_sequential",
+        "memory_isolation"
+      ],
+      "generated_files": [
+        "README.md",
+        "crm.py",
+        "data/contacts.json",
+        "largack_app.py",
+        "largestack_app.py",
+        "policies/lead_scoring.txt",
+        "tests/test_crm.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "simple_crm",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/02_simple_crm",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/02_simple_crm.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Both required features (team_sequential, memory_isolation) are correctly implemented using Largestack APIs with TestModel overrides and no network side effects. The project compiles, tests pass, and hidden acceptance is true.",
+        "passed": true,
+        "score": 100
+      },
+      "score": 100,
+      "tokens": 16019,
+      "trace_ids": [
+        "98e3ae9d-d3dc-464f-b982-c0667d2587b4",
+        "607a96a8-ac86-4601-9223-c4e0a598a961",
+        "77af04f0-4935-424a-bc65-b22f32ca3ce0",
+        "97d625e9-3bc8-4d5b-9609-410c28f5e661"
+      ]
+    },
+    {
+      "actual_cost": 0.001152,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "workflow_dag",
+        "observability_trace"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_tasks.json",
+        "largestack_app.py",
+        "policies/redaction_policy.txt",
+        "task_app.py",
+        "tests/test_largestack_features.py",
+        "tests/test_task_app.py"
+      ],
+      "name": "task_manager",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/03_task_manager",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/03_task_manager.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Features workflow_dag and observability_trace are correctly implemented using TestModel overrides and capture_run_messages. No network side effects. Tests pass.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 5636,
+      "trace_ids": [
+        "2362606f-d1da-40d0-bd47-363dbd64d088",
+        "0e7ad217-fb72-4aca-af53-443cc2f53fcf"
+      ]
+    },
+    {
+      "actual_cost": 0.001479,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "rag_citations",
+        "guardrails_pii"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/expenses.csv",
+        "expense_tracker.py",
+        "largestack_app.py",
+        "policies/policy.txt",
+        "tests/test_expense_tracker.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "expense_tracker",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/04_expense_tracker",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/04_expense_tracker.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses Largestack rag_citations and guardrails_pii features with TestModel overrides and no network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 6284,
+      "trace_ids": [
+        "9d201104-a125-4ce7-a2c7-f9da47626ed0",
+        "c9eba77e-c9ff-4602-93c9-62f9c06a260b"
+      ]
+    },
+    {
+      "actual_cost": 0.00165,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "orchestrator_router",
+        "team_parallel"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/items.json",
+        "inventory.py",
+        "largestack_app.py",
+        "tests/test_inventory.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "inventory_tracker",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/05_inventory_tracker",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/05_inventory_tracker.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses orchestrator_router and team_parallel with TestModel overrides.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 9443,
+      "trace_ids": [
+        "8bd053fc-d57b-4275-ac39-ca7e7987975a",
+        "488091d1-5522-4075-80c3-f4a036572ce3",
+        "48b28a5f-e746-4876-92f9-cdc7587765a4"
+      ]
+    },
+    {
+      "actual_cost": 0.001451,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "typed_decorator_api",
+        "memory_isolation"
+      ],
+      "generated_files": [
+        "README.md",
+        "booking.py",
+        "data/sample_appointments.json",
+        "largestack_app.py",
+        "tests/test_booking.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "appointment_booking",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/06_appointment_booking",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/06_appointment_booking.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Features typed_decorator_api and memory_isolation are correctly implemented with TestModel overrides and cross-user isolation test.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 6379,
+      "trace_ids": [
+        "8988a369-e4fe-4e47-815d-e7e0397edd04",
+        "6e9dbbe5-8ddd-4f06-be5d-b3dc09267605"
+      ]
+    },
+    {
+      "actual_cost": 0.00123,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "orchestrator_map_reduce",
+        "agent_tool_cost"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/policy.txt",
+        "largestack_app.py",
+        "lead_capture.py",
+        "policies/refund_policy.txt",
+        "tests/test_largestack_features.py",
+        "tests/test_lead_capture.py"
+      ],
+      "name": "lead_capture_app",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/07_lead_capture_app",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/07_lead_capture_app.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses orchestrator_map_reduce and agent_tool_cost features with TestModel overrides. No network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 5970,
+      "trace_ids": [
+        "af75ac3c-77a7-47e2-ad96-2542c9ae26f9",
+        "6b51eb95-516b-44dd-9aa4-3f2016c33fe5"
+      ]
+    },
+    {
+      "actual_cost": 0.002398,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "rag_citations",
+        "memory_isolation"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_invoice.txt",
+        "document_portal.py",
+        "largestack_app.py",
+        "policies/upload_policy.json",
+        "tests/test_document_portal.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "document_upload_extraction_portal",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/08_document_upload_extraction_portal",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/08_document_upload_extraction_portal.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses Largestack APIs (create_rag, Agent, TestModel, create_memory) and demonstrates rag_citations and memory_isolation features. Tests are deterministic and avoid network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 10761,
+      "trace_ids": [
+        "fd2dfa73-a6e6-460d-abe6-bfd793281b42",
+        "1b1046aa-ddfc-4385-add2-b0b48b5db7bd",
+        "c857a0f2-b0ae-4b60-87b8-be56d6fe476b"
+      ]
+    },
+    {
+      "actual_cost": 0.005544,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "workflow_dag",
+        "rag_citations"
+      ],
+      "generated_files": [
+        "README.md",
+        "largestack_app.py",
+        "policies/refund_policy.md",
+        "rag_assistant.py",
+        "tests/test_largestack_features.py",
+        "tests/test_rag_assistant.py"
+      ],
+      "name": "mini_rag_assistant_api",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/09_mini_rag_assistant_api",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/09_mini_rag_assistant_api.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses Largestack workflow_dag and rag_citations features with TestModel overrides. No network side effects. Tests pass.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 18018,
+      "trace_ids": [
+        "44e256f6-97c2-4dc9-b627-6f539bd3be62",
+        "d5fe6eb7-3c58-444e-8718-09527875943a",
+        "7214b4dc-0efd-4bbb-af8e-df605666d203",
+        "b7137d54-8eb3-44c6-96eb-e4df45681bb6"
+      ]
+    },
+    {
+      "actual_cost": 0.001188,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "guardrails_pii",
+        "observability_trace"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_policy.txt",
+        "largestack_app.py",
+        "tests/test_largestack_features.py",
+        "tests/test_workflow_dashboard.py",
+        "workflow_dashboard.py"
+      ],
+      "name": "agent_workflow_dashboard",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/10_agent_workflow_dashboard",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/10_agent_workflow_dashboard.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Features guardrails_pii and observability_trace are correctly implemented with TestModel overrides and no network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 5740,
+      "trace_ids": [
+        "a97fad3c-f066-4280-b1c5-2f39ca6744a4",
+        "b627ac01-ca35-49ce-b07d-4dfb6fe35b3f"
+      ]
+    },
+    {
+      "actual_cost": 0.002275,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "team_parallel",
+        "tool_policy_approval"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_policy.json",
+        "index.html",
+        "largestack_app.py",
+        "policies/security_policy.yaml",
+        "site_check.py",
+        "tests/test_largestack_features.py",
+        "tests/test_site_check.py"
+      ],
+      "name": "ai_security_gateway_website",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/11_ai_security_gateway_website",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/11_ai_security_gateway_website.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Features team_parallel and tool_policy_approval are correctly implemented with TestModel overrides. No network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 11025,
+      "trace_ids": [
+        "eb66b183-f78d-4673-a23f-4d9cb0933ba7",
+        "1b6f69e0-a9b9-452f-8ce7-ca6ce807dc8c",
+        "c7110781-f4d6-4e8e-ad14-859b187e982e"
+      ]
+    },
+    {
+      "actual_cost": 0.001409,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "typed_decorator_api",
+        "workflow_dag"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_profile.json",
+        "largestack_app.py",
+        "resume_builder.py",
+        "tests/test_largestack_features.py",
+        "tests/test_resume_builder.py"
+      ],
+      "name": "resume_builder",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/12_resume_builder",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/12_resume_builder.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Both typed_decorator_api and workflow_dag are correctly implemented with TestModel overrides. No network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 6349,
+      "trace_ids": [
+        "e19c47df-fa89-415c-ba66-3e905ce4ebbf",
+        "3c4e8968-6c00-4e97-b5a4-70697d76a82a"
+      ]
+    },
+    {
+      "actual_cost": 0.001301,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "agent_tool_cost",
+        "guardrails_pii"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/policy.txt",
+        "hr_interview.py",
+        "largestack_app.py",
+        "policies/refund_policy.txt",
+        "tests/test_hr_interview.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "hr_interview_scorer",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/13_hr_interview_scorer",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/13_hr_interview_scorer.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Features agent_tool_cost and guardrails_pii are correctly implemented with TestModel overrides and no network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 6124,
+      "trace_ids": [
+        "1cc96a55-8723-4129-bc6c-3787708a6651",
+        "7579d2eb-955b-47cf-b9d7-7816dc11577d"
+      ]
+    },
+    {
+      "actual_cost": 0.005863,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "orchestrator_router",
+        "memory_isolation"
+      ],
+      "generated_files": [
+        "README.md",
+        "code_reviewer.py",
+        "data/sample_code.py",
+        "largestack_app.py",
+        "policies/security_policy.md",
+        "tests/test_code_reviewer.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "code_reviewer_fixer",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/14_code_reviewer_fixer",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/14_code_reviewer_fixer.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses Largestack APIs (Orchestrator, Agent, TestModel, create_memory) and demonstrates required features.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 24178,
+      "trace_ids": [
+        "73b34538-e658-4a49-8dfa-11d5cbe2e2c0",
+        "f79951d1-5a5e-4494-9dc5-daaccf52cd41",
+        "e55a8122-5b0a-4bdd-9bf6-60caba3196ca",
+        "0bb997dd-e13f-4c06-a7d0-abb6ca34199e",
+        "1bacf69b-313e-44d7-b61d-57e1e436beca"
+      ]
+    },
+    {
+      "actual_cost": 0.002062,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "orchestrator_map_reduce",
+        "team_sequential"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_data.csv",
+        "largestack_app.py",
+        "ml_automation.py",
+        "policies/sample_policy.txt",
+        "tests/test_largestack_features.py",
+        "tests/test_ml_automation.py"
+      ],
+      "name": "ml_automation_baseline",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/15_ml_automation_baseline",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/15_ml_automation_baseline.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses Orchestrator map-reduce and Team sequential with TestModel overrides. Minor: sample data not used in tests.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 10394,
+      "trace_ids": [
+        "bed222e4-ffbc-422f-87e6-5dcbf31b5ab4",
+        "860898e2-87ec-418f-aa0f-110aabc8280d",
+        "65bc2b16-daea-4767-a6e1-02f6db295877"
+      ]
+    },
+    {
+      "actual_cost": 0.001293,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "rag_citations",
+        "observability_trace"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_docs.txt",
+        "largestack_app.py",
+        "policies/publish_policy.json",
+        "tests/test_largestack_features.py",
+        "tests/test_video_social.py",
+        "video_social.py"
+      ],
+      "name": "video_social_pipeline",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/16_video_social_pipeline",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/16_video_social_pipeline.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Both rag_citations and observability_trace are properly implemented using Largestack APIs with TestModel overrides. No network side effects. Clean project structure.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 5882,
+      "trace_ids": [
+        "eaf45718-fe06-4822-bdb8-a519544559c2",
+        "06fa78c3-99e9-477a-b8d5-3df089340db9"
+      ]
+    },
+    {
+      "actual_cost": 0.001182,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "workflow_dag",
+        "tool_policy_approval"
+      ],
+      "generated_files": [
+        "README.md",
+        "jarvis_core.py",
+        "largestack_app.py",
+        "policies/approval_policy.json",
+        "tests/test_jarvis_core.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "jarvis_memory_planner_approval_core",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/17_jarvis_memory_planner_approval_core",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/17_jarvis_memory_planner_approval_core.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses workflow_dag and tool_policy_approval features with TestModel overrides. No network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 5852,
+      "trace_ids": [
+        "254439ad-5857-46da-8b75-9c8aea803566",
+        "0f9a9652-5549-4d1b-a3e9-8c5185b65df4"
+      ]
+    },
+    {
+      "actual_cost": 0.001291,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "typed_decorator_api",
+        "guardrails_pii"
+      ],
+      "generated_files": [
+        "README.md",
+        "kyc_nbfc.py",
+        "largestack_app.py",
+        "policies/kyc_policy.txt",
+        "tests/test_kyc_nbfc.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "fintech_kyc_nbfc_workflow",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/18_fintech_kyc_nbfc_workflow",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/18_fintech_kyc_nbfc_workflow.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Properly uses typed_decorator_api and guardrails_pii with TestModel overrides. No network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 6157,
+      "trace_ids": [
+        "c1d89011-586a-4b45-96ff-1f086a4521cf",
+        "13903758-4b60-4b7c-97ff-a4925ddeb203"
+      ]
+    },
+    {
+      "actual_cost": 0.001261,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "team_parallel",
+        "memory_isolation"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_policy.md",
+        "largestack_app.py",
+        "legal_rag.py",
+        "tests/test_largestack_features.py",
+        "tests/test_legal_rag.py"
+      ],
+      "name": "legaltech_rag_assistant",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/19_legaltech_rag_assistant",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/19_legaltech_rag_assistant.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Features team_parallel and memory_isolation are correctly implemented with TestModel overrides and no network side effects. Tests are deterministic and pass.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 5857,
+      "trace_ids": [
+        "3b5643b4-79e5-449b-9d79-e56f201b8eb2",
+        "d7b8223d-9b4b-4a76-bccb-9b63a06bc2e1"
+      ]
+    },
+    {
+      "actual_cost": 0.001234,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "orchestrator_router",
+        "agent_tool_cost"
+      ],
+      "generated_files": [
+        "README.md",
+        "dpdp_breach.py",
+        "largestack_app.py",
+        "policies/breach_policy.txt",
+        "tests/test_dpdp_breach.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "dpdp_breach_response_workflow",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/20_dpdp_breach_response_workflow",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/20_dpdp_breach_response_workflow.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses LARGESTACK features (orchestrator_router, agent_tool_cost) with TestModel overrides, no network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 6007,
+      "trace_ids": [
+        "a1f094b4-83bc-40d3-b78d-b7bb024bf78f",
+        "9ca372f2-c29e-4024-826b-2322dcb2f10f"
+      ]
+    },
+    {
+      "actual_cost": 0.002358,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "rag_citations",
+        "tool_policy_approval"
+      ],
+      "generated_files": [
+        "README.md",
+        "bgv_portal.py",
+        "data/policy_documents.txt",
+        "largestack_app.py",
+        "policies/approval_policy.txt",
+        "tests/test_bgv_portal.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "background_verification_portal",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/21_background_verification_portal",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/21_background_verification_portal.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses Largestack rag_citations and tool_policy_approval features with TestModel overrides. No network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 10998,
+      "trace_ids": [
+        "6c71d4ba-de08-44ae-acaf-b1b30652ab25",
+        "e908e214-b750-4b92-857a-31c6e46024f0",
+        "8f420b69-ac1e-4225-b4a4-3442eac3b5fc"
+      ]
+    },
+    {
+      "actual_cost": 0.001493,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "workflow_dag",
+        "team_sequential"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_policy.txt",
+        "largestack_app.py",
+        "policies/disclaimer_policy.txt",
+        "tests/test_largestack_features.py",
+        "tests/test_trading_risk.py",
+        "trading_risk.py"
+      ],
+      "name": "trading_app_risk_disclaimer",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/22_trading_app_risk_disclaimer",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/22_trading_app_risk_disclaimer.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses workflow_dag and team_sequential with TestModel overrides. No network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 9107,
+      "trace_ids": [
+        "2b238ffb-f4b0-445f-ba4b-4f2befa9a00c",
+        "624f648e-ded4-400d-9952-b1782ee90603",
+        "29ec135c-fc4e-4647-903e-8f879be33827"
+      ]
+    },
+    {
+      "actual_cost": 0.001757,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "typed_decorator_api",
+        "observability_trace"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_policy.txt",
+        "esign_workflow.py",
+        "largestack_app.py",
+        "policies/approval_policy.json",
+        "tests/test_esign_workflow.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "esign_document_approval_workflow",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/23_esign_document_approval_workflow",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/23_esign_document_approval_workflow.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses typed_decorator_api and observability_trace with TestModel overrides, no network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 7117,
+      "trace_ids": [
+        "81c521bb-8759-4829-a845-bb3e6a70539a",
+        "537b8ffa-3134-46ac-9bff-98604b87de62"
+      ]
+    },
+    {
+      "actual_cost": 0.001099,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "orchestrator_map_reduce",
+        "guardrails_pii"
+      ],
+      "generated_files": [
+        "README.md",
+        "data/sample_tickets.json",
+        "hal_mosaic.py",
+        "largestack_app.py",
+        "tests/test_hal_mosaic.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "hal_mosaic_ticket_domain_workflow",
+      "passed": true,
+      "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/24_hal_mosaic_ticket_domain_workflow",
+      "report_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/project_reports/24_hal_mosaic_ticket_domain_workflow.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses Largestack map-reduce and PII guardrails with TestModel overrides, no network side effects.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 5662,
+      "trace_ids": [
+        "37b54a01-cc79-4e86-8d82-820d050cec32",
+        "1e349c2d-6c86-4fd3-84c2-4aa2d3834092"
+      ]
+    }
+  ],
+  "run_id": "20260512-realfeatures24-final06",
+  "suite_average": 99.04166666666667,
+  "suite_min_average": 95.0
+}

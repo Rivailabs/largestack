@@ -1,0 +1,19 @@
+# LARGESTACK Agentic AI LLM Pricing Registry (April 2026) — per 1M tokens, updated monthly
+gpt-5.2: {input: 1.75, output: 14.0, cache_read: 0.88}
+gpt-5-mini: {input: 0.25, output: 2.0, cache_read: 0.13}
+gpt-5-nano: {input: 0.05, output: 0.4}
+gpt-4o: {input: 2.5, output: 10.0, cache_read: 1.25}
+gpt-4o-mini: {input: 0.15, output: 0.6, cache_read: 0.075}
+claude-opus-4-6: {input: 5.0, output: 25.0, cache_read: 0.5}
+claude-sonnet-4-6: {input: 3.0, output: 15.0, cache_read: 0.3}
+claude-haiku-4-5: {input: 0.8, output: 4.0, cache_read: 0.08}
+gemini-2.5-pro: {input: 1.25, output: 10.0}
+gemini-2.5-flash: {input: 0.15, output: 0.6}
+deepseek-v3: {input: 0.14, output: 0.28}
+deepseek-chat: {input: 0.14, output: 0.28}
+deepseek-reasoner: {input: 0.55, output: 2.19}
+deepseek-v3.2: {input: 0.14, output: 0.28}
+deepseek-r1: {input: 0.55, output: 2.19}
+deepseek-v4: {input: 0.27, output: 1.10}
+deepseek-v4-flash: {input: 0.14, output: 0.55}
+deepseek-r2: {input: 0.55, output: 2.19}

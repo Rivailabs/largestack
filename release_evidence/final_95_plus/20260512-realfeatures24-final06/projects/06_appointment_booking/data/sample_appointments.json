@@ -1,0 +1,14 @@
+[
+  {
+    "datetime": "2026-05-12T10:00",
+    "doctor": "Dr A",
+    "booked": false,
+    "patient_email": null
+  },
+  {
+    "datetime": "2026-05-12T11:00",
+    "doctor": "Dr B",
+    "booked": false,
+    "patient_email": null
+  }
+]

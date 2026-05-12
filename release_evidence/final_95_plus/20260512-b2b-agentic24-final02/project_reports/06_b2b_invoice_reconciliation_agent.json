@@ -1,0 +1,139 @@
+{
+  "features": [
+    "typed_decorator_api",
+    "memory_isolation"
+  ],
+  "fixture_ok": true,
+  "passed": true,
+  "readme_ok": true,
+  "report": {
+    "actual_cost": 0.003479,
+    "artifact_count": 11,
+    "attempts": [
+      {
+        "actual_cost": 0.002186,
+        "estimated_cost": 0.001202,
+        "failure_summary": "acceptance",
+        "files_changed": [
+          "README.md",
+          "data/sample_invoice.json",
+          "data/sample_po.json",
+          "data/sample_receipts.json",
+          "invoice_reconciliation.py",
+          "largestack_app.py",
+          "policies/reconciliation_policy.json",
+          "tests/test_invoice_reconciliation.py",
+          "tests/test_largestack_features.py"
+        ],
+        "json_valid": true,
+        "mode": "generate",
+        "round": 1,
+        "tokens": 5724,
+        "trace_id": "88c7dc10-ce51-41f9-ae5c-e13cb55d401a",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 6, in <module>\nAssertionError: {'status': 'mismatch', 'issues': ['quantity_variance on SKU A: PO qty 10, invoice qty 12', 'overbilling on SKU A: invoice qty 12 exceeds PO qty 10', 'missing_receipt on SKU A: received 10, invoiced 12'], 'variance': 200.0, 'po_id': 'PO1', 'invoice_id': 'I1'}\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 5.93,
+          "failed_checks": [
+            "acceptance"
+          ],
+          "pytest_passed": true,
+          "validation_output": "compile ok invoice_reconciliation.py\ncompile ok largestack_app.py\ncompile ok tests/test_invoice_reconciliation.py\ncompile ok tests/test_largestack_features.py\n......                                                                   [100%]\n6 passed in 3.53s\n"
+        }
+      },
+      {
+        "actual_cost": 0.001141,
+        "estimated_cost": 0.001015,
+        "failure_summary": "none",
+        "files_changed": [
+          "invoice_reconciliation.py"
+        ],
+        "json_valid": true,
+        "mode": "patch",
+        "round": 2,
+        "tokens": 4832,
+        "trace_id": "ff29ec88-3a84-467d-bc27-9fa92d56bf29",
+        "validation": {
+          "acceptance_output": "",
+          "acceptance_passed": true,
+          "compile_passed": true,
+          "duration_seconds": 10.0,
+          "failed_checks": [],
+          "pytest_passed": true,
+          "validation_output": "compile ok invoice_reconciliation.py\ncompile ok largestack_app.py\ncompile ok tests/test_invoice_reconciliation.py\ncompile ok tests/test_largestack_features.py\n......                                                                   [100%]\n6 passed in 3.60s\n"
+        }
+      }
+    ],
+    "budget_exceeded": false,
+    "estimated_cost": 0.002668,
+    "generated_files": [
+      "README.md",
+      "data/sample_invoice.json",
+      "data/sample_po.json",
+      "data/sample_receipts.json",
+      "invoice_reconciliation.py",
+      "largestack_app.py",
+      "policies/reconciliation_policy.json",
+      "tests/test_invoice_reconciliation.py",
+      "tests/test_largestack_features.py"
+    ],
+    "name": "b2b_invoice_reconciliation_agent",
+    "notes": "Fixed hidden acceptance failure: the contract expects 'quantity_variance' as a string in the issues list, but the code produced 'quantity_variance on SKU A: ...'. Updated the issue message to exactly match 'quantity_variance'.",
+    "passed": true,
+    "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-b2b-agentic24-final02/projects/06_b2b_invoice_reconciliation_agent",
+    "tokens": 12706,
+    "trace_ids": [
+      "fc494b8d-c448-4c2f-b14f-5cb268a9fe6f",
+      "88c7dc10-ce51-41f9-ae5c-e13cb55d401a",
+      "ff29ec88-3a84-467d-bc27-9fa92d56bf29"
+    ],
+    "validation": {
+      "acceptance_output": "",
+      "acceptance_passed": true,
+      "compile_passed": true,
+      "duration_seconds": 10.0,
+      "failed_checks": [],
+      "pytest_passed": true,
+      "validation_output": "compile ok invoice_reconciliation.py\ncompile ok largestack_app.py\ncompile ok tests/test_invoice_reconciliation.py\ncompile ok tests/test_largestack_features.py\n......                                                                   [100%]\n6 passed in 3.60s\n"
+    }
+  },
+  "reviewer": {
+    "critical_blocker": "",
+    "json_valid": true,
+    "notes": "All checks pass. Typed decorator API and memory isolation are correctly implemented with TestModel overrides. No network side effects.",
+    "passed": true,
+    "score": 95
+  },
+  "score": 99,
+  "security_issues": [],
+  "security_ok": true,
+  "source_issues": [],
+  "source_ok": true,
+  "spec": {
+    "acceptance": "from invoice_reconciliation import reconcile_invoice, payment_decision\npo={'po_id':'PO1','lines':[{'sku':'A','qty':10,'unit_price':100}]}\ninvoice={'invoice_id':'I1','po_id':'PO1','lines':[{'sku':'A','qty':12,'unit_price':100}]}\nreceipts=[{'sku':'A','qty':10}]\nrec=reconcile_invoice(po, invoice, receipts)\nassert rec['status']=='mismatch' and 'quantity_variance' in rec['issues'], rec\ndecision=payment_decision(rec)\nassert decision['approval_required'] is True and decision['executed'] is False, decision\n\n\nfrom pathlib import Path\nimport ast, asyncio\nfrom largestack.testing import block_model_requests\n\nsrc = Path(\"largestack_app.py\").read_text()\ntree = ast.parse(src)\ncalls = set()\nnames = set()\nattrs = set()\nimports = set()\nfor node in ast.walk(tree):\n    if isinstance(node, ast.ImportFrom):\n        imports.add(node.module or \"\")\n        for alias in node.names:\n            names.add(alias.asname or alias.name)\n    elif isinstance(node, ast.Import):\n        for alias in node.names:\n            imports.add(alias.name)\n            names.add(alias.asname or alias.name.split(\".\")[0])\n    elif isinstance(node, ast.Name):\n        names.add(node.id)\n    elif isinstance(node, ast.Attribute):\n        attrs.add(node.attr)\n    elif isinstance(node, ast.Call):\n        fn = node.func\n        if isinstance(fn, ast.Name):\n            calls.add(fn.id)\n        elif isinstance(fn, ast.Attribute):\n            calls.add(fn.attr)\n            attrs.add(fn.attr)\n        elif isinstance(fn, ast.Subscript):\n            base = fn.value\n            if isinstance(base, ast.Name):\n                calls.add(base.id)\n            elif isinstance(base, ast.Attribute):\n                calls.add(base.attr)\n                attrs.add(base.attr)\n\nclass_names = {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}\nfor forbidden_class in {\"Agent\", \"Team\", \"Workflow\", \"Orchestrator\", \"TestModel\", \"FunctionModel\", \"Tool\"}:\n    assert forbidden_class not in class_names, (\n        \"Do not define local mocks/replacements for LARGESTACK classes\",\n        forbidden_class,\n        class_names,\n    )\nassert any(m == \"largestack\" or m.startswith(\"largestack.\") for m in imports), (\n    \"largestack_app.py must import the real largestack package; \"\n    \"do not create local Agent/TestModel/Tool mocks\",\n    imports,\n)\nassert Path(\"README.md\").exists(), \"README.md required\"\nassert Path(\"largestack_app.py\").exists(), \"largestack_app.py required\"\nfiles = [p for p in Path(\".\").rglob(\"*\") if p.is_file() and \"__pycache__\" not in p.parts]\nassert len(files) >= 5, f\"expected at least 5 project files, got {len(files)}\"\nassert Path(\"data\").exists() or Path(\"policies\").exists(), \"expected data/ or policies/ evidence files\"\n\nall_text = \"\\n\".join(p.read_text(errors=\"ignore\") for p in files if p.suffix in {\".py\", \".md\", \".json\", \".txt\"})\nimport re\nassert not re.search(r\"\\bsk-[A-Za-z0-9_-]{12,}\\b\", all_text), \"project must not contain real-looking API keys\"\n\nfrom largestack_app import run_largestack_smoke\nwith block_model_requests():\n    out = asyncio.run(run_largestack_smoke())\nassert out[\"status\"] == \"ok\", out\nassert isinstance(out.get(\"evidence\"), dict), out\nfeatures = set(out.get(\"features\", []))\nevidence = out[\"evidence\"]\nassert 'typed_decorator_api' in features, out\nassert 'memory_isolation' in features, out\nassert 'TestModel' in calls, ('missing call', 'TestModel', calls)\nassert 'TypedAgent' in calls, ('missing call', 'TypedAgent', calls)\nassert 'create_memory' in calls, ('missing call', 'create_memory', calls)\nassert 'ModelRetry' in names, ('missing name', 'ModelRetry', names)\nassert 'RunContext' in names, ('missing name', 'RunContext', names)\nassert 'add_message' in attrs, ('missing attr', 'add_message', attrs)\nassert 'get_messages' in attrs, ('missing attr', 'get_messages', attrs)\nassert 'output_validator' in attrs, ('missing attr', 'output_validator', attrs)\nassert 'override' in attrs, ('missing attr', 'override', attrs)\nassert 'run' in attrs, ('missing attr', 'run', attrs)\nassert 'tool' in attrs, ('missing attr', 'tool', attrs)\nassert 'tool_plain' in attrs, ('missing attr', 'tool_plain', attrs)\nassert 'cross_user_leak' in evidence, ('missing evidence', 'cross_user_leak', evidence)\nassert 'memory_messages' in evidence, ('missing evidence', 'memory_messages', evidence)\nassert 'typed_output' in evidence, ('missing evidence', 'typed_output', evidence)\nassert 'typed_tools' in evidence, ('missing evidence', 'typed_tools', evidence)\nassert int(evidence[\"memory_messages\"]) >= 2, evidence\nassert evidence[\"cross_user_leak\"] is False, evidence\nassert len(set(evidence[\"typed_tools\"])) >= 2, evidence\nassert len(str(evidence[\"typed_output\"])) > 0, evidence\n",
+    "classification": "DEEPSEEK-BUILT-LARGESTACK-B2B-AGENTIC-PROJECT",
+    "evidence_required": [
+      "typed_decorator_api",
+      "memory_isolation"
+    ],
+    "forbidden_actions": [
+      "send_email",
+      "refund_payment",
+      "delete_file",
+      "publish_social",
+      "write_production",
+      "charge_card",
+      "wire_transfer",
+      "submit_regulatory_filing",
+      "external_api_call",
+      "release_payment"
+    ],
+    "name": "b2b_invoice_reconciliation_agent",
+    "required_files": [
+      "README.md",
+      "largestack_app.py"
+    ],
+    "requirements": "Create invoice_reconciliation.py with reconcile_invoice and payment_decision. Match invoice lines against PO and receipts, calculate variance, flag missing receipt and overbilling, and never release payment without approval.\nPublic usage contract that the generated project must pass exactly:\n```python\nfrom invoice_reconciliation import reconcile_invoice, payment_decision\npo={'po_id':'PO1','lines':[{'sku':'A','qty':10,'unit_price':100}]}\ninvoice={'invoice_id':'I1','po_id':'PO1','lines':[{'sku':'A','qty':12,'unit_price':100}]}\nreceipts=[{'sku':'A','qty':10}]\nrec=reconcile_invoice(po, invoice, receipts)\nassert rec['status']=='mismatch' and 'quantity_variance' in rec['issues'], rec\ndecision=payment_decision(rec)\nassert decision['approval_required'] is True and decision['executed'] is False, decision\n```\n\nBuild a real, runnable B2B agentic product slice: deterministic business logic module, pytest tests, README.md with run/test instructions, and at least one realistic fixture under data/ or policy file under policies/. Use Python standard library only for product logic. Do not include secrets, network calls, external side effects, fake production writes, payments, or real notifications. Risky actions must return approval_required True and executed False.\n\nReal LARGESTACK feature requirement:\n- Create largestack_app.py with async def run_largestack_smoke() -> dict.\n- The function must execute the selected LARGESTACK features, not only mention them.\n- Use llm='deepseek/deepseek-chat' on Agents, but wrap generated project tests and smoke\n  checks with TestModel/FunctionModel overrides so the generated project has no network\n  side effects.\n- Never define local mock/replacement classes named Agent, Team, Workflow, Orchestrator,\n  TestModel, FunctionModel, or Tool. Import real APIs from largestack, largestack.testing,\n  and largestack.decorators.\n- Use Agent.override as a context manager: with agent.override(model=TestModel(...)):\n  result = await agent.run(...). Calling agent.override(...) without a with block is invalid.\n- The hidden gate wraps run_largestack_smoke() in block_model_requests(), so any accidental\n  real provider/network call inside the generated project fails.\n- Agent.run is async. Always call result = await agent.run(...), never result = agent.run(...).\n- Agent.run returns an AgentResult object, not a dict. Use result.content, result.tool_calls_made,\n  result.total_cost, result.trace_id. Do not use result.get(...).\n- Valid core imports look like:\n  from largestack import Agent, Team, Workflow, Orchestrator, tool, create_rag, create_guardrails\n  from largestack.memory import create_memory\n  from largestack.testing import TestModel, FunctionModel, capture_run_messages\n- Correct Agent/TestModel pattern:\n  agent = Agent(name=\"x\", llm=\"deepseek/deepseek-chat\", tools=[some_tool], cost_budget=0.1, max_turns=3)\n  with agent.override(model=TestModel(call_tools=[\"some_tool\"], custom_tool_args={\"some_tool\": {\"query\": \"refund\"}})):\n      result = await agent.run(\"prompt\")\n  calls = result.tool_calls_made\n- Correct map-reduce pattern:\n  mapper = Agent(name=\"mapper\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  reducer = Agent(name=\"reducer\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  orch = Orchestrator(strategy=\"map_reduce\", mapper=mapper, reducer=reducer)\n  with mapper.override(model=TestModel(\"mapped\")), reducer.override(model=TestModel(\"summary\")):\n      result = await orch.run({\"items\": [\"a\", \"b\", \"c\"]})\n- Correct router pattern:\n  classifier = Agent(name=\"classifier\", llm=\"deepseek/deepseek-chat\")\n  specialist = Agent(name=\"billing\", llm=\"deepseek/deepseek-chat\")\n  orch = Orchestrator(strategy=\"router\", classifier=classifier, routes={\"billing\": specialist}, default_route=\"billing\")\n  with classifier.override(model=TestModel(\"billing\")), specialist.override(model=TestModel(\"routed ok\")):\n      route_result = await orch.run(\"route this\")\n  route_output = route_result.output\n- Correct Team pattern:\n  team = Team(agents=[agent_a, agent_b], strategy=\"parallel\", cost_budget=0.2)\n  with agent_a.override(model=TestModel(\"a\")), agent_b.override(model=TestModel(\"b\")):\n      team_result = await team.run(\"task\")\n  team_output = team_result.content\n- Correct typed decorator pattern:\n  from dataclasses import dataclass\n  from largestack.decorators import Agent as TypedAgent, RunContext, ModelRetry\n  @dataclass\n  class Deps:\n      value: str = \"demo\"\n  typed_agent = TypedAgent[Deps, str](\"deepseek/deepseek-chat\", deps_type=Deps, output_type=str, instructions=\"demo\", name=\"typed\", max_retries=1, cost_budget=0.1)\n  # Then register @typed_agent.tool, @typed_agent.tool_plain, and @typed_agent.output_validator.\n  with typed_agent.override(model=TestModel(custom_output_text=\"typed ok\", call_tools=[])):\n      typed_result = await typed_agent.run(\"prompt\", deps=Deps())\n  typed_tools = list(typed_agent.tools.keys())\n  typed_output = typed_result.output\n- Memory reference:\n  memory = create_memory(\"buffer\")\n  await memory.add_message({\"role\": \"user\", \"content\": \"hello user1\"})\n  messages = memory.get_messages()\n- Workflow reference:\n  wf = Workflow(name=\"pipe\", mode=\"dag\", cost_budget=0.2)\n  wf.add_agent(agent_a)\n  wf.add_agent(agent_b, deps=[\"agent_a\"])\n  result = await wf.run({\"task\": \"go\"})\n  workflow_steps = len(result.steps)\n- Guardrails reference:\n  from types import SimpleNamespace\n  guardrails = create_guardrails(pii=True, injection=True, pii_action=\"redact\")\n  response = SimpleNamespace(content=\"Email test@example.com\")\n  await guardrails.check_output(response)\n  redacted_text = response.content\n- Return exactly this shape: {\"status\": \"ok\", \"features\": [...], \"evidence\": {...}}.\n- Include each selected feature name in the returned features list.\n- Evidence keys that must be present: cross_user_leak, memory_messages, typed_output, typed_tools.\n- Include at least one realistic fixture file under data/ or policy file under policies/.\n- Include tests/test_largestack_features.py that runs run_largestack_smoke().\n- No real API keys, no network imports, no destructive actions.\n\nSelected feature contracts:\n- typed_decorator_api: Use from largestack.decorators import Agent as TypedAgent, RunContext, ModelRetry. Create a dataclass dependency, register one context tool with @agent.tool, one plain tool with @agent.tool_plain, and one output_validator that can raise ModelRetry. Constructor is TypedAgent[Deps, str]('deepseek/deepseek-chat', deps_type=Deps, output_type=str, instructions='...', name='typed', max_retries=1, cost_budget=0.1). It does not accept llm= or max_turns=. Run under TestModel(custom_output_text='typed ok', call_tools=[]) and report typed_tools=list(agent.tools.keys()) and typed_output=result.output.\n- memory_isolation: Use create_memory('buffer') or create_memory('sliding_window'). ConversationMemory has async add_message(message_dict) and sync get_messages() with no arguments. For isolation, create separate memory objects for separate users/sessions or filter the returned message dicts yourself. Evidence must include memory_messages >= 2 and cross_user_leak False.\n"
+  }
+}

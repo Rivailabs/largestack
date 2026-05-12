@@ -1,0 +1,17 @@
+[
+    {
+        "transcript": "What are your needs? I understand your pain point. Let me address your budget concerns. Our pricing is competitive. Next step: schedule a follow-up. This is not financial advice.",
+        "expected_score": 80,
+        "expected_risks": ["missing_compliance"]
+    },
+    {
+        "transcript": "Customer needs SOC2. Rep discussed timeline but no next step and promised guaranteed ROI.",
+        "expected_score": 40,
+        "expected_risks": ["missing_discovery", "missing_objection_handling", "pricing_risk", "missing_next_step", "missing_compliance"]
+    },
+    {
+        "transcript": "",
+        "expected_score": 0,
+        "expected_risks": ["missing_discovery", "missing_objection_handling", "pricing_risk", "missing_next_step", "missing_compliance"]
+    }
+]

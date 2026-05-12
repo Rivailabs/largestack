@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "largestack.fullname" . }}-config
+  labels:
+    {{- include "largestack.labels" . | nindent 4 }}
+data:
+  agent.yaml: |
+    {{- .Values.largestack.agentConfig | nindent 4 }}

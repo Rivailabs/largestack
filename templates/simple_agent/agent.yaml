@@ -1,0 +1,8 @@
+name: my-agent
+model: openai/gpt-4o-mini
+instructions: |
+  You are a helpful assistant. Be concise and accurate.
+tools: []
+guardrails: [pii, injection]
+max_turns: 25
+temperature: 0.7

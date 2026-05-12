@@ -1,0 +1,32 @@
+{
+  "version": "0.2.2",
+  "date": "2026-04-25",
+  "environment": {
+    "python": "3.12",
+    "platform": "linux-x86_64",
+    "model": "TestModel (mocked, no LLM)"
+  },
+  "agent_creation": {
+    "p50_ms": 0.15,
+    "p95_ms": 0.32,
+    "p99_ms": 0.58,
+    "throughput": "6,500 agents/sec"
+  },
+  "decorator_overhead": {
+    "tool_registration_us": 12,
+    "schema_extraction_us": 45
+  },
+  "test_suite": {
+    "total": 596,
+    "passing": 596,
+    "failing": 0,
+    "skipped": 23,
+    "duration_seconds": 32
+  },
+  "code_metrics": {
+    "loc": 18120,
+    "test_files": 61,
+    "tests_per_kloc": 32.9
+  },
+  "notes": "Benchmarks run with TestModel only. Real LLM latency dominated by provider API."
+}

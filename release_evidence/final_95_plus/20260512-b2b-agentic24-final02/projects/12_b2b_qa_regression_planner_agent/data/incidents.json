@@ -1,0 +1,4 @@
+[
+  {"area": "billing", "severity": "high", "description": "Payment processing failure"},
+  {"area": "auth", "severity": "medium", "description": "SSO timeout"}
+]

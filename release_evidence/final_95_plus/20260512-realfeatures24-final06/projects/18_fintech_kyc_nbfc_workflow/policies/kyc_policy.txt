@@ -1,0 +1,5 @@
+KYC Policy for NBFC:
+- PAN is mandatory.
+- Aadhaar last 4 digits required.
+- Income below 30k triggers manual review.
+- High risk cases require manual review.

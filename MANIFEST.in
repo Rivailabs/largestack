@@ -1,0 +1,28 @@
+include README.md LICENSE CHANGELOG.md
+include pyproject.toml
+recursive-include largestack *.py *.md *.jsx *.html *.yaml *.yml
+recursive-include pricing *.yaml
+recursive-include stubs *.pyi
+include largestack/py.typed
+
+# Exclusions: belt-and-suspenders alongside .gitignore. The setuptools
+# packages.find directive `include = ["largestack*"]` already excludes tmp/
+# from the wheel, but sdist uses MANIFEST.in.
+prune tmp
+prune .cache
+prune .config
+prune .local
+prune .npm
+prune .npm-global
+prune .pytest_cache
+prune .mypy_cache
+prune .ruff_cache
+prune .venv
+prune build
+prune dist
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.db
+global-exclude *.db-journal
+global-exclude *.so
+global-exclude .DS_Store

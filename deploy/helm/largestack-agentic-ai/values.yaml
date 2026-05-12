@@ -1,0 +1,123 @@
+# Largestack AI — Helm values
+#
+# Override these in a values-prod.yaml or via `helm install --set` flags.
+# REQUIRED: set `secrets.dashboardKey` to a strong random value before deploying.
+
+image:
+  repository: rivailabs/largestack
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+# Replicas. Set higher only after enabling Redis-backed rate limiter
+# (env.LARGESTACK_RATE_LIMIT_BACKEND=redis), since the in-process limiter
+# is per-pod.
+replicaCount: 1
+
+# Container resource limits. Tune for your workload.
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# Service exposes the dashboard on port 8787.
+service:
+  type: ClusterIP
+  port: 8787
+  annotations: {}
+
+# Optional ingress in front of the service.
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: largestack.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Secrets — STRONGLY recommend wiring to External Secrets Operator
+# or equivalent rather than passing values directly.
+# These names are referenced as envFrom secretRef in the deployment.
+secrets:
+  # Used as X-API-Key for dashboard authentication.
+  dashboardKey: ""        # REQUIRED — refuse to start with empty value
+  # LLM provider keys (only set the ones you actually use).
+  openaiKey: ""
+  anthropicKey: ""
+  googleKey: ""
+  # Redis URL for rate limiter (highly recommended for replicaCount > 1).
+  redisUrl: ""
+
+# Environment variables exposed to the container.
+env:
+  LARGESTACK_ENV: production
+  LARGESTACK_IN_CONTAINER: "1"
+  LARGESTACK_LOG_LEVEL: INFO
+  # Set LARGESTACK_RBAC_ENABLED=1 + provide RBAC config to enable role-based access.
+  LARGESTACK_RBAC_ENABLED: ""
+  # Rate limiter backend — "redis" requires Redis URL set in secrets.
+  LARGESTACK_RATE_LIMIT_BACKEND: inprocess
+  LARGESTACK_RATE_LIMIT_PER_MINUTE: "60"
+  LARGESTACK_RATE_LIMIT_BURST: "10"
+
+# Liveness + readiness probes — point at /health which is public (no auth).
+probes:
+  liveness:
+    httpGet:
+      path: /health
+      port: 8787
+    initialDelaySeconds: 20
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    httpGet:
+      path: /health
+      port: 8787
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Persistent state directory — traces.db, audit.db, vault, etc.
+# For multi-replica, you MUST switch these to Postgres via env vars
+# or use ReadWriteMany PVCs (NFS, EFS).
+persistence:
+  enabled: false
+  size: 1Gi
+  storageClassName: ""
+  mountPath: /home/largestack/.largestack
+
+# Pod-level security context.
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Container-level security context.
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+  readOnlyRootFilesystem: false   # set true after PVC for /tmp/.cache
+
+# ServiceAccount — set automountServiceAccountToken=false in zero-trust env.
+serviceAccount:
+  create: true
+  name: ""
+  automount: true
+  annotations: {}
+
+# Node placement
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Pod annotations / labels
+podAnnotations: {}
+podLabels: {}

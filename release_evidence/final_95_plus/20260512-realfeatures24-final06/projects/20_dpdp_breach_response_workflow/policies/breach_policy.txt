@@ -1,0 +1,6 @@
+Breach Response Policy
+======================
+1. Upon detection of a personal data breach, immediately notify the DPO.
+2. Preserve all audit logs for investigation.
+3. Contain the breach by isolating affected systems.
+4. Notify affected data subjects and supervisory authority as required.

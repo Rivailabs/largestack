@@ -1,0 +1,114 @@
+# Default values for LARGESTACK Helm chart
+
+replicaCount: 2
+
+image:
+  repository: rivailabs/largestack
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# Pod-level
+podAnnotations: {}
+podSecurityContext:
+  fsGroup: 1001
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false  # /var/log/largestack needs write
+
+# Service
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+# Ingress
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: largestack.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Resources — tune for your model size
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+
+# Auto-scaling
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# LARGESTACK app config
+largestack:
+  agentConfigPath: /config/agent.yaml
+  auditLogPath: /var/log/largestack/audit.jsonl
+  logLevel: INFO
+  # Provider keys (override via secrets in production)
+  envFromSecret: largestack-secrets
+  # Optional: agent.yaml mounted from configmap
+  agentConfig: |
+    name: my-agent
+    model: openai/gpt-4o-mini
+    instructions: You are a helpful assistant.
+    guardrails: [pii, injection]
+
+# OpenTelemetry
+otel:
+  enabled: false
+  endpoint: http://otel-collector.observability.svc.cluster.local:4317
+  serviceName: largestack-agent
+  sampleRate: 1.0
+
+# Bundled deps (use external for prod)
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+postgresql:
+  enabled: true
+  auth:
+    username: largestack
+    password: largestack
+    database: largestack
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+    extendedConfiguration: |
+      shared_preload_libraries = 'vector'
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

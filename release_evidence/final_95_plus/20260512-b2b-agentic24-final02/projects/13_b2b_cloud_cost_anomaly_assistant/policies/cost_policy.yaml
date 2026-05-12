@@ -1,0 +1,22 @@
+policy:
+  name: cloud_cost_anomaly_policy
+  version: 1.0
+  rules:
+    - service: compute
+      threshold_ratio: 2.0
+      actions:
+        - resize_instances
+        - shutdown_idle
+      approval_required: true
+    - service: storage
+      threshold_ratio: 2.0
+      actions:
+        - reduce_storage
+        - archive_old_data
+      approval_required: true
+    - service: database
+      threshold_ratio: 2.0
+      actions:
+        - scale_down
+        - optimize_queries
+      approval_required: true

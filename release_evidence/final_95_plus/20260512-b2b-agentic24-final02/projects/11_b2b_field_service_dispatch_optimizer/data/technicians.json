@@ -1,0 +1,5 @@
+[
+  {"id": "T1", "skills": ["hvac"], "region": "north", "available_hours": 4},
+  {"id": "T2", "skills": ["network"], "region": "south", "available_hours": 2},
+  {"id": "T3", "skills": ["hvac", "network"], "region": "north", "available_hours": 6}
+]

@@ -1,0 +1,26 @@
+name: fintech-agent
+model: openai/gpt-4o-mini
+instructions: |
+  You handle Indian fintech operations: payments, KYC, compliance.
+
+  CRITICAL RULES:
+  1. ALWAYS verify PAN before any transaction
+  2. For transactions > Rs 50,000, require Aadhaar OKYC
+  3. Run AML check on new customers
+  4. NEVER log raw Aadhaar numbers (use masked form: XXXX XXXX 1234)
+  5. All Indian PII (PAN/Aadhaar/GSTIN) must pass through redaction
+
+tools:
+  - razorpay_create_payment_link
+  - upi_validate_vpa
+  - upi_create_payment_intent
+  - kyc_verify_pan
+  - kyc_initiate_aadhaar_okyc
+  - kyc_aml_check
+guardrails: [pii, indian_pii, injection]
+max_turns: 10
+temperature: 0.0  # deterministic for compliance
+compliance:
+  - DPDP_Act_2023
+  - RBI_PA_PG_2024
+  - PMLA_2002

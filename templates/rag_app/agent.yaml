@@ -1,0 +1,10 @@
+name: rag-agent
+model: openai/gpt-4o-mini
+instructions: |
+  Answer questions from indexed documents only.
+  Cite sources by document name. If you can't find an answer
+  in the indexed docs, say so honestly.
+tools: [vector_search, citation]
+guardrails: [pii, injection, prompt_leak]
+max_turns: 5
+temperature: 0.0

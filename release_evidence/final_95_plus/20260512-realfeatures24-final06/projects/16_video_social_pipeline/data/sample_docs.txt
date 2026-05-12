@@ -1,0 +1,3 @@
+Duplicate payments occur when the same invoice is paid twice.
+To resolve duplicate payments, issue a refund or credit memo.
+Always verify payment status before processing a new payment.

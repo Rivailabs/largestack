@@ -1,0 +1,7 @@
+title = "LARGESTACK gitleaks config"
+
+[allowlist]
+description = "Allow documented REDACTED placeholders only. Real keys remain blocked."
+regexes = [
+  '''REDACTED''',
+]

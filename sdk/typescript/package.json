@@ -1,0 +1,21 @@
+{
+  "name": "@largestack-ai/sdk",
+  "version": "0.1.1",
+  "description": "TypeScript SDK for LARGESTACK Agentic AI Framework",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rivailabs/largestack-ai-sdk-typescript"
+  }
+}

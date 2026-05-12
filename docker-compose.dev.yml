@@ -1,0 +1,8 @@
+# Dev override: exposes ports to host for local debugging
+# Use: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+version: "3.8"
+services:
+  postgres:
+    ports: ["5432:5432"]
+  redis:
+    ports: ["6379:6379"]

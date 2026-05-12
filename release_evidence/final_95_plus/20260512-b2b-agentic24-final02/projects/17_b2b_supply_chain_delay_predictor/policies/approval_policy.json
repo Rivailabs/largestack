@@ -1,0 +1,9 @@
+{
+  "high_risk_actions": [
+    "Expedite shipping via air freight",
+    "Activate backup supplier",
+    "Increase safety stock"
+  ],
+  "approval_required": true,
+  "approval_chain": ["logistics_manager", "supply_chain_director"]
+}

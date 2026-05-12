@@ -1,0 +1,7 @@
+Collection Policy
+=================
+1. Invoices past due 0-30 days: Send friendly reminder.
+2. Invoices past due 31-60 days: Send formal demand letter.
+3. Invoices past due 61+ days: Escalate to collections agency.
+4. Disputed invoices: Flag for review, no automated actions.
+5. Strategic accounts: Offer payment plan options.

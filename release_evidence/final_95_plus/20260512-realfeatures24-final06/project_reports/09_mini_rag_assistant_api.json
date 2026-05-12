@@ -1,0 +1,153 @@
+{
+  "features": [
+    "workflow_dag",
+    "rag_citations"
+  ],
+  "fixture_ok": true,
+  "passed": true,
+  "readme_ok": true,
+  "report": {
+    "actual_cost": 0.005544,
+    "artifact_count": 9,
+    "attempts": [
+      {
+        "actual_cost": 0.003072,
+        "estimated_cost": 0.001533,
+        "failure_summary": "invalid_json,missing_files,pytest,acceptance",
+        "files_changed": [],
+        "json_valid": false,
+        "mode": "generate",
+        "round": 1,
+        "tokens": 7299,
+        "trace_id": "d5fe6eb7-3c58-444e-8718-09527875943a",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'rag_assistant'\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 0.05,
+          "failed_checks": [
+            "pytest",
+            "acceptance"
+          ],
+          "pytest_passed": false,
+          "validation_output": "no python files found\nmissing tests directory"
+        }
+      },
+      {
+        "actual_cost": 0.001459,
+        "estimated_cost": 0.000903,
+        "failure_summary": "acceptance",
+        "files_changed": [
+          "README.md",
+          "largestack_app.py",
+          "policies/refund_policy.md",
+          "rag_assistant.py",
+          "tests/test_largestack_features.py",
+          "tests/test_rag_assistant.py"
+        ],
+        "json_valid": true,
+        "mode": "patch",
+        "round": 2,
+        "tokens": 4301,
+        "trace_id": "7214b4dc-0efd-4bbb-af8e-df605666d203",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nImportError: cannot import name 'add_document' from 'rag_assistant' (/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/09_mini_rag_assistant_api/rag_assistant.py)\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 5.95,
+          "failed_checks": [
+            "acceptance"
+          ],
+          "pytest_passed": true,
+          "validation_output": "compile ok largestack_app.py\ncompile ok rag_assistant.py\ncompile ok tests/test_largestack_features.py\ncompile ok tests/test_rag_assistant.py\n......                                                                   [100%]\n6 passed in 3.58s\n"
+        }
+      },
+      {
+        "actual_cost": 0.000892,
+        "estimated_cost": 0.000907,
+        "failure_summary": "none",
+        "files_changed": [
+          "rag_assistant.py",
+          "tests/test_rag_assistant.py"
+        ],
+        "json_valid": true,
+        "mode": "patch",
+        "round": 3,
+        "tokens": 4319,
+        "trace_id": "b7137d54-8eb3-44c6-96eb-e4df45681bb6",
+        "validation": {
+          "acceptance_output": "HybridRetriever: No embeddings set \u2014 using BM25-only. Call set_embeddings() for dense+BM25 hybrid search.\n",
+          "acceptance_passed": true,
+          "compile_passed": true,
+          "duration_seconds": 10.19,
+          "failed_checks": [],
+          "pytest_passed": true,
+          "validation_output": "compile ok largestack_app.py\ncompile ok rag_assistant.py\ncompile ok tests/test_largestack_features.py\ncompile ok tests/test_rag_assistant.py\n....                                                                     [100%]\n4 passed in 3.71s\n"
+        }
+      }
+    ],
+    "budget_exceeded": false,
+    "estimated_cost": 0.003784,
+    "generated_files": [
+      "README.md",
+      "largestack_app.py",
+      "policies/refund_policy.md",
+      "rag_assistant.py",
+      "tests/test_largestack_features.py",
+      "tests/test_rag_assistant.py"
+    ],
+    "name": "mini_rag_assistant_api",
+    "notes": "Exposed add_document and answer as module-level functions in rag_assistant.py to match hidden acceptance import expectations. Also fixed test file to clear in-memory store between cases and corrected truncated test content.",
+    "passed": true,
+    "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/09_mini_rag_assistant_api",
+    "tokens": 18018,
+    "trace_ids": [
+      "44e256f6-97c2-4dc9-b627-6f539bd3be62",
+      "d5fe6eb7-3c58-444e-8718-09527875943a",
+      "7214b4dc-0efd-4bbb-af8e-df605666d203",
+      "b7137d54-8eb3-44c6-96eb-e4df45681bb6"
+    ],
+    "validation": {
+      "acceptance_output": "HybridRetriever: No embeddings set \u2014 using BM25-only. Call set_embeddings() for dense+BM25 hybrid search.\n",
+      "acceptance_passed": true,
+      "compile_passed": true,
+      "duration_seconds": 10.19,
+      "failed_checks": [],
+      "pytest_passed": true,
+      "validation_output": "compile ok largestack_app.py\ncompile ok rag_assistant.py\ncompile ok tests/test_largestack_features.py\ncompile ok tests/test_rag_assistant.py\n....                                                                     [100%]\n4 passed in 3.71s\n"
+    }
+  },
+  "reviewer": {
+    "critical_blocker": "",
+    "json_valid": true,
+    "notes": "All checks pass. Project correctly uses Largestack workflow_dag and rag_citations features with TestModel overrides. No network side effects. Tests pass.",
+    "passed": true,
+    "score": 95
+  },
+  "score": 99,
+  "security_issues": [],
+  "security_ok": true,
+  "source_issues": [],
+  "source_ok": true,
+  "spec": {
+    "acceptance": "from rag_assistant import add_document, answer\nimport rag_assistant\nif hasattr(rag_assistant, '_documents'):\n    rag_assistant._documents.clear()\nadd_document('refund_policy.md','Duplicate payments require approval before refund.')\nr=answer('duplicate payments require what?')\nassert 'approval' in r['answer'].lower() and 'refund_policy.md' in r['citations']\nadd_document('other_policy.md','Some other policy.')\nassert 'insufficient evidence' in answer('equity refresh policy')['answer'].lower()\n\n\nfrom pathlib import Path\nimport ast, asyncio\nfrom largestack.testing import block_model_requests\n\nsrc = Path(\"largestack_app.py\").read_text()\ntree = ast.parse(src)\ncalls = set()\nnames = set()\nattrs = set()\nimports = set()\nfor node in ast.walk(tree):\n    if isinstance(node, ast.ImportFrom):\n        imports.add(node.module or \"\")\n        for alias in node.names:\n            names.add(alias.asname or alias.name)\n    elif isinstance(node, ast.Import):\n        for alias in node.names:\n            imports.add(alias.name)\n            names.add(alias.asname or alias.name.split(\".\")[0])\n    elif isinstance(node, ast.Name):\n        names.add(node.id)\n    elif isinstance(node, ast.Attribute):\n        attrs.add(node.attr)\n    elif isinstance(node, ast.Call):\n        fn = node.func\n        if isinstance(fn, ast.Name):\n            calls.add(fn.id)\n        elif isinstance(fn, ast.Attribute):\n            calls.add(fn.attr)\n            attrs.add(fn.attr)\n        elif isinstance(fn, ast.Subscript):\n            base = fn.value\n            if isinstance(base, ast.Name):\n                calls.add(base.id)\n            elif isinstance(base, ast.Attribute):\n                calls.add(base.attr)\n                attrs.add(base.attr)\n\nclass_names = {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}\nfor forbidden_class in {\"Agent\", \"Team\", \"Workflow\", \"Orchestrator\", \"TestModel\", \"FunctionModel\", \"Tool\"}:\n    assert forbidden_class not in class_names, (\n        \"Do not define local mocks/replacements for LARGESTACK classes\",\n        forbidden_class,\n        class_names,\n    )\nassert any(m == \"largestack\" or m.startswith(\"largestack.\") for m in imports), (\n    \"largestack_app.py must import the real largestack package; \"\n    \"do not create local Agent/TestModel/Tool mocks\",\n    imports,\n)\nassert Path(\"README.md\").exists(), \"README.md required\"\nassert Path(\"largestack_app.py\").exists(), \"largestack_app.py required\"\nfiles = [p for p in Path(\".\").rglob(\"*\") if p.is_file() and \"__pycache__\" not in p.parts]\nassert len(files) >= 5, f\"expected at least 5 project files, got {len(files)}\"\nassert Path(\"data\").exists() or Path(\"policies\").exists(), \"expected data/ or policies/ evidence files\"\n\nall_text = \"\\n\".join(p.read_text(errors=\"ignore\") for p in files if p.suffix in {\".py\", \".md\", \".json\", \".txt\"})\nimport re\nassert not re.search(r\"\\bsk-[A-Za-z0-9_-]{12,}\\b\", all_text), \"project must not contain real-looking API keys\"\n\nfrom largestack_app import run_largestack_smoke\nwith block_model_requests():\n    out = asyncio.run(run_largestack_smoke())\nassert out[\"status\"] == \"ok\", out\nassert isinstance(out.get(\"evidence\"), dict), out\nfeatures = set(out.get(\"features\", []))\nevidence = out[\"evidence\"]\nassert 'workflow_dag' in features, out\nassert 'rag_citations' in features, out\nassert 'Agent' in calls, ('missing call', 'Agent', calls)\nassert 'TestModel' in calls, ('missing call', 'TestModel', calls)\nassert 'Workflow' in calls, ('missing call', 'Workflow', calls)\nassert 'create_rag' in calls, ('missing call', 'create_rag', calls)\nassert 'add_agent' in attrs, ('missing attr', 'add_agent', attrs)\nassert 'as_tool' in attrs, ('missing attr', 'as_tool', attrs)\nassert 'build_context' in attrs, ('missing attr', 'build_context', attrs)\nassert 'override' in attrs, ('missing attr', 'override', attrs)\nassert 'run' in attrs, ('missing attr', 'run', attrs)\nassert 'rag_context' in evidence, ('missing evidence', 'rag_context', evidence)\nassert 'rag_tool_calls' in evidence, ('missing evidence', 'rag_tool_calls', evidence)\nassert 'workflow_status' in evidence, ('missing evidence', 'workflow_status', evidence)\nassert 'workflow_steps' in evidence, ('missing evidence', 'workflow_steps', evidence)\nrag_context_text = \"\\n\".join(evidence[\"rag_context\"]) if isinstance(evidence[\"rag_context\"], list) else str(evidence[\"rag_context\"])\nassert \"[Source\" in rag_context_text, evidence\nrag_calls = evidence[\"rag_tool_calls\"]\nassert (isinstance(rag_calls, int) and rag_calls > 0) or (not isinstance(rag_calls, int) and \"search_knowledge\" in rag_calls), evidence\nassert evidence[\"workflow_status\"] == \"completed\", evidence\nassert int(evidence[\"workflow_steps\"]) >= 2, evidence\n",
+    "classification": "DEEPSEEK-BUILT-LARGESTACK-FEATURE-PROJECT",
+    "evidence_required": [
+      "workflow_dag",
+      "rag_citations"
+    ],
+    "forbidden_actions": [
+      "send_email",
+      "refund_payment",
+      "delete_file",
+      "publish_social",
+      "write_production"
+    ],
+    "name": "mini_rag_assistant_api",
+    "required_files": [
+      "README.md",
+      "largestack_app.py"
+    ],
+    "requirements": "Create rag_assistant.py with add_document(filename, content) and answer(query). Answers must include citations and return Insufficient evidence when no document supports the answer. Implement token/keyword overlap search, not exact whole-query substring matching. Ignore punctuation and weak question words, and require at least two meaningful query-token overlaps; one generic token such as policy is not enough evidence. answer(query) must always return a dict with public fields 'answer' and 'citations'. For insufficient evidence return {'answer': 'Insufficient evidence', 'citations': []}. Do not return a plain string and do not replace citations with a status field. If you keep an in-memory _documents store, tests must clear it between independent cases. Include README.md with at least 100 characters and run/test instructions.\nMini-RAG answer contract: answer(query) must not require the full query string to appear verbatim in a document. Implement case-insensitive token/keyword overlap search, ignoring punctuation and weak question words such as what, why, how, does, the, a, an, is, are, before. Require at least two meaningful query-token overlaps; a single generic overlap such as policy is insufficient evidence. The query 'duplicate payments require what?' must match the document 'Duplicate payments require approval before refund.' and return an answer containing approval plus citations containing refund_policy.md. Unsupported queries such as 'equity refresh policy', even when a document says only 'Some other policy.', must return Insufficient evidence. answer(query) must always return a dict with exactly the public fields answer: str and citations: list[str]; do not return a plain string, do not replace citations with status, and do not add a status-only contract. For insufficient evidence return {'answer': 'Insufficient evidence', 'citations': []}. Generated tests should clear the in-memory document store between independent cases. README.md is mandatory and must explain run/test usage.\n\n\nReal LARGESTACK feature requirement:\n- Create largestack_app.py with async def run_largestack_smoke() -> dict.\n- The function must execute the selected LARGESTACK features, not only mention them.\n- Use llm='deepseek/deepseek-chat' on Agents, but wrap generated project tests and smoke\n  checks with TestModel/FunctionModel overrides so the generated project has no network\n  side effects.\n- Never define local mock/replacement classes named Agent, Team, Workflow, Orchestrator,\n  TestModel, FunctionModel, or Tool. Import real APIs from largestack, largestack.testing,\n  and largestack.decorators.\n- Use Agent.override as a context manager: with agent.override(model=TestModel(...)):\n  result = await agent.run(...). Calling agent.override(...) without a with block is invalid.\n- The hidden gate wraps run_largestack_smoke() in block_model_requests(), so any accidental\n  real provider/network call inside the generated project fails.\n- Agent.run is async. Always call result = await agent.run(...), never result = agent.run(...).\n- Agent.run returns an AgentResult object, not a dict. Use result.content, result.tool_calls_made,\n  result.total_cost, result.trace_id. Do not use result.get(...).\n- Valid core imports look like:\n  from largestack import Agent, Team, Workflow, Orchestrator, tool, create_rag, create_guardrails\n  from largestack.memory import create_memory\n  from largestack.testing import TestModel, FunctionModel, capture_run_messages\n- Correct Agent/TestModel pattern:\n  agent = Agent(name=\"x\", llm=\"deepseek/deepseek-chat\", tools=[some_tool], cost_budget=0.1, max_turns=3)\n  with agent.override(model=TestModel(call_tools=[\"some_tool\"], custom_tool_args={\"some_tool\": {\"query\": \"refund\"}})):\n      result = await agent.run(\"prompt\")\n  calls = result.tool_calls_made\n- Correct map-reduce pattern:\n  mapper = Agent(name=\"mapper\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  reducer = Agent(name=\"reducer\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  orch = Orchestrator(strategy=\"map_reduce\", mapper=mapper, reducer=reducer)\n  with mapper.override(model=TestModel(\"mapped\")), reducer.override(model=TestModel(\"summary\")):\n      result = await orch.run({\"items\": [\"a\", \"b\", \"c\"]})\n- Correct router pattern:\n  classifier = Agent(name=\"classifier\", llm=\"deepseek/deepseek-chat\")\n  specialist = Agent(name=\"billing\", llm=\"deepseek/deepseek-chat\")\n  orch = Orchestrator(strategy=\"router\", classifier=classifier, routes={\"billing\": specialist}, default_route=\"billing\")\n  with classifier.override(model=TestModel(\"billing\")), specialist.override(model=TestModel(\"routed ok\")):\n      route_result = await orch.run(\"route this\")\n  route_output = route_result.output\n- Correct Team pattern:\n  team = Team(agents=[agent_a, agent_b], strategy=\"parallel\", cost_budget=0.2)\n  with agent_a.override(model=TestModel(\"a\")), agent_b.override(model=TestModel(\"b\")):\n      team_result = await team.run(\"task\")\n  team_output = team_result.content\n- Correct typed decorator pattern:\n  from dataclasses import dataclass\n  from largestack.decorators import Agent as TypedAgent, RunContext, ModelRetry\n  @dataclass\n  class Deps:\n      value: str = \"demo\"\n  typed_agent = TypedAgent[Deps, str](\"deepseek/deepseek-chat\", deps_type=Deps, output_type=str, instructions=\"demo\", name=\"typed\", max_retries=1, cost_budget=0.1)\n  # Then register @typed_agent.tool, @typed_agent.tool_plain, and @typed_agent.output_validator.\n  with typed_agent.override(model=TestModel(custom_output_text=\"typed ok\", call_tools=[])):\n      typed_result = await typed_agent.run(\"prompt\", deps=Deps())\n  typed_tools = list(typed_agent.tools.keys())\n  typed_output = typed_result.output\n- Memory reference:\n  memory = create_memory(\"buffer\")\n  await memory.add_message({\"role\": \"user\", \"content\": \"hello user1\"})\n  messages = memory.get_messages()\n- Workflow reference:\n  wf = Workflow(name=\"pipe\", mode=\"dag\", cost_budget=0.2)\n  wf.add_agent(agent_a)\n  wf.add_agent(agent_b, deps=[\"agent_a\"])\n  result = await wf.run({\"task\": \"go\"})\n  workflow_steps = len(result.steps)\n- Guardrails reference:\n  from types import SimpleNamespace\n  guardrails = create_guardrails(pii=True, injection=True, pii_action=\"redact\")\n  response = SimpleNamespace(content=\"Email test@example.com\")\n  await guardrails.check_output(response)\n  redacted_text = response.content\n- Return exactly this shape: {\"status\": \"ok\", \"features\": [...], \"evidence\": {...}}.\n- Include each selected feature name in the returned features list.\n- Evidence keys that must be present: rag_context, rag_tool_calls, workflow_status, workflow_steps.\n- Include at least one realistic fixture file under data/ or policy file under policies/.\n- Include tests/test_largestack_features.py that runs run_largestack_smoke().\n- No real API keys, no network imports, no destructive actions.\n\nSelected feature contracts:\n- workflow_dag: Build a Workflow(name, mode='dag', cost_budget=...) with at least two Agent nodes, wire dependencies with add_agent(..., deps=[...]), override both agents with TestModel, run the workflow with await workflow.run({'task': '...'}), and report workflow_status=result.status and workflow_steps=len(result.steps).\n- rag_citations: Use create_rag(documents=[...], chunk_size=100, top_k=2), call build_context(query='duplicate payments'), convert it with as_tool(), attach that tool to an Agent, and run with TestModel calling search_knowledge. Evidence must include rag_context with '[Source' and rag_tool_calls.\n"
+  }
+}

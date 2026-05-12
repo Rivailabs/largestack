@@ -1,0 +1,8 @@
+{
+  "invoice_id": "I1",
+  "po_id": "PO1",
+  "lines": [
+    {"sku": "A", "qty": 12, "unit_price": 100},
+    {"sku": "B", "qty": 5, "unit_price": 50}
+  ]
+}

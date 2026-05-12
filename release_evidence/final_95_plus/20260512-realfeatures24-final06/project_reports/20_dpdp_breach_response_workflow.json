@@ -1,0 +1,103 @@
+{
+  "features": [
+    "orchestrator_router",
+    "agent_tool_cost"
+  ],
+  "fixture_ok": true,
+  "passed": true,
+  "readme_ok": true,
+  "report": {
+    "actual_cost": 0.001234,
+    "artifact_count": 7,
+    "attempts": [
+      {
+        "actual_cost": 0.001099,
+        "estimated_cost": 0.000848,
+        "failure_summary": "none",
+        "files_changed": [
+          "README.md",
+          "dpdp_breach.py",
+          "largestack_app.py",
+          "policies/breach_policy.txt",
+          "tests/test_dpdp_breach.py",
+          "tests/test_largestack_features.py"
+        ],
+        "json_valid": true,
+        "mode": "generate",
+        "round": 1,
+        "tokens": 4037,
+        "trace_id": "9ca372f2-c29e-4024-826b-2322dcb2f10f",
+        "validation": {
+          "acceptance_output": "",
+          "acceptance_passed": true,
+          "compile_passed": true,
+          "duration_seconds": 11.9,
+          "failed_checks": [],
+          "pytest_passed": true,
+          "validation_output": "compile ok dpdp_breach.py\ncompile ok largestack_app.py\ncompile ok tests/test_dpdp_breach.py\ncompile ok tests/test_largestack_features.py\n.....                                                                    [100%]\n5 passed in 4.23s\n"
+        }
+      }
+    ],
+    "budget_exceeded": false,
+    "estimated_cost": 0.001262,
+    "generated_files": [
+      "README.md",
+      "dpdp_breach.py",
+      "largestack_app.py",
+      "policies/breach_policy.txt",
+      "tests/test_dpdp_breach.py",
+      "tests/test_largestack_features.py"
+    ],
+    "name": "dpdp_breach_response_workflow",
+    "notes": "Generated project with breach response workflow and LARGESTACK smoke test using TestModel overrides.",
+    "passed": true,
+    "project_path": "/home/questuser/Pictures/trash/agentic ai framework/largestack-agentic-ai-1.0.0-RECHECK-FIXED/release_evidence/final_95_plus/20260512-realfeatures24-final06/projects/20_dpdp_breach_response_workflow",
+    "tokens": 6007,
+    "trace_ids": [
+      "a1f094b4-83bc-40d3-b78d-b7bb024bf78f",
+      "9ca372f2-c29e-4024-826b-2322dcb2f10f"
+    ],
+    "validation": {
+      "acceptance_output": "",
+      "acceptance_passed": true,
+      "compile_passed": true,
+      "duration_seconds": 11.9,
+      "failed_checks": [],
+      "pytest_passed": true,
+      "validation_output": "compile ok dpdp_breach.py\ncompile ok largestack_app.py\ncompile ok tests/test_dpdp_breach.py\ncompile ok tests/test_largestack_features.py\n.....                                                                    [100%]\n5 passed in 4.23s\n"
+    }
+  },
+  "reviewer": {
+    "critical_blocker": "",
+    "json_valid": true,
+    "notes": "All checks pass. Project correctly uses LARGESTACK features (orchestrator_router, agent_tool_cost) with TestModel overrides, no network side effects.",
+    "passed": true,
+    "score": 95
+  },
+  "score": 99,
+  "security_issues": [],
+  "security_ok": true,
+  "source_issues": [],
+  "source_ok": true,
+  "spec": {
+    "acceptance": "from dpdp_breach import classify_incident, notification_plan, containment_steps\ninc='customer personal data leaked'\nassert classify_incident(inc)=='personal_data_breach'\nplan=notification_plan(inc)\nassert 'dpo' in ' '.join(plan).lower()\nassert any('audit' in s.lower() for s in containment_steps(inc))\n\n\nfrom pathlib import Path\nimport ast, asyncio\nfrom largestack.testing import block_model_requests\n\nsrc = Path(\"largestack_app.py\").read_text()\ntree = ast.parse(src)\ncalls = set()\nnames = set()\nattrs = set()\nimports = set()\nfor node in ast.walk(tree):\n    if isinstance(node, ast.ImportFrom):\n        imports.add(node.module or \"\")\n        for alias in node.names:\n            names.add(alias.asname or alias.name)\n    elif isinstance(node, ast.Import):\n        for alias in node.names:\n            imports.add(alias.name)\n            names.add(alias.asname or alias.name.split(\".\")[0])\n    elif isinstance(node, ast.Name):\n        names.add(node.id)\n    elif isinstance(node, ast.Attribute):\n        attrs.add(node.attr)\n    elif isinstance(node, ast.Call):\n        fn = node.func\n        if isinstance(fn, ast.Name):\n            calls.add(fn.id)\n        elif isinstance(fn, ast.Attribute):\n            calls.add(fn.attr)\n            attrs.add(fn.attr)\n        elif isinstance(fn, ast.Subscript):\n            base = fn.value\n            if isinstance(base, ast.Name):\n                calls.add(base.id)\n            elif isinstance(base, ast.Attribute):\n                calls.add(base.attr)\n                attrs.add(base.attr)\n\nclass_names = {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}\nfor forbidden_class in {\"Agent\", \"Team\", \"Workflow\", \"Orchestrator\", \"TestModel\", \"FunctionModel\", \"Tool\"}:\n    assert forbidden_class not in class_names, (\n        \"Do not define local mocks/replacements for LARGESTACK classes\",\n        forbidden_class,\n        class_names,\n    )\nassert any(m == \"largestack\" or m.startswith(\"largestack.\") for m in imports), (\n    \"largestack_app.py must import the real largestack package; \"\n    \"do not create local Agent/TestModel/Tool mocks\",\n    imports,\n)\nassert Path(\"README.md\").exists(), \"README.md required\"\nassert Path(\"largestack_app.py\").exists(), \"largestack_app.py required\"\nfiles = [p for p in Path(\".\").rglob(\"*\") if p.is_file() and \"__pycache__\" not in p.parts]\nassert len(files) >= 5, f\"expected at least 5 project files, got {len(files)}\"\nassert Path(\"data\").exists() or Path(\"policies\").exists(), \"expected data/ or policies/ evidence files\"\n\nall_text = \"\\n\".join(p.read_text(errors=\"ignore\") for p in files if p.suffix in {\".py\", \".md\", \".json\", \".txt\"})\nimport re\nassert not re.search(r\"\\bsk-[A-Za-z0-9_-]{12,}\\b\", all_text), \"project must not contain real-looking API keys\"\n\nfrom largestack_app import run_largestack_smoke\nwith block_model_requests():\n    out = asyncio.run(run_largestack_smoke())\nassert out[\"status\"] == \"ok\", out\nassert isinstance(out.get(\"evidence\"), dict), out\nfeatures = set(out.get(\"features\", []))\nevidence = out[\"evidence\"]\nassert 'orchestrator_router' in features, out\nassert 'agent_tool_cost' in features, out\nassert 'Agent' in calls, ('missing call', 'Agent', calls)\nassert 'Orchestrator' in calls, ('missing call', 'Orchestrator', calls)\nassert 'TestModel' in calls, ('missing call', 'TestModel', calls)\nassert 'tool' in names, ('missing name', 'tool', names)\nassert 'override' in attrs, ('missing attr', 'override', attrs)\nassert 'run' in attrs, ('missing attr', 'run', attrs)\nassert 'cost_budget=' in src, ('missing substring', 'cost_budget=')\nassert 'lookup_policy' in src, ('missing substring', 'lookup_policy')\nassert 'strategy=' in src, ('missing substring', 'strategy=')\nassert 'agent_cost_budget' in evidence, ('missing evidence', 'agent_cost_budget', evidence)\nassert 'agent_tool_calls' in evidence, ('missing evidence', 'agent_tool_calls', evidence)\nassert 'orchestrator_strategy' in evidence, ('missing evidence', 'orchestrator_strategy', evidence)\nassert 'route_output' in evidence, ('missing evidence', 'route_output', evidence)\nagent_calls = evidence[\"agent_tool_calls\"]\nassert (isinstance(agent_calls, int) and agent_calls > 0) or (not isinstance(agent_calls, int) and \"lookup_policy\" in agent_calls), evidence\nassert float(evidence[\"agent_cost_budget\"]) > 0, evidence\nassert evidence[\"orchestrator_strategy\"] == \"router\", evidence\nassert len(str(evidence[\"route_output\"])) > 0, evidence\n",
+    "classification": "DEEPSEEK-BUILT-LARGESTACK-FEATURE-PROJECT",
+    "evidence_required": [
+      "orchestrator_router",
+      "agent_tool_cost"
+    ],
+    "forbidden_actions": [
+      "send_email",
+      "refund_payment",
+      "delete_file",
+      "publish_social",
+      "write_production"
+    ],
+    "name": "dpdp_breach_response_workflow",
+    "required_files": [
+      "README.md",
+      "largestack_app.py"
+    ],
+    "requirements": "Create dpdp_breach.py with classify_incident, notification_plan, containment_steps. Personal data breach must include notify DPO and preserve audit log.\nPublic usage contract that the generated project must pass exactly:\n```python\nfrom dpdp_breach import classify_incident, notification_plan, containment_steps\ninc='customer personal data leaked'\nassert classify_incident(inc)=='personal_data_breach'\nplan=notification_plan(inc)\nassert 'dpo' in ' '.join(plan).lower()\nassert any('audit' in s.lower() for s in containment_steps(inc))\n```\n\nInclude README.md with run/test instructions. Use Python standard library only. Include pytest tests under tests/test_*.py. Do not include secrets, network calls, or external side effects.\n\nReal LARGESTACK feature requirement:\n- Create largestack_app.py with async def run_largestack_smoke() -> dict.\n- The function must execute the selected LARGESTACK features, not only mention them.\n- Use llm='deepseek/deepseek-chat' on Agents, but wrap generated project tests and smoke\n  checks with TestModel/FunctionModel overrides so the generated project has no network\n  side effects.\n- Never define local mock/replacement classes named Agent, Team, Workflow, Orchestrator,\n  TestModel, FunctionModel, or Tool. Import real APIs from largestack, largestack.testing,\n  and largestack.decorators.\n- Use Agent.override as a context manager: with agent.override(model=TestModel(...)):\n  result = await agent.run(...). Calling agent.override(...) without a with block is invalid.\n- The hidden gate wraps run_largestack_smoke() in block_model_requests(), so any accidental\n  real provider/network call inside the generated project fails.\n- Agent.run is async. Always call result = await agent.run(...), never result = agent.run(...).\n- Agent.run returns an AgentResult object, not a dict. Use result.content, result.tool_calls_made,\n  result.total_cost, result.trace_id. Do not use result.get(...).\n- Valid core imports look like:\n  from largestack import Agent, Team, Workflow, Orchestrator, tool, create_rag, create_guardrails\n  from largestack.memory import create_memory\n  from largestack.testing import TestModel, FunctionModel, capture_run_messages\n- Correct Agent/TestModel pattern:\n  agent = Agent(name=\"x\", llm=\"deepseek/deepseek-chat\", tools=[some_tool], cost_budget=0.1, max_turns=3)\n  with agent.override(model=TestModel(call_tools=[\"some_tool\"], custom_tool_args={\"some_tool\": {\"query\": \"refund\"}})):\n      result = await agent.run(\"prompt\")\n  calls = result.tool_calls_made\n- Correct map-reduce pattern:\n  mapper = Agent(name=\"mapper\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  reducer = Agent(name=\"reducer\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  orch = Orchestrator(strategy=\"map_reduce\", mapper=mapper, reducer=reducer)\n  with mapper.override(model=TestModel(\"mapped\")), reducer.override(model=TestModel(\"summary\")):\n      result = await orch.run({\"items\": [\"a\", \"b\", \"c\"]})\n- Correct router pattern:\n  classifier = Agent(name=\"classifier\", llm=\"deepseek/deepseek-chat\")\n  specialist = Agent(name=\"billing\", llm=\"deepseek/deepseek-chat\")\n  orch = Orchestrator(strategy=\"router\", classifier=classifier, routes={\"billing\": specialist}, default_route=\"billing\")\n  with classifier.override(model=TestModel(\"billing\")), specialist.override(model=TestModel(\"routed ok\")):\n      route_result = await orch.run(\"route this\")\n  route_output = route_result.output\n- Correct Team pattern:\n  team = Team(agents=[agent_a, agent_b], strategy=\"parallel\", cost_budget=0.2)\n  with agent_a.override(model=TestModel(\"a\")), agent_b.override(model=TestModel(\"b\")):\n      team_result = await team.run(\"task\")\n  team_output = team_result.content\n- Correct typed decorator pattern:\n  from dataclasses import dataclass\n  from largestack.decorators import Agent as TypedAgent, RunContext, ModelRetry\n  @dataclass\n  class Deps:\n      value: str = \"demo\"\n  typed_agent = TypedAgent[Deps, str](\"deepseek/deepseek-chat\", deps_type=Deps, output_type=str, instructions=\"demo\", name=\"typed\", max_retries=1, cost_budget=0.1)\n  # Then register @typed_agent.tool, @typed_agent.tool_plain, and @typed_agent.output_validator.\n  with typed_agent.override(model=TestModel(custom_output_text=\"typed ok\", call_tools=[])):\n      typed_result = await typed_agent.run(\"prompt\", deps=Deps())\n  typed_tools = list(typed_agent.tools.keys())\n  typed_output = typed_result.output\n- Memory reference:\n  memory = create_memory(\"buffer\")\n  await memory.add_message({\"role\": \"user\", \"content\": \"hello user1\"})\n  messages = memory.get_messages()\n- Workflow reference:\n  wf = Workflow(name=\"pipe\", mode=\"dag\", cost_budget=0.2)\n  wf.add_agent(agent_a)\n  wf.add_agent(agent_b, deps=[\"agent_a\"])\n  result = await wf.run({\"task\": \"go\"})\n  workflow_steps = len(result.steps)\n- Guardrails reference:\n  from types import SimpleNamespace\n  guardrails = create_guardrails(pii=True, injection=True, pii_action=\"redact\")\n  response = SimpleNamespace(content=\"Email test@example.com\")\n  await guardrails.check_output(response)\n  redacted_text = response.content\n- Return exactly this shape: {\"status\": \"ok\", \"features\": [...], \"evidence\": {...}}.\n- Include each selected feature name in the returned features list.\n- Evidence keys that must be present: agent_cost_budget, agent_tool_calls, orchestrator_strategy, route_output.\n- Include at least one realistic fixture file under data/ or policy file under policies/.\n- Include tests/test_largestack_features.py that runs run_largestack_smoke().\n- No real API keys, no network imports, no destructive actions.\n\nSelected feature contracts:\n- orchestrator_router: Use Orchestrator(strategy=\"router\", classifier=..., routes={...}) with a classifier and routed specialist Agents overridden with TestModel. Orchestrator.run returns OrchestratorResult; use result.output for route_output, not result.content. Evidence must include orchestrator_strategy='router' and route_output.\n- agent_tool_cost: Create an @tool async lookup_policy(query: str) and a largestack.Agent with llm='deepseek/deepseek-chat', tools=[lookup_policy], cost_budget set, max_turns set. Run it under agent.override(model=TestModel(call_tools=['lookup_policy'], custom_tool_args={'lookup_policy': {'query': 'refund'}})). Evidence must include agent_tool_calls and agent_cost_budget. Prefer agent_tool_calls=result.tool_calls_made; a nonzero count is acceptable only if the source still shows lookup_policy in the tool registration and TestModel call.\n"
+  }
+}
