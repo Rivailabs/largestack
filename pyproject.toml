@@ -33,6 +33,7 @@ dependencies = [
     "jinja2>=3.1",
     "sse-starlette>=3.4.2",
     "cryptography>=42.0",
+    "defusedxml>=0.7.1",
     "openpyxl>=3.1",
 ]
 

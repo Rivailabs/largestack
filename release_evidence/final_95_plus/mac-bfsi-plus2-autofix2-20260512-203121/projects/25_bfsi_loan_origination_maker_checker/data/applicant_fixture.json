@@ -1,0 +1,9 @@
+{
+  "applicant_id": "APP123",
+  "annual_income": 60000,
+  "monthly_debt": 1000,
+  "credit_score": 750,
+  "kyc_status": "verified",
+  "requested_amount": 50000,
+  "dpd_days": 0
+}
