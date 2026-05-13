@@ -1,0 +1,53 @@
+{
+  "actual_cost": 0.000705,
+  "artifact_count": 3,
+  "attempts": [
+    {
+      "actual_cost": 0.000628,
+      "estimated_cost": 0.00032,
+      "failure_summary": "none",
+      "files_changed": [
+        "support_ticket.py",
+        "tests/test_support_ticket.py"
+      ],
+      "json_valid": true,
+      "mode": "generate",
+      "round": 1,
+      "tokens": 1522,
+      "trace_id": "32b1d6c4-c24c-4fd3-a485-20aeba135804",
+      "validation": {
+        "acceptance_output": "",
+        "acceptance_passed": true,
+        "compile_passed": true,
+        "duration_seconds": 0.95,
+        "failed_checks": [],
+        "pytest_passed": true,
+        "validation_output": "compile ok support_ticket.py\ncompile ok tests/test_support_ticket.py\n.......                                                                  [100%]\n7 passed in 0.17s\n"
+      }
+    }
+  ],
+  "budget_exceeded": false,
+  "estimated_cost": 0.000375,
+  "generated_files": [
+    "support_ticket.py",
+    "tests/test_support_ticket.py"
+  ],
+  "name": "support_ticket_api",
+  "notes": "Implemented support_ticket.py with strict rules: duplicate payment/refund -> refund category and approval_required True; any refund/payment requires approval; login reset requires identity verification. Tests cover all rules.",
+  "passed": true,
+  "project_path": "projects/support_ticket_api",
+  "tokens": 1788,
+  "trace_ids": [
+    "a3423b89-9e33-4e1b-804a-ba6501951469",
+    "32b1d6c4-c24c-4fd3-a485-20aeba135804"
+  ],
+  "validation": {
+    "acceptance_output": "",
+    "acceptance_passed": true,
+    "compile_passed": true,
+    "duration_seconds": 0.95,
+    "failed_checks": [],
+    "pytest_passed": true,
+    "validation_output": "compile ok support_ticket.py\ncompile ok tests/test_support_ticket.py\n.......                                                                  [100%]\n7 passed in 0.17s\n"
+  }
+}

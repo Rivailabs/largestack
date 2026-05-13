@@ -40,9 +40,9 @@ pip install largestack-agentic-ai
 Then in your code, replace `from nexus import ...` with
 `from largestack import ...`.
 
-**Test totals:** **2335 passing** unit tests (was 2333 + 2 new for
-`Agent.guardrails` property), 64 smoke checks, 3 production scenarios,
-100/100 audit scenarios, 10/10 showcase HTMLs, all green.
+**Test totals:** **2510 passing** tests, 23 provider/API-key gated skips,
+64 smoke checks, 3 production scenarios, 100/100 audit scenarios,
+10/10 showcase HTMLs, all green.
 
 ## v0.14.4 — 2026-05-06 — Bug fixes from competitor-parity audit
 

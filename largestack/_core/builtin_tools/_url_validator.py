@@ -16,6 +16,7 @@ Behavior:
   - Optional LARGESTACK_HTTP_ALLOWLIST="host1,host2" — when set, ONLY listed
     hosts are permitted (production-safe pinning)
 """
+
 from __future__ import annotations
 import ipaddress
 import os
@@ -80,9 +81,7 @@ def validate_url(url: str) -> str | None:
 
     # Default: SSRF protection — resolve and reject private IPs.
     try:
-        infos = socket.getaddrinfo(
-            host, parsed.port or (443 if parsed.scheme == "https" else 80)
-        )
+        infos = socket.getaddrinfo(host, parsed.port or (443 if parsed.scheme == "https" else 80))
     except (socket.gaierror, socket.herror) as e:
         return f"DNS resolution failed: {e}"
     for info in infos:

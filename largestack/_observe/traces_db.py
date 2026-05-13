@@ -18,6 +18,7 @@ run. The schema matches every column the dashboard SELECTs:
 The OTel SQLite exporter still produces `spans` for trace-level granularity,
 but the dashboard's per-agent-run views read from `traces`.
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -71,12 +72,8 @@ def _ensure_schema(db_path: str) -> None:
                 )
                 """
             )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_traces_timestamp ON traces(timestamp)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_traces_agent ON traces(agent)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_traces_timestamp ON traces(timestamp)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_traces_agent ON traces(agent)")
             conn.commit()
             _initialized.add(db_path)
         finally:

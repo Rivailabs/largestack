@@ -22,6 +22,7 @@ Usage in FastAPI:
     from largestack._dashboard.rate_limit import rate_limit_dependency
     @app.get("/api/foo", dependencies=[Depends(rate_limit_dependency)])
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -38,8 +39,10 @@ log = logging.getLogger("largestack.rate_limit")
 # In-process backend (token bucket)
 # --------------------------------------------------------------------------
 
+
 class _Bucket:
     """Token bucket with continuous refill."""
+
     __slots__ = ("tokens", "last_refill", "capacity", "refill_per_sec")
 
     def __init__(self, capacity: int, refill_per_sec: float):
@@ -61,6 +64,7 @@ class _Bucket:
 
 class InProcessRateLimiter:
     """Per-key LRU-bounded rate limiter. Single-process only."""
+
     def __init__(self, per_minute: int = 60, burst: int = 10, max_keys: int = 10_000):
         self.refill_per_sec = per_minute / 60.0
         self.burst = burst
@@ -163,7 +167,8 @@ class RedisRateLimiter:
             return self.fallback.check(key, cost)
         try:
             result = self._redis.evalsha(
-                self._lua_sha, 1,
+                self._lua_sha,
+                1,
                 f"largestack:rl:{key}",
                 str(time.time()),
                 str(self.burst),
@@ -204,9 +209,7 @@ def _get_limiter() -> InProcessRateLimiter | RedisRateLimiter:
                     redis_url=redis_url, per_minute=per_min, burst=burst
                 )
             else:
-                _limiter_singleton = InProcessRateLimiter(
-                    per_minute=per_min, burst=burst
-                )
+                _limiter_singleton = InProcessRateLimiter(per_minute=per_min, burst=burst)
                 log.info(f"RateLimiter: inprocess backend, {per_min}/min burst={burst}")
     return _limiter_singleton
 

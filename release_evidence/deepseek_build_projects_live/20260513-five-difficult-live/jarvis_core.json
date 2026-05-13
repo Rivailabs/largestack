@@ -1,0 +1,53 @@
+{
+  "actual_cost": 0.000641,
+  "artifact_count": 3,
+  "attempts": [
+    {
+      "actual_cost": 0.000519,
+      "estimated_cost": 0.000296,
+      "failure_summary": "none",
+      "files_changed": [
+        "jarvis_core.py",
+        "tests/test_jarvis_core.py"
+      ],
+      "json_valid": true,
+      "mode": "generate",
+      "round": 1,
+      "tokens": 1409,
+      "trace_id": "e33d2747-07e9-4898-a63d-695c636d7d9f",
+      "validation": {
+        "acceptance_output": "",
+        "acceptance_passed": true,
+        "compile_passed": true,
+        "duration_seconds": 0.8,
+        "failed_checks": [],
+        "pytest_passed": true,
+        "validation_output": "compile ok jarvis_core.py\ncompile ok tests/test_jarvis_core.py\n....                                                                     [100%]\n4 passed in 0.16s\n"
+      }
+    }
+  ],
+  "budget_exceeded": false,
+  "estimated_cost": 0.000376,
+  "generated_files": [
+    "jarvis_core.py",
+    "tests/test_jarvis_core.py"
+  ],
+  "name": "jarvis_core",
+  "notes": "Project jarvis_core with stdlib-only Python, SQLite persistence, and risky action approval.",
+  "passed": true,
+  "project_path": "projects/jarvis_core",
+  "tokens": 1790,
+  "trace_ids": [
+    "8f39fdf1-894b-46dd-be15-a7b813999b79",
+    "e33d2747-07e9-4898-a63d-695c636d7d9f"
+  ],
+  "validation": {
+    "acceptance_output": "",
+    "acceptance_passed": true,
+    "compile_passed": true,
+    "duration_seconds": 0.8,
+    "failed_checks": [],
+    "pytest_passed": true,
+    "validation_output": "compile ok jarvis_core.py\ncompile ok tests/test_jarvis_core.py\n....                                                                     [100%]\n4 passed in 0.16s\n"
+  }
+}

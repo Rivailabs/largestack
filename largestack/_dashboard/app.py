@@ -12,6 +12,7 @@ added to all HTML routes.
 from __future__ import annotations
 import html as _html
 import json, os, sqlite3, time
+import logging
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from starlette.datastructures import MutableHeaders

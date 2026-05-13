@@ -263,16 +263,20 @@ def run_cmd(cmd: list[str], cwd: Path, timeout: int = 60) -> dict[str, Any]:
         return {"returncode": 124, "stdout": (output + "\ncommand timed out")[-5000:]}
 
 
+def _python_executable() -> str:
+    return os.path.abspath(sys.executable)
+
+
 def run_pytest(path: Path) -> dict[str, Any]:
     if not (path / "tests").exists():
         return {"returncode": 1, "stdout": "missing tests directory"}
-    return run_cmd([sys.executable, "-m", "pytest", "tests", "-q", "--tb=short"], path, timeout=90)
+    return run_cmd([_python_executable(), "-m", "pytest", "tests", "-q", "--tb=short"], path, timeout=90)
 
 
 def run_acceptance(path: Path, code: str) -> dict[str, Any]:
     if not code.strip():
         return {"returncode": 0, "stdout": "no hidden acceptance configured"}
-    return run_cmd([sys.executable, "-c", code], path, timeout=30)
+    return run_cmd([_python_executable(), "-c", code], path, timeout=30)
 
 
 def validate_project(project_path: Path, acceptance_code: str) -> ValidationResult:

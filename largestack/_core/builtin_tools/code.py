@@ -123,7 +123,7 @@ async def _run_python(code: str) -> str:
             # hooks) on every sandboxed code execution. Set
             # LARGESTACK_CODE_SITE_PACKAGES=1 when user code must import installed
             # third-party packages from the host environment.
-            py_args = [sys.executable]
+            py_args = [os.path.abspath(sys.executable)]
             if os.environ.get("LARGESTACK_CODE_SITE_PACKAGES", "").lower() not in ("1", "true", "yes"):
                 py_args.append("-S")
             py_args.append(script_path)

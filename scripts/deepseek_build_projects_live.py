@@ -164,6 +164,19 @@ PROJECT_SPECS = {
 }
 
 
+def selected_project_specs() -> dict[str, dict[str, str]]:
+    """Return the requested project subset, preserving PROJECT_SPECS order."""
+    raw = os.environ.get("LARGESTACK_DEEPSEEK_PROJECTS", "").strip()
+    if not raw:
+        return PROJECT_SPECS
+    requested = [item.strip() for item in raw.split(",") if item.strip()]
+    unknown = [name for name in requested if name not in PROJECT_SPECS]
+    if unknown:
+        raise SystemExit(f"Unknown project names in LARGESTACK_DEEPSEEK_PROJECTS: {', '.join(unknown)}")
+    wanted = set(requested)
+    return {name: spec for name, spec in PROJECT_SPECS.items() if name in wanted}
+
+
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text)
@@ -388,7 +401,9 @@ async def main_async() -> int:
     records: list[Any] = []
     started = time.monotonic()
     try:
-        for name, spec in PROJECT_SPECS.items():
+        specs = selected_project_specs()
+        print("PROJECTS=" + ",".join(specs))
+        for name, spec in specs.items():
             project_path = PROJECTS_DIR / name
             if project_path.exists():
                 shutil.rmtree(project_path)

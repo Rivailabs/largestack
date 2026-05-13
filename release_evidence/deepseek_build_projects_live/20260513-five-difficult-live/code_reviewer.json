@@ -1,0 +1,53 @@
+{
+  "actual_cost": 0.000988,
+  "artifact_count": 3,
+  "attempts": [
+    {
+      "actual_cost": 0.000876,
+      "estimated_cost": 0.000429,
+      "failure_summary": "none",
+      "files_changed": [
+        "code_reviewer.py",
+        "tests/test_code_reviewer.py"
+      ],
+      "json_valid": true,
+      "mode": "generate",
+      "round": 1,
+      "tokens": 2042,
+      "trace_id": "b5a80021-5b61-458e-8fc8-71c13c0324a0",
+      "validation": {
+        "acceptance_output": "",
+        "acceptance_passed": true,
+        "compile_passed": true,
+        "duration_seconds": 0.84,
+        "failed_checks": [],
+        "pytest_passed": true,
+        "validation_output": "compile ok code_reviewer.py\ncompile ok tests/test_code_reviewer.py\n........                                                                 [100%]\n8 passed in 0.16s\n"
+      }
+    }
+  ],
+  "budget_exceeded": false,
+  "estimated_cost": 0.000504,
+  "generated_files": [
+    "code_reviewer.py",
+    "tests/test_code_reviewer.py"
+  ],
+  "name": "code_reviewer",
+  "notes": "Implemented code_reviewer.py with find_issues and suggest_patch functions. Tests cover hardcoded secrets and SQL f-string formatting.",
+  "passed": true,
+  "project_path": "projects/code_reviewer",
+  "tokens": 2400,
+  "trace_ids": [
+    "af1e5828-a347-4e39-bf06-83f9bc421463",
+    "b5a80021-5b61-458e-8fc8-71c13c0324a0"
+  ],
+  "validation": {
+    "acceptance_output": "",
+    "acceptance_passed": true,
+    "compile_passed": true,
+    "duration_seconds": 0.84,
+    "failed_checks": [],
+    "pytest_passed": true,
+    "validation_output": "compile ok code_reviewer.py\ncompile ok tests/test_code_reviewer.py\n........                                                                 [100%]\n8 passed in 0.16s\n"
+  }
+}
