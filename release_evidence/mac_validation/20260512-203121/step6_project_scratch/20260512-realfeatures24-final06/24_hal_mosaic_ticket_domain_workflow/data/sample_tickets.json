@@ -1,0 +1,14 @@
+[
+    {
+        "text": "MOSAIC avionics safety production write",
+        "expected_domain": "mosaic_avionics",
+        "expected_approval": true,
+        "expected_sla": 240
+    },
+    {
+        "text": "General IT issue",
+        "expected_domain": "general",
+        "expected_approval": false,
+        "expected_sla": 480
+    }
+]

@@ -1,0 +1,7 @@
+privacy_policy:
+  version: "1.0"
+  data_handling:
+    access: "Identity verification required for access requests."
+    export: "Export requests fulfilled within 30 days."
+    deletion: "Deletion requests require manager approval and are not executed automatically."
+  pii_redaction: "All PII in logs must be redacted using regex patterns."

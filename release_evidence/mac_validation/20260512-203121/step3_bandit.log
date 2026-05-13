@@ -1,0 +1,50 @@
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.11.15
+[tester]	WARNING	nosec encountered (B104), but no failed test on file largestack/_core/license.py:64
+[tester]	WARNING	nosec encountered (B104), but no failed test on file largestack/_core/license.py:64
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_rag/vector_store.py:94
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_rag/vector_store.py:94
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_rag/vector_store.py:94
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_rag/vector_store.py:105
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_rag/vector_store.py:105
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_rag/vector_store.py:105
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_rag/vector_store.py:116
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_rag/vector_store.py:134
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:361
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:394
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:414
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1505
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1505
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1505
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1520
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1520
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1546
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1546
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1546
+[tester]	WARNING	nosec encountered (B608), but no failed test on file largestack/_vectorstores/__init__.py:1575
+Working... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:01
+Run started:2026-05-12 15:15:53.146078+00:00
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 45759
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 13
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 61
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 5
+		High: 56
+Files skipped (0):

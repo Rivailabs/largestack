@@ -1,0 +1,4 @@
+txn_id,customer_id,amount,country,description
+T1,C1,1200000,IR,crypto mixer payout
+T2,C2,1000,US,vendor invoice
+T3,C3,900000,US,cash structuring deposits

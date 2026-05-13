@@ -1,0 +1,85 @@
+README.md:32:5. `guardrails.yaml` — use `protect` by default, `strict` for BFSI/customer-sensitive work.
+README.md:65:largestack init bfsi-demo --template bfsi
+README.md:79:- Enterprise governance: strict/BFSI, audit, RBAC/SSO/tenant controls.
+scripts/productization_100.py:46:    "bfsi",
+scripts/productization_100.py:309:    decision = decide_tool_action("payment_transfer", {"amount": 100}, config=GuardrailConfig(mode=GuardrailMode.STRICT, context="bfsi"))
+docs/PRODUCTION_READINESS.md:25:- BFSI/enterprise compliance approval.
+docs/project-scaffold.md:18:- `bfsi`
+scripts/final_95_plus_certify.py:51:    "bfsi": 95,
+scripts/final_95_plus_certify.py:747:        "bfsi": 95.0 if docker_ok and security_ok and all_projects_pass and os.environ.get("LARGESTACK_EXTERNAL_AUDIT_PASSED") == "1" else 85.0,
+scripts/benchmarks/deepseek_capability_benchmark.py:187:7. Enterprise/BFSI readiness gaps
+scripts/largestack_real_feature_certify.py:704:    bfsi_projects: list[tuple[str, str, str, tuple[str, ...]]] = [
+scripts/largestack_real_feature_certify.py:706:            "bfsi_loan_origination_maker_checker",
+scripts/largestack_real_feature_certify.py:736:            "bfsi_aml_transaction_monitoring",
+scripts/largestack_real_feature_certify.py:765:    for name, requirements, acceptance, features in bfsi_projects:
+scripts/largestack_real_feature_certify.py:774:                classification="DEEPSEEK-BUILT-LARGESTACK-BFSI-FEATURE-PROJECT",
+docs/FINAL_95_PLUS_CERTIFICATION.md:50:- SaaS/BFSI targets are not marked `GO` without soak/load/compliance evidence.
+docs/PRODUCTIZATION_PILLARS.md:24:- `bfsi`
+docs/PRODUCTIZATION_PILLARS.md:81:- BFSI strict config: approved providers, maker-checker, audit.
+docs/archive/FINAL_RELEASE_VALIDATION_RESULTS.md:71:| BFSI/regulated enterprise | HOLD | Requires formal threat model, VAPT/pentest, compliance/legal sign-off, audit retention policy, and access review process. |
+docs/archive/FINAL_RELEASE_VALIDATION_RESULTS.md:82:| BFSI / regulated enterprise | HOLD |
+docs/archive/FINAL_RELEASE_READINESS.md:102:| Enterprise/BFSI readiness before external audit | 75 / 100 |
+release_evidence/final_95_plus/20260512-realfeatures24-final06/FINAL_DECISION.md:9:- BFSI/regulatory production: HOLD
+release_evidence/final_95_plus/20260512-realfeatures24-final06/FINAL_DECISION.md:60:- External VAPT, compliance evidence, RBAC/tenant-retention audit proof, and incident process are still required for BFSI.
+release_evidence/mac_validation/20260512-203121/step5_compileall.log:110:Compiling 'tests/unit/test_guardrail_bfsi_policy.py'...
+release_evidence/mac_validation/20260512-174531/step4_compileall.log:404:Compiling 'tests/unit/test_guardrail_bfsi_policy.py'...
+release_evidence/mac_validation/20260512-174531/MAC_VALIDATION_REPORT.md:23:| +2 BFSI status | NOT PRESENT | `step10_bfsi_find.log` | `bfsi_loan_origination_maker_checker` and `bfsi_aml_transaction_monitoring` artifacts are not in this clone. Report: "+2 BFSI harness exists or was discussed, but project artifacts are not in this clone." |
+release_evidence/mac_validation/20260512-174531/MAC_VALIDATION_REPORT.md:25:| Remaining blockers | HOLD | This report | Required full pytest segfaults on macOS/Python 3.13 FAISS persistent path; `gitleaks` not installed so leak gate incomplete; Docker daemon not running; Helm missing; BFSI +2 artifacts absent; doc path case collisions unresolved; `pyproject.toml` has an uncommitted dependency fix. |
+release_evidence/mac_validation/20260512-174531/evidence_file_manifest.log:5:release_evidence/mac_validation/20260512-174531/step10_bfsi_find.log
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:184:tests/unit/test_cli_scaffold.py::test_scaffold_creates_product_templates[bfsi] PASSED [  6%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:564:tests/unit/test_final_95_plus_certify.py::test_compute_scores_holds_bfsi_without_external_audit PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:565:tests/unit/test_guardrail_bfsi_policy.py::test_bfsi_context_activates_strict_mode PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:566:tests/unit/test_guardrail_bfsi_policy.py::test_normal_bfsi_architecture_planning_allowed PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:567:tests/unit/test_guardrail_bfsi_policy.py::test_bfsi_customer_data_redacted PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:568:tests/unit/test_guardrail_bfsi_policy.py::test_bfsi_external_upload_blocked PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:569:tests/unit/test_guardrail_bfsi_policy.py::test_bfsi_payment_send_delete_controlled PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:570:tests/unit/test_guardrail_bfsi_policy.py::test_unapproved_provider_routing_with_sensitive_data_blocks PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:571:tests/unit/test_guardrail_bfsi_policy.py::test_approved_provider_routing_redacts_sensitive_data PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:572:tests/unit/test_guardrail_bfsi_policy.py::test_bfsi_malware_and_credential_theft_block PASSED [ 21%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:592:tests/unit/test_guardrail_prompt_policy.py::test_strict_bfsi_external_provider_leakage_blocks PASSED [ 22%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:595:tests/unit/test_guardrail_sensitive_data_policy.py::test_financial_data_in_bfsi_context_is_redacted PASSED [ 22%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:603:tests/unit/test_guardrail_tool_policy.py::test_payment_requires_maker_checker_in_strict_bfsi PASSED [ 23%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:998:tests/unit/test_real_feature_certify.py::test_real_feature_suite_has_26_specs_with_bfsi_additions PASSED [ 38%]
+release_evidence/mac_validation/20260512-174531/step4_pytest_full_faulthandler.log:1000:tests/unit/test_real_feature_certify.py::test_bfsi_specs_require_no_external_side_effects PASSED [ 38%]
+tests/unit/test_guardrail_bfsi_policy.py:17:    "LARGESTACK_BFSI_APPROVED_PROVIDERS",
+tests/unit/test_guardrail_bfsi_policy.py:31:def test_bfsi_context_activates_strict_mode(monkeypatch):
+tests/unit/test_guardrail_bfsi_policy.py:33:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_guardrail_bfsi_policy.py:38:    assert cfg.context == "bfsi"
+tests/unit/test_guardrail_bfsi_policy.py:41:def test_normal_bfsi_architecture_planning_allowed(monkeypatch):
+tests/unit/test_guardrail_bfsi_policy.py:43:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_guardrail_bfsi_policy.py:44:    messages = [{"role": "user", "content": "Design BFSI/NBFC product architecture with KYC, payments, audit, and approvals."}]
+tests/unit/test_guardrail_bfsi_policy.py:48:    assert "BFSI/NBFC" in messages[0]["content"]
+tests/unit/test_guardrail_bfsi_policy.py:51:def test_bfsi_customer_data_redacted(monkeypatch):
+tests/unit/test_guardrail_bfsi_policy.py:53:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_guardrail_bfsi_policy.py:62:def test_bfsi_external_upload_blocked(monkeypatch):
+tests/unit/test_guardrail_bfsi_policy.py:64:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_guardrail_bfsi_policy.py:72:def test_bfsi_payment_send_delete_controlled(monkeypatch):
+tests/unit/test_guardrail_bfsi_policy.py:74:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_guardrail_bfsi_policy.py:88:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_guardrail_bfsi_policy.py:89:    monkeypatch.setenv("LARGESTACK_BFSI_APPROVED_PROVIDERS", "deepseek,azure")
+tests/unit/test_guardrail_bfsi_policy.py:99:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_guardrail_bfsi_policy.py:100:    monkeypatch.setenv("LARGESTACK_BFSI_APPROVED_PROVIDERS", "deepseek,azure")
+tests/unit/test_guardrail_bfsi_policy.py:108:def test_bfsi_malware_and_credential_theft_block(monkeypatch):
+tests/unit/test_guardrail_bfsi_policy.py:110:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_guardrail_tool_policy.py:51:def test_payment_requires_maker_checker_in_strict_bfsi():
+tests/unit/test_guardrail_tool_policy.py:55:        config=GuardrailConfig(mode=GuardrailMode.STRICT, context="bfsi"),
+tests/unit/test_final_95_plus_certify.py:104:def test_compute_scores_holds_bfsi_without_external_audit(tmp_path, monkeypatch):
+tests/unit/test_final_95_plus_certify.py:126:    assert scores["bfsi"] == 85.0
+tests/unit/test_guardrail_prompt_policy.py:119:def test_strict_bfsi_external_provider_leakage_blocks(monkeypatch):
+tests/unit/test_guardrail_prompt_policy.py:122:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")
+tests/unit/test_real_feature_certify.py:19:def test_real_feature_suite_has_26_specs_with_bfsi_additions():
+tests/unit/test_real_feature_certify.py:23:    assert specs[-2].name == "bfsi_loan_origination_maker_checker"
+tests/unit/test_real_feature_certify.py:24:    assert specs[-1].name == "bfsi_aml_transaction_monitoring"
+tests/unit/test_real_feature_certify.py:38:def test_bfsi_specs_require_no_external_side_effects():
+tests/unit/test_real_feature_certify.py:40:    loan = specs["bfsi_loan_origination_maker_checker"]
+tests/unit/test_real_feature_certify.py:41:    aml = specs["bfsi_aml_transaction_monitoring"]
+tests/unit/test_cli_scaffold.py:26:        "bfsi",
+tests/unit/test_cli_scaffold.py:123:        "bfsi",
+tests/unit/test_cli_scaffold.py:151:        if template == "bfsi":
+tests/unit/test_cli_scaffold.py:153:            assert "context: bfsi" in (project / "guardrails.yaml").read_text()
+tests/unit/test_guardrail_config.py:17:    "LARGESTACK_BFSI_APPROVED_PROVIDERS",
+tests/unit/test_guardrail_config.py:40:    assert cfg.bfsi_approved_providers == ()
+tests/unit/test_guardrail_config.py:90:    monkeypatch.setenv("LARGESTACK_BFSI_APPROVED_PROVIDERS", "deepseek, openai , ,azure")
+tests/unit/test_guardrail_config.py:94:    assert cfg.bfsi_approved_providers == ("deepseek", "openai", "azure")
+tests/unit/test_guardrail_sensitive_data_policy.py:49:def test_financial_data_in_bfsi_context_is_redacted(monkeypatch):
+tests/unit/test_guardrail_sensitive_data_policy.py:52:    monkeypatch.setenv("LARGESTACK_CONTEXT", "bfsi")

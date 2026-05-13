@@ -1,0 +1,2 @@
+name,features,passed,score,failed_checks,tokens,actual_cost,project_path
+bfsi_aml_transaction_monitoring,"orchestrator_router,rag_citations,observability_trace",False,26,pytest;acceptance;missing largestack_app.py;missing_or_thin_readme;missing_data_or_policy_fixture;reviewer_not_passed;score_below_90,34118,0.013479,/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-aml-auto-retry-20260512-203121/projects/26_bfsi_aml_transaction_monitoring

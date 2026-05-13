@@ -1,0 +1,5 @@
+Q: Do you support audit logs and SSO?
+A: Yes, we provide comprehensive audit logging and single sign-on integration.
+
+Q: Do you support on-prem airgap?
+A: We do not currently offer on-premises air-gapped deployment.

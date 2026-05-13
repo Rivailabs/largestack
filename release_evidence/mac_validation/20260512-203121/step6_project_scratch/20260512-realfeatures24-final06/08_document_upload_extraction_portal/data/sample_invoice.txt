@@ -1,0 +1,3 @@
+Invoice total: 1200
+Vendor: ACME
+Date: 2025-01-15

@@ -1,0 +1,4 @@
+{
+  "blocked_countries": ["IR", "KP", "SY", "CU"],
+  "high_risk_keywords": ["sanctions", "terrorism", "money laundering"]
+}

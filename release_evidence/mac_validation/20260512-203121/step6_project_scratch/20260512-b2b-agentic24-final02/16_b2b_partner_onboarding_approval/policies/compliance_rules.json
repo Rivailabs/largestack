@@ -1,0 +1,4 @@
+{
+  "allowed_regions": ["EU", "US", "APAC"],
+  "allowed_revenue_tiers": ["gold", "silver", "platinum"]
+}

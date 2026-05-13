@@ -1,0 +1,11 @@
+==> Fetching downloads for: helm
+✔︎ Bottle Manifest helm (4.1.4)
+✔︎ Bottle helm (4.1.4)
+==> Pouring helm--4.1.4.arm64_sequoia.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/helm/4.1.4: 69 files, 61.3MB
+==> Running `brew cleanup helm`...
+Disable this behaviour by setting `HOMEBREW_NO_INSTALL_CLEANUP=1`.
+Hide these hints with `HOMEBREW_NO_ENV_HINTS=1` (see `man brew`).
+==> Caveats
+zsh completions have been installed to:
+  /opt/homebrew/share/zsh/site-functions

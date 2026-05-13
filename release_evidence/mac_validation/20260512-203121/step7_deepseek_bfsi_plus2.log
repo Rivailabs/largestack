@@ -1,0 +1,21 @@
+[realfeatures24] run start: mac-bfsi-plus2-20260512-203121
+[realfeatures24] suite: real-feature projects=26 min_score=90 suite_average=95.0
+[realfeatures24] evidence dir: /Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121
+[realfeatures24] live DeepSeek smoke start
+[realfeatures24] live DeepSeek smoke done passed=True
+[realfeatures24] project start: 25_bfsi_loan_origination_maker_checker features=workflow_dag,tool_policy_approval,guardrails_pii
+PII detected in input (action=warn, not blocking)
+PII detected in input (action=warn, not blocking)
+PII detected in output (action=warn, not blocking)
+PII detected in input (action=warn, not blocking)
+PII detected in input (action=warn, not blocking)
+[realfeatures24] project done: 25_bfsi_loan_origination_maker_checker passed=True score=99 failed=[]
+[realfeatures24] project start: 26_bfsi_aml_transaction_monitoring features=orchestrator_router,rag_citations,observability_trace
+PII detected in input (action=warn, not blocking)
+PII detected in input (action=warn, not blocking)
+PII detected in input (action=warn, not blocking)
+PII detected in input (action=warn, not blocking)
+PII detected in input (action=warn, not blocking)
+PII detected in input (action=warn, not blocking)
+[realfeatures24] project done: 26_bfsi_aml_transaction_monitoring passed=False score=62 failed=['pytest', 'acceptance', 'reviewer_not_passed', 'score_below_90']
+[realfeatures24] run done: decision=HOLD evidence=/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121

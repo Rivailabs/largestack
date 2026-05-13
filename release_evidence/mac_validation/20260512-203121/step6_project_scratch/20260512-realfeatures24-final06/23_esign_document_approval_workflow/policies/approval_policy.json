@@ -1,0 +1,11 @@
+{
+  "policy_name": "Approval Policy",
+  "description": "All envelopes require approval before sending.",
+  "rules": [
+    {
+      "action": "send",
+      "required_approvals": 1,
+      "approvers": ["manager@example.com"]
+    }
+  ]
+}

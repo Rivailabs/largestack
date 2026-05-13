@@ -1,0 +1,32 @@
+{
+  "run_id": "20260512-bfsi-plus2-final01",
+  "suite": "bfsi-plus2-curated",
+  "project_count": 2,
+  "all_projects_passed": true,
+  "final_decision": "GO_FOR_LOCAL_ARTIFACT_VALIDATION",
+  "projects": [
+    {
+      "name": "bfsi_loan_origination_maker_checker",
+      "features": [
+        "workflow_dag",
+        "tool_policy_approval",
+        "guardrails_pii"
+      ],
+      "passed": true,
+      "score": 99,
+      "failed_checks": []
+    },
+    {
+      "name": "bfsi_aml_transaction_monitoring",
+      "features": [
+        "orchestrator_router",
+        "rag_citations",
+        "observability_trace"
+      ],
+      "passed": true,
+      "score": 99,
+      "failed_checks": []
+    }
+  ],
+  "limitation": "Curated local artifact validation. The live DeepSeek certifier retry for AML still failed automatically."
+}

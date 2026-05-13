@@ -1,0 +1,13 @@
+✔︎ JSON API formula.jws.json
+✔︎ JSON API cask.jws.json
+==> Fetching downloads for: gitleaks
+✔︎ Bottle Manifest gitleaks (8.30.1)
+✔︎ Bottle gitleaks (8.30.1)
+==> Pouring gitleaks--8.30.1.arm64_sequoia.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/gitleaks/8.30.1: 10 files, 15.4MB
+==> Running `brew cleanup gitleaks`...
+Disable this behaviour by setting `HOMEBREW_NO_INSTALL_CLEANUP=1`.
+Hide these hints with `HOMEBREW_NO_ENV_HINTS=1` (see `man brew`).
+==> Caveats
+zsh completions have been installed to:
+  /opt/homebrew/share/zsh/site-functions

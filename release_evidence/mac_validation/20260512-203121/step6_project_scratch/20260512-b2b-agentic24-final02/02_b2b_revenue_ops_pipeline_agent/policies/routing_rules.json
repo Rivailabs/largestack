@@ -1,0 +1,8 @@
+{
+  "rules": [
+    {"condition": "employees >= 500", "queue": "enterprise_ae", "priority": "high"},
+    {"condition": "employees >= 100", "queue": "inbound", "priority": "normal"},
+    {"condition": "employees < 100", "queue": "inbound", "priority": "low"},
+    {"condition": "queue == 'enterprise_ae' and last_touch_days > 30", "queue": "escalation", "priority": "urgent"}
+  ]
+}

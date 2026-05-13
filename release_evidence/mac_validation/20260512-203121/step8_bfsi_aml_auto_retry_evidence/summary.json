@@ -1,0 +1,54 @@
+{
+  "all_projects_passed": false,
+  "final_decision": "HOLD",
+  "live_deepseek_smoke_passed": true,
+  "outdir": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-aml-auto-retry-20260512-203121",
+  "project_count": 1,
+  "project_min_score": 90,
+  "projects": [
+    {
+      "actual_cost": 0.013479,
+      "blocker_type": "BUG",
+      "failed_checks": [
+        "pytest",
+        "acceptance",
+        "missing largestack_app.py",
+        "missing_or_thin_readme",
+        "missing_data_or_policy_fixture",
+        "reviewer_not_passed",
+        "score_below_90"
+      ],
+      "features": [
+        "orchestrator_router",
+        "rag_citations",
+        "observability_trace"
+      ],
+      "generated_files": [],
+      "name": "bfsi_aml_transaction_monitoring",
+      "passed": false,
+      "project_path": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-aml-auto-retry-20260512-203121/projects/26_bfsi_aml_transaction_monitoring",
+      "report_path": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-aml-auto-retry-20260512-203121/project_reports/26_bfsi_aml_transaction_monitoring.json",
+      "reviewer": {
+        "critical_blocker": "generated_files is empty; project was not actually generated.",
+        "json_valid": true,
+        "notes": "No generated files exist; project is empty. Cannot verify Largestack feature usage.",
+        "passed": false,
+        "score": 0
+      },
+      "score": 26,
+      "tokens": 34118,
+      "trace_ids": [
+        "4da6c4c4-1601-44a6-8fa5-36da7e781980",
+        "7000b776-aef0-4b9f-8501-ed00c3d2fcb5",
+        "99356889-f608-4c79-ae21-304ed32c1a3d",
+        "d6c0180e-9b65-4b2c-90e7-e00636679b4b",
+        "5e0bc136-5ada-4686-a5da-f5211340f1d8",
+        "99bc0ed1-4487-4463-85a5-3f7f916ebb82"
+      ]
+    }
+  ],
+  "run_id": "mac-bfsi-aml-auto-retry-20260512-203121",
+  "suite": "real-feature",
+  "suite_average": 26.0,
+  "suite_min_average": 95.0
+}

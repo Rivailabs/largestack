@@ -1,0 +1,14 @@
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/SUMMARY.md
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/live_deepseek_smoke.json
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/project_reports/25_bfsi_loan_origination_maker_checker.json
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/project_reports/25_bfsi_loan_origination_maker_checker.md
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/project_reports/26_bfsi_aml_transaction_monitoring.json
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/project_reports/26_bfsi_aml_transaction_monitoring.md
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects.csv
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects/25_bfsi_loan_origination_maker_checker/README.md
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects/25_bfsi_loan_origination_maker_checker/largestack_app.py
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects/25_bfsi_loan_origination_maker_checker/loan_origination.py
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects/26_bfsi_aml_transaction_monitoring/README.md
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects/26_bfsi_aml_transaction_monitoring/aml_monitoring.py
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects/26_bfsi_aml_transaction_monitoring/largestack_app.py
+release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/summary.json

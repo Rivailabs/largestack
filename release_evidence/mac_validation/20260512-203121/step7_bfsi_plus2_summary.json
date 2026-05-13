@@ -1,0 +1,97 @@
+{
+  "all_projects_passed": false,
+  "final_decision": "HOLD",
+  "live_deepseek_smoke_passed": true,
+  "outdir": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121",
+  "project_count": 2,
+  "project_min_score": 90,
+  "projects": [
+    {
+      "actual_cost": 0.004152,
+      "blocker_type": "PASS",
+      "failed_checks": [],
+      "features": [
+        "workflow_dag",
+        "tool_policy_approval",
+        "guardrails_pii"
+      ],
+      "generated_files": [
+        "README.md",
+        "largestack_app.py",
+        "loan_origination.py",
+        "policies/credit_policy.md",
+        "tests/test_largestack_features.py",
+        "tests/test_loan_origination.py"
+      ],
+      "name": "bfsi_loan_origination_maker_checker",
+      "passed": true,
+      "project_path": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects/25_bfsi_loan_origination_maker_checker",
+      "report_path": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/project_reports/25_bfsi_loan_origination_maker_checker.json",
+      "reviewer": {
+        "critical_blocker": "",
+        "json_valid": true,
+        "notes": "All checks pass. Project correctly uses workflow_dag, tool_policy_approval, and guardrails_pii with TestModel overrides. No network side effects. Tests comprehensive.",
+        "passed": true,
+        "score": 95
+      },
+      "score": 99,
+      "tokens": 13078,
+      "trace_ids": [
+        "d6925de1-cb19-46ce-95d2-0cd776b7cde6",
+        "d102611e-5872-4efd-ab30-fe02830ed594",
+        "574d7d92-ef9c-4c3f-95df-9fa2602307fb"
+      ]
+    },
+    {
+      "actual_cost": 0.010981,
+      "blocker_type": "BUG",
+      "failed_checks": [
+        "pytest",
+        "acceptance",
+        "reviewer_not_passed",
+        "score_below_90"
+      ],
+      "features": [
+        "orchestrator_router",
+        "rag_citations",
+        "observability_trace"
+      ],
+      "generated_files": [
+        "README.md",
+        "aml_monitoring.py",
+        "data/customers.csv",
+        "data/transactions.csv",
+        "data/watchlist.csv",
+        "largestack_app.py",
+        "policies/aml_policy.md",
+        "tests/test_aml_monitoring.py",
+        "tests/test_largestack_features.py"
+      ],
+      "name": "bfsi_aml_transaction_monitoring",
+      "passed": false,
+      "project_path": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/projects/26_bfsi_aml_transaction_monitoring",
+      "report_path": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-20260512-203121/project_reports/26_bfsi_aml_transaction_monitoring.json",
+      "reviewer": {
+        "critical_blocker": "pytest and hidden_acceptance checks failed.",
+        "json_valid": true,
+        "notes": "pytest and acceptance checks failed; project uses Largestack APIs but smoke test may have runtime issues.",
+        "passed": false,
+        "score": 75
+      },
+      "score": 62,
+      "tokens": 34121,
+      "trace_ids": [
+        "571d1f91-b6be-47d5-9793-cfc24dc0cda1",
+        "5be4cff9-d181-4329-8473-a38c44958b14",
+        "aa14485e-70d6-4384-a12f-5febeb099ab5",
+        "c67b6de1-a845-4a77-a2ca-d50d144d7f5d",
+        "cce65c47-9e11-47c6-9201-a40622683c04",
+        "d38408a5-bccc-4cf7-a71a-3fbf39fa3185"
+      ]
+    }
+  ],
+  "run_id": "mac-bfsi-plus2-20260512-203121",
+  "suite": "real-feature",
+  "suite_average": 80.5,
+  "suite_min_average": 95.0
+}

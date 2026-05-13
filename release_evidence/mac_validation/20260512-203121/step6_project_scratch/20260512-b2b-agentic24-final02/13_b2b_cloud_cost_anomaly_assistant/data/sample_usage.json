@@ -1,0 +1,17 @@
+[
+  {
+    "service": "compute",
+    "daily_cost": 100,
+    "baseline": 40
+  },
+  {
+    "service": "storage",
+    "daily_cost": 20,
+    "baseline": 22
+  },
+  {
+    "service": "database",
+    "daily_cost": 150,
+    "baseline": 50
+  }
+]

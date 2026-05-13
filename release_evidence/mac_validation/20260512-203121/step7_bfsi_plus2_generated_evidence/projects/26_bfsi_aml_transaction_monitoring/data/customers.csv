@@ -1,0 +1,4 @@
+customer_id,name,avg_monthly_volume,kyc_risk
+C001,Alice,5000,low
+C002,Bob,20000,high
+C003,Charlie,1000,low

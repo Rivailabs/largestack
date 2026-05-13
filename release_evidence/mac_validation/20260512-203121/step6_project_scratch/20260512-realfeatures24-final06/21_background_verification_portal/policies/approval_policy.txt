@@ -1,0 +1,4 @@
+Approval Policy:
+- All deletions require manager approval.
+- Safe queries are allowed without approval.
+- Dangerous operations are denied by default.

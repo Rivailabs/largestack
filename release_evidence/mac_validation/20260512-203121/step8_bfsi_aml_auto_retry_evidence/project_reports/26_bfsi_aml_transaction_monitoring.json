@@ -1,0 +1,197 @@
+{
+  "features": [
+    "orchestrator_router",
+    "rag_citations",
+    "observability_trace"
+  ],
+  "fixture_ok": false,
+  "passed": false,
+  "readme_ok": false,
+  "report": {
+    "actual_cost": 0.013479,
+    "artifact_count": 5,
+    "attempts": [
+      {
+        "actual_cost": 0.003072,
+        "estimated_cost": 0.001533,
+        "failure_summary": "invalid_json,missing_files,pytest,acceptance",
+        "files_changed": [],
+        "json_valid": false,
+        "mode": "generate",
+        "round": 1,
+        "tokens": 7300,
+        "trace_id": "7000b776-aef0-4b9f-8501-ed00c3d2fcb5",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'aml_monitoring'\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 0.05,
+          "failed_checks": [
+            "pytest",
+            "acceptance"
+          ],
+          "pytest_passed": false,
+          "validation_output": "no python files found\nmissing tests directory"
+        }
+      },
+      {
+        "actual_cost": 0.002505,
+        "estimated_cost": 0.001298,
+        "failure_summary": "invalid_json,missing_files,pytest,acceptance",
+        "files_changed": [],
+        "json_valid": false,
+        "mode": "patch",
+        "round": 2,
+        "tokens": 6179,
+        "trace_id": "99356889-f608-4c79-ae21-304ed32c1a3d",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'aml_monitoring'\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 0.04,
+          "failed_checks": [
+            "pytest",
+            "acceptance"
+          ],
+          "pytest_passed": false,
+          "validation_output": "no python files found\nmissing tests directory"
+        }
+      },
+      {
+        "actual_cost": 0.002505,
+        "estimated_cost": 0.001298,
+        "failure_summary": "invalid_json,missing_files,pytest,acceptance",
+        "files_changed": [],
+        "json_valid": false,
+        "mode": "patch",
+        "round": 3,
+        "tokens": 6179,
+        "trace_id": "d6c0180e-9b65-4b2c-90e7-e00636679b4b",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'aml_monitoring'\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 0.02,
+          "failed_checks": [
+            "pytest",
+            "acceptance"
+          ],
+          "pytest_passed": false,
+          "validation_output": "no python files found\nmissing tests directory"
+        }
+      },
+      {
+        "actual_cost": 0.002505,
+        "estimated_cost": 0.001298,
+        "failure_summary": "invalid_json,missing_files,pytest,acceptance",
+        "files_changed": [],
+        "json_valid": false,
+        "mode": "patch",
+        "round": 4,
+        "tokens": 6179,
+        "trace_id": "5e0bc136-5ada-4686-a5da-f5211340f1d8",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'aml_monitoring'\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 0.02,
+          "failed_checks": [
+            "pytest",
+            "acceptance"
+          ],
+          "pytest_passed": false,
+          "validation_output": "no python files found\nmissing tests directory"
+        }
+      },
+      {
+        "actual_cost": 0.002505,
+        "estimated_cost": 0.001298,
+        "failure_summary": "invalid_json,missing_files,pytest,acceptance",
+        "files_changed": [],
+        "json_valid": false,
+        "mode": "patch",
+        "round": 5,
+        "tokens": 6179,
+        "trace_id": "99bc0ed1-4487-4463-85a5-3f7f916ebb82",
+        "validation": {
+          "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'aml_monitoring'\n",
+          "acceptance_passed": false,
+          "compile_passed": true,
+          "duration_seconds": 0.02,
+          "failed_checks": [
+            "pytest",
+            "acceptance"
+          ],
+          "pytest_passed": false,
+          "validation_output": "no python files found\nmissing tests directory"
+        }
+      }
+    ],
+    "budget_exceeded": false,
+    "estimated_cost": 0.007165,
+    "generated_files": [],
+    "name": "bfsi_aml_transaction_monitoring",
+    "notes": "patch parse failed: model response did not contain a JSON object",
+    "passed": false,
+    "project_path": "/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-aml-auto-retry-20260512-203121/projects/26_bfsi_aml_transaction_monitoring",
+    "tokens": 34118,
+    "trace_ids": [
+      "4da6c4c4-1601-44a6-8fa5-36da7e781980",
+      "7000b776-aef0-4b9f-8501-ed00c3d2fcb5",
+      "99356889-f608-4c79-ae21-304ed32c1a3d",
+      "d6c0180e-9b65-4b2c-90e7-e00636679b4b",
+      "5e0bc136-5ada-4686-a5da-f5211340f1d8",
+      "99bc0ed1-4487-4463-85a5-3f7f916ebb82"
+    ],
+    "validation": {
+      "acceptance_output": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nModuleNotFoundError: No module named 'aml_monitoring'\n",
+      "acceptance_passed": false,
+      "compile_passed": true,
+      "duration_seconds": 0.02,
+      "failed_checks": [
+        "pytest",
+        "acceptance"
+      ],
+      "pytest_passed": false,
+      "validation_output": "no python files found\nmissing tests directory"
+    }
+  },
+  "reviewer": {
+    "critical_blocker": "generated_files is empty; project was not actually generated.",
+    "json_valid": true,
+    "notes": "No generated files exist; project is empty. Cannot verify Largestack feature usage.",
+    "passed": false,
+    "score": 0
+  },
+  "score": 26,
+  "security_issues": [],
+  "security_ok": true,
+  "source_issues": [
+    "missing largestack_app.py"
+  ],
+  "source_ok": false,
+  "spec": {
+    "acceptance": "from aml_monitoring import screen_transaction, draft_sar, policy_answer\nwatchlist={'blocked_countries':['IR','KP'],'high_risk_keywords':['crypto mixer','cash structuring']}\ntxn={'txn_id':'T1','amount':1200000,'country':'IR','description':'crypto mixer payout','customer_id':'C1'}\ncustomer={'kyc_risk':'high','average_monthly_volume':100000}\nscreen=screen_transaction(txn, customer, watchlist)\nassert screen['risk_level']=='high' and screen['requires_review'] is True, screen\nsar=draft_sar(txn, screen)\nassert sar['approval_required'] is True and sar['filed'] is False, sar\ndocs={'aml_policy.md':'High risk sanctions or structuring cases require MLRO review before filing SAR.'}\nans=policy_answer('when file sar for sanctions?', docs)\nassert 'MLRO' in ans['answer'] and 'aml_policy.md' in ans['citations'], ans\nassert 'insufficient evidence' in policy_answer('equity refresh policy?', docs)['answer'].lower()\n\n\nfrom pathlib import Path\nimport ast, asyncio\nfrom largestack.testing import block_model_requests\n\nsrc = Path(\"largestack_app.py\").read_text()\ntree = ast.parse(src)\ncalls = set()\nnames = set()\nattrs = set()\nimports = set()\nfor node in ast.walk(tree):\n    if isinstance(node, ast.ImportFrom):\n        imports.add(node.module or \"\")\n        for alias in node.names:\n            names.add(alias.asname or alias.name)\n    elif isinstance(node, ast.Import):\n        for alias in node.names:\n            imports.add(alias.name)\n            names.add(alias.asname or alias.name.split(\".\")[0])\n    elif isinstance(node, ast.Name):\n        names.add(node.id)\n    elif isinstance(node, ast.Attribute):\n        attrs.add(node.attr)\n    elif isinstance(node, ast.Call):\n        fn = node.func\n        if isinstance(fn, ast.Name):\n            calls.add(fn.id)\n        elif isinstance(fn, ast.Attribute):\n            calls.add(fn.attr)\n            attrs.add(fn.attr)\n        elif isinstance(fn, ast.Subscript):\n            base = fn.value\n            if isinstance(base, ast.Name):\n                calls.add(base.id)\n            elif isinstance(base, ast.Attribute):\n                calls.add(base.attr)\n                attrs.add(base.attr)\n\nclass_names = {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}\nfor forbidden_class in {\"Agent\", \"Team\", \"Workflow\", \"Orchestrator\", \"TestModel\", \"FunctionModel\", \"Tool\"}:\n    assert forbidden_class not in class_names, (\n        \"Do not define local mocks/replacements for LARGESTACK classes\",\n        forbidden_class,\n        class_names,\n    )\nassert any(m == \"largestack\" or m.startswith(\"largestack.\") for m in imports), (\n    \"largestack_app.py must import the real largestack package; \"\n    \"do not create local Agent/TestModel/Tool mocks\",\n    imports,\n)\nassert Path(\"README.md\").exists(), \"README.md required\"\nassert Path(\"largestack_app.py\").exists(), \"largestack_app.py required\"\nfiles = [p for p in Path(\".\").rglob(\"*\") if p.is_file() and \"__pycache__\" not in p.parts]\nassert len(files) >= 5, f\"expected at least 5 project files, got {len(files)}\"\nassert Path(\"data\").exists() or Path(\"policies\").exists(), \"expected data/ or policies/ evidence files\"\n\nall_text = \"\\n\".join(p.read_text(errors=\"ignore\") for p in files if p.suffix in {\".py\", \".md\", \".json\", \".txt\"})\nimport re\nassert not re.search(r\"\\bsk-[A-Za-z0-9_-]{12,}\\b\", all_text), \"project must not contain real-looking API keys\"\n\nfrom largestack_app import run_largestack_smoke\nwith block_model_requests():\n    out = asyncio.run(run_largestack_smoke())\nassert out[\"status\"] == \"ok\", out\nassert isinstance(out.get(\"evidence\"), dict), out\nfeatures = set(out.get(\"features\", []))\nevidence = out[\"evidence\"]\nassert 'orchestrator_router' in features, out\nassert 'rag_citations' in features, out\nassert 'observability_trace' in features, out\nassert 'Agent' in calls, ('missing call', 'Agent', calls)\nassert 'Orchestrator' in calls, ('missing call', 'Orchestrator', calls)\nassert 'TestModel' in calls, ('missing call', 'TestModel', calls)\nassert 'create_rag' in calls, ('missing call', 'create_rag', calls)\nassert 'capture_run_messages' in names, ('missing name', 'capture_run_messages', names)\nassert 'as_tool' in attrs, ('missing attr', 'as_tool', attrs)\nassert 'build_context' in attrs, ('missing attr', 'build_context', attrs)\nassert 'override' in attrs, ('missing attr', 'override', attrs)\nassert 'run' in attrs, ('missing attr', 'run', attrs)\nassert 'strategy=' in src, ('missing substring', 'strategy=')\nassert 'captured_messages' in evidence, ('missing evidence', 'captured_messages', evidence)\nassert 'orchestrator_strategy' in evidence, ('missing evidence', 'orchestrator_strategy', evidence)\nassert 'rag_context' in evidence, ('missing evidence', 'rag_context', evidence)\nassert 'rag_tool_calls' in evidence, ('missing evidence', 'rag_tool_calls', evidence)\nassert 'redacted_log' in evidence, ('missing evidence', 'redacted_log', evidence)\nassert 'route_output' in evidence, ('missing evidence', 'route_output', evidence)\nassert 'total_cost' in evidence, ('missing evidence', 'total_cost', evidence)\nassert 'trace_id' in evidence, ('missing evidence', 'trace_id', evidence)\nrag_context_text = \"\\n\".join(evidence[\"rag_context\"]) if isinstance(evidence[\"rag_context\"], list) else str(evidence[\"rag_context\"])\nassert \"[Source\" in rag_context_text, evidence\nrag_calls = evidence[\"rag_tool_calls\"]\nassert (isinstance(rag_calls, int) and rag_calls > 0) or (not isinstance(rag_calls, int) and \"search_knowledge\" in rag_calls), evidence\nassert evidence[\"orchestrator_strategy\"] == \"router\", evidence\nassert len(str(evidence[\"route_output\"])) > 0, evidence\nassert evidence[\"trace_id\"], evidence\ncaptured_value = evidence[\"captured_messages\"]\ncaptured_count = len(captured_value) if hasattr(captured_value, \"__len__\") and not isinstance(captured_value, (str, bytes, int, float)) else int(captured_value)\nassert captured_count >= 2, evidence\nassert float(evidence[\"total_cost\"]) >= 0, evidence\nassert not re.search(r\"\\bsk-[A-Za-z0-9_-]{12,}\\b\", evidence[\"redacted_log\"]), evidence\n",
+    "classification": "DEEPSEEK-BUILT-LARGESTACK-BFSI-FEATURE-PROJECT",
+    "evidence_required": [
+      "orchestrator_router",
+      "rag_citations",
+      "observability_trace"
+    ],
+    "forbidden_actions": [
+      "send_email",
+      "refund_payment",
+      "delete_file",
+      "publish_social",
+      "write_production",
+      "disburse_funds",
+      "file_sar"
+    ],
+    "name": "bfsi_aml_transaction_monitoring",
+    "required_files": [
+      "README.md",
+      "largestack_app.py"
+    ],
+    "requirements": "Create aml_monitoring.py with screen_transaction(txn, customer, watchlist), draft_sar(txn, screening), and policy_answer(query, documents). screen_transaction must flag high risk for sanctions countries, amount spikes above 5x average monthly volume, high-risk keywords, or high-risk KYC profile. It must accept watchlist either as a dict with blocked_countries and high_risk_keywords lists, or as a list of strings/dicts. It must accept the transaction country from txn['country'] or txn['counterparty_country'], and the customer average volume from customer['average_monthly_volume'] or customer['avg_monthly_volume']. It must return keys risk_level, risk, requires_review, and reasons. draft_sar must never file externally; it returns filed False and approval_required True for high-risk screening and include requires_review True for high risk. policy_answer must accept documents as either a dict of filename->text or a list of document strings. Citations must contain the filename key when documents is a dict. Use meaningful token-overlap retrieval with stopword filtering and return {'answer':'Insufficient evidence to answer.','citations':[]} for unrelated questions such as equity refresh policy. Include README.md, pytest tests, synthetic data CSV fixtures, and policies/aml_policy.md. Use stdlib only and no network/external filing calls.\n\nReal LARGESTACK feature requirement:\n- Create largestack_app.py with async def run_largestack_smoke() -> dict.\n- The function must execute the selected LARGESTACK features, not only mention them.\n- Use llm='deepseek/deepseek-chat' on Agents, but wrap generated project tests and smoke\n  checks with TestModel/FunctionModel overrides so the generated project has no network\n  side effects.\n- Never define local mock/replacement classes named Agent, Team, Workflow, Orchestrator,\n  TestModel, FunctionModel, or Tool. Import real APIs from largestack, largestack.testing,\n  and largestack.decorators.\n- Use Agent.override as a context manager: with agent.override(model=TestModel(...)):\n  result = await agent.run(...). Calling agent.override(...) without a with block is invalid.\n- The hidden gate wraps run_largestack_smoke() in block_model_requests(), so any accidental\n  real provider/network call inside the generated project fails.\n- Agent.run is async. Always call result = await agent.run(...), never result = agent.run(...).\n- Agent.run returns an AgentResult object, not a dict. Use result.content, result.tool_calls_made,\n  result.total_cost, result.trace_id. Do not use result.get(...).\n- Valid core imports look like:\n  from largestack import Agent, Team, Workflow, Orchestrator, tool, create_rag, create_guardrails\n  from largestack.memory import create_memory\n  from largestack.testing import TestModel, FunctionModel, capture_run_messages\n- Correct Agent/TestModel pattern:\n  agent = Agent(name=\"x\", llm=\"deepseek/deepseek-chat\", tools=[some_tool], cost_budget=0.1, max_turns=3)\n  with agent.override(model=TestModel(call_tools=[\"some_tool\"], custom_tool_args={\"some_tool\": {\"query\": \"refund\"}})):\n      result = await agent.run(\"prompt\")\n  calls = result.tool_calls_made\n- Correct map-reduce pattern:\n  mapper = Agent(name=\"mapper\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  reducer = Agent(name=\"reducer\", llm=\"deepseek/deepseek-chat\", max_turns=1)\n  orch = Orchestrator(strategy=\"map_reduce\", mapper=mapper, reducer=reducer)\n  with mapper.override(model=TestModel(\"mapped\")), reducer.override(model=TestModel(\"summary\")):\n      result = await orch.run({\"items\": [\"a\", \"b\", \"c\"]})\n- Correct router pattern:\n  classifier = Agent(name=\"classifier\", llm=\"deepseek/deepseek-chat\")\n  specialist = Agent(name=\"billing\", llm=\"deepseek/deepseek-chat\")\n  orch = Orchestrator(strategy=\"router\", classifier=classifier, routes={\"billing\": specialist}, default_route=\"billing\")\n  with classifier.override(model=TestModel(\"billing\")), specialist.override(model=TestModel(\"routed ok\")):\n      route_result = await orch.run(\"route this\")\n  route_output = route_result.output\n- Correct Team pattern:\n  team = Team(agents=[agent_a, agent_b], strategy=\"parallel\", cost_budget=0.2)\n  with agent_a.override(model=TestModel(\"a\")), agent_b.override(model=TestModel(\"b\")):\n      team_result = await team.run(\"task\")\n  team_output = team_result.content\n- Correct typed decorator pattern:\n  from dataclasses import dataclass\n  from largestack.decorators import Agent as TypedAgent, RunContext, ModelRetry\n  @dataclass\n  class Deps:\n      value: str = \"demo\"\n  typed_agent = TypedAgent[Deps, str](\"deepseek/deepseek-chat\", deps_type=Deps, output_type=str, instructions=\"demo\", name=\"typed\", max_retries=1, cost_budget=0.1)\n  # Then register @typed_agent.tool, @typed_agent.tool_plain, and @typed_agent.output_validator.\n  with typed_agent.override(model=TestModel(custom_output_text=\"typed ok\", call_tools=[])):\n      typed_result = await typed_agent.run(\"prompt\", deps=Deps())\n  typed_tools = list(typed_agent.tools.keys())\n  typed_output = typed_result.output\n- Memory reference:\n  memory = create_memory(\"buffer\")\n  await memory.add_message({\"role\": \"user\", \"content\": \"hello user1\"})\n  messages = memory.get_messages()\n- Workflow reference:\n  wf = Workflow(name=\"pipe\", mode=\"dag\", cost_budget=0.2)\n  wf.add_agent(agent_a)\n  wf.add_agent(agent_b, deps=[\"agent_a\"])\n  result = await wf.run({\"task\": \"go\"})\n  workflow_steps = len(result.steps)\n- Guardrails reference:\n  from types import SimpleNamespace\n  guardrails = create_guardrails(pii=True, injection=True, pii_action=\"redact\")\n  response = SimpleNamespace(content=\"Email test@example.com\")\n  await guardrails.check_output(response)\n  redacted_text = response.content\n- Return exactly this shape: {\"status\": \"ok\", \"features\": [...], \"evidence\": {...}}.\n- Include each selected feature name in the returned features list.\n- Evidence keys that must be present: captured_messages, orchestrator_strategy, rag_context, rag_tool_calls, redacted_log, route_output, total_cost, trace_id.\n- Include at least one realistic fixture file under data/ or policy file under policies/.\n- Include tests/test_largestack_features.py that runs run_largestack_smoke().\n- No real API keys, no network imports, no destructive actions.\n\nSelected feature contracts:\n- orchestrator_router: Use Orchestrator(strategy=\"router\", classifier=..., routes={...}) with a classifier and routed specialist Agents overridden with TestModel. Orchestrator.run returns OrchestratorResult; use result.output for route_output, not result.content. Evidence must include orchestrator_strategy='router' and route_output.\n- rag_citations: Use create_rag(documents=[...], chunk_size=100, top_k=2), call build_context(query='duplicate payments'), convert it with as_tool(), attach that tool to an Agent, and run with TestModel calling search_knowledge. Evidence must include rag_context with '[Source' and rag_tool_calls.\n- observability_trace: Use capture_run_messages around an Agent run with TestModel. Evidence must include trace_id, captured_messages as an integer count >= 2, total_cost >= 0, and redacted_log that does not contain any raw real-looking sk- key. Prefer text like '[REDACTED] no secret keys present'.\n"
+  }
+}

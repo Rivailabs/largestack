@@ -1,0 +1,4 @@
+transaction_id,amount,country,counterparty_country,description
+T1,10000,IR,US,Payment for goods
+T2,500,US,US,Refund
+T3,20000,US,US,Large transfer

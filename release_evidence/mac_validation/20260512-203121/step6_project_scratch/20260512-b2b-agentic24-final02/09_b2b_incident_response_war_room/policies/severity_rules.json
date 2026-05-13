@@ -1,0 +1,8 @@
+{
+  "critical_customer_threshold": 1000,
+  "critical_downtime_minutes": 30,
+  "sev1_customer_threshold": 500,
+  "sev1_downtime_minutes": 15,
+  "sev2_customer_threshold": 100,
+  "sev2_downtime_minutes": 5
+}

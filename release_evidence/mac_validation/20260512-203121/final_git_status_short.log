@@ -1,0 +1,7 @@
+D  docs/DEPLOYMENT.md
+D  docs/QUICKSTART.md
+D  docs/SECURITY.md
+D  docs/TROUBLESHOOTING.md
+ M pyproject.toml
+ M tests/unit/test_v090_vectorstores_more.py
+?? release_evidence/mac_validation/

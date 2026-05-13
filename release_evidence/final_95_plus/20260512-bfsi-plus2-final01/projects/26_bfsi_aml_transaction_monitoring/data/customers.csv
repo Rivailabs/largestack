@@ -1,0 +1,4 @@
+customer_id,kyc_risk,average_monthly_volume
+C1,high,100000
+C2,low,100000
+C3,medium,250000

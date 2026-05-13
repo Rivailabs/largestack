@@ -1,0 +1,7 @@
+ largestack/autonomous_builder.py           |  59 +++++++++++++--
+ pyproject.toml                             |   1 +
+ scripts/largestack_real_feature_certify.py |  44 +++++++++--
+ tests/unit/test_autonomous_builder.py      |  37 ++++++++++
+ tests/unit/test_real_feature_certify.py    |  35 +++++++++
+ tests/unit/test_v090_vectorstores_more.py  | 113 +++++++++++++++++++++++++++++
+ 6 files changed, 274 insertions(+), 15 deletions(-)

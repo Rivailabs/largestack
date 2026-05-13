@@ -1,0 +1,16 @@
+{
+  "queues": {
+    "p1": "payments_p1",
+    "p2": "support_p2",
+    "p3": "general"
+  },
+  "system_overrides": {
+    "payments": "payments_p1"
+  },
+  "priority_map": {
+    "platinum": "urgent",
+    "gold": "high",
+    "silver": "normal",
+    "standard": "normal"
+  }
+}

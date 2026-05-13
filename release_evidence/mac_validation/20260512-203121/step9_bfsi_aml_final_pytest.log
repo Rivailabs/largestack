@@ -1,0 +1,15 @@
+.......F                                                                 [100%]
+=================================== FAILURES ===================================
+_________________ test_largestack_smoke_executes_real_features _________________
+tests/test_largestack_features.py:21: in test_largestack_smoke_executes_real_features
+    assert "[Source" in context
+E   AssertionError: assert '[Source' in '[\nS\no\nu\nr\nc\ne\n \n1\n]\n \nH\ni\ng\nh\n \nr\ni\ns\nk\n \ns\na\nn\nc\nt\ni\no\nn\ns\n \no\nr\n \ns\nt\nr\nu\nc\n...s\n \nr\ne\nq\nu\ni\nr\ne\n \nM\nL\nR\nO\n \nr\ne\nv\ni\ne\nw\n \nb\ne\nf\no\nr\ne\n \nf\ni\nl\ni\nn\ng\n \nS\nA\nR\n.'
+----------------------------- Captured stderr call -----------------------------
+[92m21:39:57 - LiteLLM:WARNING[0m: get_model_cost_map.py:271 - LiteLLM: Failed to fetch remote model cost map from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json: [Errno 8] nodename nor servname provided, or not known. Falling back to local backup.
+------------------------------ Captured log call -------------------------------
+WARNING  largestack.observe.sqlite:sqlite_exporter.py:42 Trace DB /Users/sachiths/.largestack/traces.db is not writable (unable to open database file); falling back to /tmp
+WARNING  LiteLLM:get_model_cost_map.py:271 LiteLLM: Failed to fetch remote model cost map from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json: [Errno 8] nodename nor servname provided, or not known. Falling back to local backup.
+WARNING  largestack.rag:retriever.py:93 HybridRetriever: No embeddings set — using BM25-only. Call set_embeddings() for dense+BM25 hybrid search.
+=========================== short test summary info ============================
+FAILED tests/test_largestack_features.py::test_largestack_smoke_executes_real_features
+1 failed, 7 passed in 1.35s

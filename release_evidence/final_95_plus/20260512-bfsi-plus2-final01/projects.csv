@@ -1,0 +1,3 @@
+name,features,passed,score,failed_checks,project_path
+bfsi_loan_origination_maker_checker,"workflow_dag,tool_policy_approval,guardrails_pii",true,99,,release_evidence/final_95_plus/20260512-bfsi-plus2-final01/projects/25_bfsi_loan_origination_maker_checker
+bfsi_aml_transaction_monitoring,"orchestrator_router,rag_citations,observability_trace",true,99,,release_evidence/final_95_plus/20260512-bfsi-plus2-final01/projects/26_bfsi_aml_transaction_monitoring

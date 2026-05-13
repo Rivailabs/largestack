@@ -1,0 +1,1501 @@
+* Creating isolated environment: venv+pip...
+* Installing packages in isolated environment:
+  - setuptools>=75
+  - wheel
+* Getting build dependencies for sdist...
+running egg_info
+writing largestack.egg-info/PKG-INFO
+writing dependency_links to largestack.egg-info/dependency_links.txt
+writing entry points to largestack.egg-info/entry_points.txt
+writing requirements to largestack.egg-info/requires.txt
+writing top-level names to largestack.egg-info/top_level.txt
+reading manifest file 'largestack.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+warning: no files found matching '*.yaml' under directory 'largestack'
+warning: no files found matching '*.yml' under directory 'largestack'
+no previously-included directories found matching 'tmp'
+no previously-included directories found matching '.cache'
+no previously-included directories found matching '.config'
+no previously-included directories found matching '.local'
+no previously-included directories found matching '.npm'
+no previously-included directories found matching '.npm-global'
+no previously-included directories found matching '.pytest_cache'
+no previously-included directories found matching '.mypy_cache'
+no previously-included directories found matching '.ruff_cache'
+no previously-included directories found matching '.venv'
+no previously-included directories found matching 'build'
+no previously-included directories found matching 'dist'
+warning: no previously-included files matching '__pycache__' found anywhere in distribution
+warning: no previously-included files matching '*.py[cod]' found anywhere in distribution
+warning: no previously-included files matching '*.db' found anywhere in distribution
+warning: no previously-included files matching '*.db-journal' found anywhere in distribution
+warning: no previously-included files matching '*.so' found anywhere in distribution
+warning: no previously-included files matching '.DS_Store' found anywhere in distribution
+adding license file 'LICENSE'
+writing manifest file 'largestack.egg-info/SOURCES.txt'
+* Building sdist...
+running sdist
+running egg_info
+writing largestack.egg-info/PKG-INFO
+writing dependency_links to largestack.egg-info/dependency_links.txt
+writing entry points to largestack.egg-info/entry_points.txt
+writing requirements to largestack.egg-info/requires.txt
+writing top-level names to largestack.egg-info/top_level.txt
+reading manifest file 'largestack.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+warning: no files found matching '*.yaml' under directory 'largestack'
+warning: no files found matching '*.yml' under directory 'largestack'
+no previously-included directories found matching 'tmp'
+no previously-included directories found matching '.cache'
+no previously-included directories found matching '.config'
+no previously-included directories found matching '.local'
+no previously-included directories found matching '.npm'
+no previously-included directories found matching '.npm-global'
+no previously-included directories found matching '.pytest_cache'
+no previously-included directories found matching '.mypy_cache'
+no previously-included directories found matching '.ruff_cache'
+no previously-included directories found matching '.venv'
+no previously-included directories found matching 'build'
+no previously-included directories found matching 'dist'
+warning: no previously-included files matching '__pycache__' found anywhere in distribution
+warning: no previously-included files matching '*.py[cod]' found anywhere in distribution
+warning: no previously-included files matching '*.db' found anywhere in distribution
+warning: no previously-included files matching '*.db-journal' found anywhere in distribution
+warning: no previously-included files matching '*.so' found anywhere in distribution
+warning: no previously-included files matching '.DS_Store' found anywhere in distribution
+adding license file 'LICENSE'
+writing manifest file 'largestack.egg-info/SOURCES.txt'
+running check
+creating largestack-1.0.0
+creating largestack-1.0.0/largestack
+creating largestack-1.0.0/largestack.egg-info
+creating largestack-1.0.0/largestack/_a2a
+creating largestack-1.0.0/largestack/_cli
+creating largestack-1.0.0/largestack/_compliance
+creating largestack-1.0.0/largestack/_core
+creating largestack-1.0.0/largestack/_core/builtin_tools
+creating largestack-1.0.0/largestack/_core/providers
+creating largestack-1.0.0/largestack/_dashboard
+creating largestack-1.0.0/largestack/_dashboard/spa
+creating largestack-1.0.0/largestack/_distributed
+creating largestack-1.0.0/largestack/_enterprise
+creating largestack-1.0.0/largestack/_eval
+creating largestack-1.0.0/largestack/_evals
+creating largestack-1.0.0/largestack/_guard
+creating largestack-1.0.0/largestack/_indic
+creating largestack-1.0.0/largestack/_integrations
+creating largestack-1.0.0/largestack/_loaders
+creating largestack-1.0.0/largestack/_memory
+creating largestack-1.0.0/largestack/_observability
+creating largestack-1.0.0/largestack/_observe
+creating largestack-1.0.0/largestack/_orchestrate
+creating largestack-1.0.0/largestack/_rag
+creating largestack-1.0.0/largestack/_ratelimit
+creating largestack-1.0.0/largestack/_rerankers
+creating largestack-1.0.0/largestack/_retrievers
+creating largestack-1.0.0/largestack/_security
+creating largestack-1.0.0/largestack/_state
+creating largestack-1.0.0/largestack/_studio
+creating largestack-1.0.0/largestack/_templates
+creating largestack-1.0.0/largestack/_test
+creating largestack-1.0.0/largestack/_vectorstores
+creating largestack-1.0.0/largestack/_workflow
+creating largestack-1.0.0/largestack/migrations
+creating largestack-1.0.0/pricing
+creating largestack-1.0.0/stubs/largestack
+copying files to largestack-1.0.0...
+copying CHANGELOG.md -> largestack-1.0.0
+copying LICENSE -> largestack-1.0.0
+copying MANIFEST.in -> largestack-1.0.0
+copying README.md -> largestack-1.0.0
+copying pyproject.toml -> largestack-1.0.0
+copying setup.py -> largestack-1.0.0
+copying largestack/__init__.py -> largestack-1.0.0/largestack
+copying largestack/agent.py -> largestack-1.0.0/largestack
+copying largestack/autonomous_builder.py -> largestack-1.0.0/largestack
+copying largestack/decorators.py -> largestack-1.0.0/largestack
+copying largestack/errors.py -> largestack-1.0.0/largestack
+copying largestack/guardrails.py -> largestack-1.0.0/largestack
+copying largestack/memory.py -> largestack-1.0.0/largestack
+copying largestack/observability.py -> largestack-1.0.0/largestack
+copying largestack/orchestrator.py -> largestack-1.0.0/largestack
+copying largestack/provider_matrix.py -> largestack-1.0.0/largestack
+copying largestack/py.typed -> largestack-1.0.0/largestack
+copying largestack/rag.py -> largestack-1.0.0/largestack
+copying largestack/serve.py -> largestack-1.0.0/largestack
+copying largestack/team.py -> largestack-1.0.0/largestack
+copying largestack/testing.py -> largestack-1.0.0/largestack
+copying largestack/types.py -> largestack-1.0.0/largestack
+copying largestack/workflow.py -> largestack-1.0.0/largestack
+copying largestack.egg-info/PKG-INFO -> largestack-1.0.0/largestack.egg-info
+copying largestack.egg-info/SOURCES.txt -> largestack-1.0.0/largestack.egg-info
+copying largestack.egg-info/dependency_links.txt -> largestack-1.0.0/largestack.egg-info
+copying largestack.egg-info/entry_points.txt -> largestack-1.0.0/largestack.egg-info
+copying largestack.egg-info/requires.txt -> largestack-1.0.0/largestack.egg-info
+copying largestack.egg-info/top_level.txt -> largestack-1.0.0/largestack.egg-info
+copying largestack/_a2a/__init__.py -> largestack-1.0.0/largestack/_a2a
+copying largestack/_a2a/multimodal.py -> largestack-1.0.0/largestack/_a2a
+copying largestack/_a2a/v03.py -> largestack-1.0.0/largestack/_a2a
+copying largestack/_cli/cli_v09.py -> largestack-1.0.0/largestack/_cli
+copying largestack/_cli/cli_v120.py -> largestack-1.0.0/largestack/_cli
+copying largestack/_cli/cli_v130_compliance.py -> largestack-1.0.0/largestack/_cli
+copying largestack/_cli/commands.py -> largestack-1.0.0/largestack/_cli
+copying largestack/_cli/dev_server.py -> largestack-1.0.0/largestack/_cli
+copying largestack/_cli/main.py -> largestack-1.0.0/largestack/_cli
+copying largestack/_cli/scaffold.py -> largestack-1.0.0/largestack/_cli
+copying largestack/_compliance/dpdp_breach.py -> largestack-1.0.0/largestack/_compliance
+copying largestack/_core/__init__.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/a2a_server.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/a2a_v1.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/ag_ui.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/agent_roles.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/agui_v1.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/browser_tool.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/budget.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/circuit_breaker.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/citation_sandbox.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/code_agent.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/code_agent_v11.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/composio_adapter.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/config.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/context.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/cost.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/database.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/e2b_sandbox.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/engine.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/events.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/feature_flags.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/gateway.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/health.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/hitl.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/license.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/litellm_router.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/loop_guard.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/mcp_client.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/mcp_server.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/mcp_streamable.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/multiagent.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/optimizer.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/parsers.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/plugin_host.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/prompt_templates.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/reasoning.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/registry.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/resilience.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/semantic_cache.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/session.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/smart_router.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/steering.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/streaming.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/structured.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/structured_output.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/tools.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/typed_agent.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/versioning.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/vision.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/voice_agent.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/ws_stream.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/yaml_agent.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/yaml_schema.py -> largestack-1.0.0/largestack/_core
+copying largestack/_core/builtin_tools/__init__.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/_url_validator.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/browser.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/calc.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/code.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/db.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/files.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/http_tool.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/shell.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/time_tool.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/voice.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/web.py -> largestack-1.0.0/largestack/_core/builtin_tools
+copying largestack/_core/providers/__init__.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/ai21_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/anthropic_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/anyscale_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/azure_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/base.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/bedrock_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/cerebras_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/cloudflare_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/cohere_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/databricks_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/deepseek_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/fireworks_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/google_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/groq_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/lepton_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/litellm_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/mistral_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/nvidia_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/ollama_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/openai_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/openrouter_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/perplexity_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/replicate_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/sambanova_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/together_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/voyage_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_core/providers/xai_prov.py -> largestack-1.0.0/largestack/_core/providers
+copying largestack/_dashboard/README.md -> largestack-1.0.0/largestack/_dashboard
+copying largestack/_dashboard/__init__.py -> largestack-1.0.0/largestack/_dashboard
+copying largestack/_dashboard/api.py -> largestack-1.0.0/largestack/_dashboard
+copying largestack/_dashboard/app.py -> largestack-1.0.0/largestack/_dashboard
+copying largestack/_dashboard/auth.py -> largestack-1.0.0/largestack/_dashboard
+copying largestack/_dashboard/frontend.jsx -> largestack-1.0.0/largestack/_dashboard
+copying largestack/_dashboard/rate_limit.py -> largestack-1.0.0/largestack/_dashboard
+copying largestack/_dashboard/spa/App.jsx -> largestack-1.0.0/largestack/_dashboard/spa
+copying largestack/_dashboard/spa/README.md -> largestack-1.0.0/largestack/_dashboard/spa
+copying largestack/_dashboard/spa/index.html -> largestack-1.0.0/largestack/_dashboard/spa
+copying largestack/_dashboard/spa/main.jsx -> largestack-1.0.0/largestack/_dashboard/spa
+copying largestack/_distributed/__init__.py -> largestack-1.0.0/largestack/_distributed
+copying largestack/_distributed/event_sourcing.py -> largestack-1.0.0/largestack/_distributed
+copying largestack/_distributed/outbox.py -> largestack-1.0.0/largestack/_distributed
+copying largestack/_distributed/saga.py -> largestack-1.0.0/largestack/_distributed
+copying largestack/_enterprise/__init__.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/audit.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/billing.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/canary.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/payment.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/rbac.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/session_store.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/sso.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/tenant.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_enterprise/white_label.py -> largestack-1.0.0/largestack/_enterprise
+copying largestack/_eval/__init__.py -> largestack-1.0.0/largestack/_eval
+copying largestack/_eval/alerts.py -> largestack-1.0.0/largestack/_eval
+copying largestack/_eval/extensions_v130.py -> largestack-1.0.0/largestack/_eval
+copying largestack/_eval/pr_diff.py -> largestack-1.0.0/largestack/_eval
+copying largestack/_eval/runner.py -> largestack-1.0.0/largestack/_eval
+copying largestack/_evals/__init__.py -> largestack-1.0.0/largestack/_evals
+copying largestack/_evals/adapters.py -> largestack-1.0.0/largestack/_evals
+copying largestack/_evals/runner.py -> largestack-1.0.0/largestack/_evals
+copying largestack/_guard/__init__.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/agent_identity.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/config.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/hallucination.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/injection.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/inter_agent_auth.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/kill_switch.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/memory_integrity.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/nli_hallucination.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/pii.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/pii_ml.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/pipeline.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/policy.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/prompt_guard.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/provider_policy.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/redis_kill_switch.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/tool_access.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/tool_policy.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/topic.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_guard/toxicity.py -> largestack-1.0.0/largestack/_guard
+copying largestack/_indic/__init__.py -> largestack-1.0.0/largestack/_indic
+copying largestack/_integrations/__init__.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/cohere_embed.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/embeddings_v09.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/github.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/hf_embed.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/indian_toolkits.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/jina_embed.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/jira.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/langchain_compat.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/langfuse_adapter.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/linear.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/litellm_bridge.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/mcp_adapter.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/notion.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/openai_embeddings.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/openapi_toolkit.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/pandas_toolkit.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/phoenix_adapter.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/postgres.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/razorpay_toolkit.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/registry.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/sheets.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/slack.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/sql_toolkit.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/stripe_toolkit.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/toolkits_v09.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_integrations/voyage_embed.py -> largestack-1.0.0/largestack/_integrations
+copying largestack/_loaders/__init__.py -> largestack-1.0.0/largestack/_loaders
+copying largestack/_loaders/llamaparse.py -> largestack-1.0.0/largestack/_loaders
+copying largestack/_loaders/loaders_v09.py -> largestack-1.0.0/largestack/_loaders
+copying largestack/_loaders/office.py -> largestack-1.0.0/largestack/_loaders
+copying largestack/_loaders/semantic_chunking.py -> largestack-1.0.0/largestack/_loaders
+copying largestack/_memory/__init__.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/buffer.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/compression.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/episodic.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/external_adapters.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/graph.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/long_term.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/observational.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/postgres_store.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/procedural.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/semantic.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/shared.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/tools.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_memory/vector_store.py -> largestack-1.0.0/largestack/_memory
+copying largestack/_observability/__init__.py -> largestack-1.0.0/largestack/_observability
+copying largestack/_observability/otel.py -> largestack-1.0.0/largestack/_observability
+copying largestack/_observe/__init__.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/anomaly.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/auto_trace.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/cost_dashboard.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/event_replay.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/gen_ai_instrumentor.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/log_redaction.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/metrics.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/otel_export.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/otel_helpers.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/sqlite_exporter.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/tracer.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_observe/traces_db.py -> largestack-1.0.0/largestack/_observe
+copying largestack/_orchestrate/__init__.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/dag.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/debate.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/flows.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/map_reduce.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/parallel.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/router.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/sequential.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/state_machine.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/supervisor.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_orchestrate/swarm.py -> largestack-1.0.0/largestack/_orchestrate
+copying largestack/_rag/__init__.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/chunker.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/crag.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/embedder.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/eval.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/graph_rag.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/pipeline.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/query_engines.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/reranker.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/retriever.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/summary_index.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_rag/vector_store.py -> largestack-1.0.0/largestack/_rag
+copying largestack/_ratelimit/__init__.py -> largestack-1.0.0/largestack/_ratelimit
+copying largestack/_rerankers/__init__.py -> largestack-1.0.0/largestack/_rerankers
+copying largestack/_retrievers/__init__.py -> largestack-1.0.0/largestack/_retrievers
+copying largestack/_security/__init__.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/code_sandbox.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/e2b_bridge.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/encryption.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/mtls.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/network.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/permissions.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/sandbox.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/sbom.py -> largestack-1.0.0/largestack/_security
+copying largestack/_security/vault.py -> largestack-1.0.0/largestack/_security
+copying largestack/_state/__init__.py -> largestack-1.0.0/largestack/_state
+copying largestack/_state/checkpoint.py -> largestack-1.0.0/largestack/_state
+copying largestack/_state/durable.py -> largestack-1.0.0/largestack/_state
+copying largestack/_state/postgres_checkpointer.py -> largestack-1.0.0/largestack/_state
+copying largestack/_studio/__init__.py -> largestack-1.0.0/largestack/_studio
+copying largestack/_studio/compare.py -> largestack-1.0.0/largestack/_studio
+copying largestack/_studio/pyodide_eval.py -> largestack-1.0.0/largestack/_studio
+copying largestack/_templates/__init__.py -> largestack-1.0.0/largestack/_templates
+copying largestack/_templates/code_generator.py -> largestack-1.0.0/largestack/_templates
+copying largestack/_templates/content_factory.py -> largestack-1.0.0/largestack/_templates
+copying largestack/_templates/customer_support.py -> largestack-1.0.0/largestack/_templates
+copying largestack/_templates/data_pipeline.py -> largestack-1.0.0/largestack/_templates
+copying largestack/_templates/research_pipeline.py -> largestack-1.0.0/largestack/_templates
+copying largestack/_test/__init__.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/assertions.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/benchmark.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/ci_gates.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/eval_metrics.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/llm_judge.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/recorder.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/regression.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/replayer.py -> largestack-1.0.0/largestack/_test
+copying largestack/_test/synthetic.py -> largestack-1.0.0/largestack/_test
+copying largestack/_vectorstores/__init__.py -> largestack-1.0.0/largestack/_vectorstores
+copying largestack/_workflow/__init__.py -> largestack-1.0.0/largestack/_workflow
+copying largestack/_workflow/checkpoint.py -> largestack-1.0.0/largestack/_workflow
+copying largestack/_workflow/graph.py -> largestack-1.0.0/largestack/_workflow
+copying largestack/_workflow/interrupt.py -> largestack-1.0.0/largestack/_workflow
+copying largestack/_workflow/sub_graph.py -> largestack-1.0.0/largestack/_workflow
+copying largestack/migrations/__init__.py -> largestack-1.0.0/largestack/migrations
+copying largestack/migrations/config_v1_to_v1_1.py -> largestack-1.0.0/largestack/migrations
+copying largestack/migrations/memory_v1_to_v1_1.py -> largestack-1.0.0/largestack/migrations
+copying largestack/migrations/project.py -> largestack-1.0.0/largestack/migrations
+copying largestack/migrations/trace_db_v1_to_v1_1.py -> largestack-1.0.0/largestack/migrations
+copying pricing/models.yaml -> largestack-1.0.0/pricing
+copying stubs/largestack/__init__.pyi -> largestack-1.0.0/stubs/largestack
+copying largestack.egg-info/SOURCES.txt -> largestack-1.0.0/largestack.egg-info
+Writing largestack-1.0.0/setup.cfg
+Creating tar archive
+removing 'largestack-1.0.0' (and everything under it)
+* Building wheel from sdist
+* Creating isolated environment: venv+pip...
+* Installing packages in isolated environment:
+  - setuptools>=75
+  - wheel
+* Getting build dependencies for wheel...
+running egg_info
+writing largestack.egg-info/PKG-INFO
+writing dependency_links to largestack.egg-info/dependency_links.txt
+writing entry points to largestack.egg-info/entry_points.txt
+writing requirements to largestack.egg-info/requires.txt
+writing top-level names to largestack.egg-info/top_level.txt
+reading manifest file 'largestack.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+warning: no files found matching '*.yaml' under directory 'largestack'
+warning: no files found matching '*.yml' under directory 'largestack'
+no previously-included directories found matching 'tmp'
+no previously-included directories found matching '.cache'
+no previously-included directories found matching '.config'
+no previously-included directories found matching '.local'
+no previously-included directories found matching '.npm'
+no previously-included directories found matching '.npm-global'
+no previously-included directories found matching '.pytest_cache'
+no previously-included directories found matching '.mypy_cache'
+no previously-included directories found matching '.ruff_cache'
+no previously-included directories found matching '.venv'
+no previously-included directories found matching 'build'
+no previously-included directories found matching 'dist'
+warning: no previously-included files matching '__pycache__' found anywhere in distribution
+warning: no previously-included files matching '*.py[cod]' found anywhere in distribution
+warning: no previously-included files matching '*.db' found anywhere in distribution
+warning: no previously-included files matching '*.db-journal' found anywhere in distribution
+warning: no previously-included files matching '*.so' found anywhere in distribution
+warning: no previously-included files matching '.DS_Store' found anywhere in distribution
+adding license file 'LICENSE'
+writing manifest file 'largestack.egg-info/SOURCES.txt'
+* Building wheel...
+running bdist_wheel
+running build
+running build_py
+creating build/lib/largestack
+copying largestack/autonomous_builder.py -> build/lib/largestack
+copying largestack/memory.py -> build/lib/largestack
+copying largestack/__init__.py -> build/lib/largestack
+copying largestack/serve.py -> build/lib/largestack
+copying largestack/observability.py -> build/lib/largestack
+copying largestack/types.py -> build/lib/largestack
+copying largestack/team.py -> build/lib/largestack
+copying largestack/guardrails.py -> build/lib/largestack
+copying largestack/rag.py -> build/lib/largestack
+copying largestack/orchestrator.py -> build/lib/largestack
+copying largestack/provider_matrix.py -> build/lib/largestack
+copying largestack/agent.py -> build/lib/largestack
+copying largestack/errors.py -> build/lib/largestack
+copying largestack/workflow.py -> build/lib/largestack
+copying largestack/testing.py -> build/lib/largestack
+copying largestack/decorators.py -> build/lib/largestack
+creating build/lib/largestack/_loaders
+copying largestack/_loaders/office.py -> build/lib/largestack/_loaders
+copying largestack/_loaders/semantic_chunking.py -> build/lib/largestack/_loaders
+copying largestack/_loaders/__init__.py -> build/lib/largestack/_loaders
+copying largestack/_loaders/llamaparse.py -> build/lib/largestack/_loaders
+copying largestack/_loaders/loaders_v09.py -> build/lib/largestack/_loaders
+creating build/lib/largestack/_distributed
+copying largestack/_distributed/saga.py -> build/lib/largestack/_distributed
+copying largestack/_distributed/__init__.py -> build/lib/largestack/_distributed
+copying largestack/_distributed/event_sourcing.py -> build/lib/largestack/_distributed
+copying largestack/_distributed/outbox.py -> build/lib/largestack/_distributed
+creating build/lib/largestack/_retrievers
+copying largestack/_retrievers/__init__.py -> build/lib/largestack/_retrievers
+creating build/lib/largestack/migrations
+copying largestack/migrations/trace_db_v1_to_v1_1.py -> build/lib/largestack/migrations
+copying largestack/migrations/__init__.py -> build/lib/largestack/migrations
+copying largestack/migrations/memory_v1_to_v1_1.py -> build/lib/largestack/migrations
+copying largestack/migrations/config_v1_to_v1_1.py -> build/lib/largestack/migrations
+copying largestack/migrations/project.py -> build/lib/largestack/migrations
+creating build/lib/largestack/_state
+copying largestack/_state/durable.py -> build/lib/largestack/_state
+copying largestack/_state/checkpoint.py -> build/lib/largestack/_state
+copying largestack/_state/__init__.py -> build/lib/largestack/_state
+copying largestack/_state/postgres_checkpointer.py -> build/lib/largestack/_state
+creating build/lib/largestack/_observability
+copying largestack/_observability/__init__.py -> build/lib/largestack/_observability
+copying largestack/_observability/otel.py -> build/lib/largestack/_observability
+creating build/lib/largestack/_enterprise
+copying largestack/_enterprise/white_label.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/tenant.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/audit.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/billing.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/sso.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/canary.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/rbac.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/__init__.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/session_store.py -> build/lib/largestack/_enterprise
+copying largestack/_enterprise/payment.py -> build/lib/largestack/_enterprise
+creating build/lib/largestack/_test
+copying largestack/_test/synthetic.py -> build/lib/largestack/_test
+copying largestack/_test/replayer.py -> build/lib/largestack/_test
+copying largestack/_test/regression.py -> build/lib/largestack/_test
+copying largestack/_test/eval_metrics.py -> build/lib/largestack/_test
+copying largestack/_test/benchmark.py -> build/lib/largestack/_test
+copying largestack/_test/ci_gates.py -> build/lib/largestack/_test
+copying largestack/_test/recorder.py -> build/lib/largestack/_test
+copying largestack/_test/__init__.py -> build/lib/largestack/_test
+copying largestack/_test/assertions.py -> build/lib/largestack/_test
+copying largestack/_test/llm_judge.py -> build/lib/largestack/_test
+creating build/lib/largestack/_core
+copying largestack/_core/structured_output.py -> build/lib/largestack/_core
+copying largestack/_core/smart_router.py -> build/lib/largestack/_core
+copying largestack/_core/gateway.py -> build/lib/largestack/_core
+copying largestack/_core/a2a_server.py -> build/lib/largestack/_core
+copying largestack/_core/agui_v1.py -> build/lib/largestack/_core
+copying largestack/_core/config.py -> build/lib/largestack/_core
+copying largestack/_core/hitl.py -> build/lib/largestack/_core
+copying largestack/_core/vision.py -> build/lib/largestack/_core
+copying largestack/_core/registry.py -> build/lib/largestack/_core
+copying largestack/_core/yaml_agent.py -> build/lib/largestack/_core
+copying largestack/_core/health.py -> build/lib/largestack/_core
+copying largestack/_core/events.py -> build/lib/largestack/_core
+copying largestack/_core/a2a_v1.py -> build/lib/largestack/_core
+copying largestack/_core/multiagent.py -> build/lib/largestack/_core
+copying largestack/_core/budget.py -> build/lib/largestack/_core
+copying largestack/_core/database.py -> build/lib/largestack/_core
+copying largestack/_core/tools.py -> build/lib/largestack/_core
+copying largestack/_core/prompt_templates.py -> build/lib/largestack/_core
+copying largestack/_core/ws_stream.py -> build/lib/largestack/_core
+copying largestack/_core/steering.py -> build/lib/largestack/_core
+copying largestack/_core/code_agent_v11.py -> build/lib/largestack/_core
+copying largestack/_core/session.py -> build/lib/largestack/_core
+copying largestack/_core/__init__.py -> build/lib/largestack/_core
+copying largestack/_core/feature_flags.py -> build/lib/largestack/_core
+copying largestack/_core/parsers.py -> build/lib/largestack/_core
+copying largestack/_core/ag_ui.py -> build/lib/largestack/_core
+copying largestack/_core/voice_agent.py -> build/lib/largestack/_core
+copying largestack/_core/browser_tool.py -> build/lib/largestack/_core
+copying largestack/_core/plugin_host.py -> build/lib/largestack/_core
+copying largestack/_core/composio_adapter.py -> build/lib/largestack/_core
+copying largestack/_core/engine.py -> build/lib/largestack/_core
+copying largestack/_core/code_agent.py -> build/lib/largestack/_core
+copying largestack/_core/context.py -> build/lib/largestack/_core
+copying largestack/_core/circuit_breaker.py -> build/lib/largestack/_core
+copying largestack/_core/agent_roles.py -> build/lib/largestack/_core
+copying largestack/_core/yaml_schema.py -> build/lib/largestack/_core
+copying largestack/_core/versioning.py -> build/lib/largestack/_core
+copying largestack/_core/structured.py -> build/lib/largestack/_core
+copying largestack/_core/citation_sandbox.py -> build/lib/largestack/_core
+copying largestack/_core/e2b_sandbox.py -> build/lib/largestack/_core
+copying largestack/_core/semantic_cache.py -> build/lib/largestack/_core
+copying largestack/_core/mcp_client.py -> build/lib/largestack/_core
+copying largestack/_core/optimizer.py -> build/lib/largestack/_core
+copying largestack/_core/reasoning.py -> build/lib/largestack/_core
+copying largestack/_core/license.py -> build/lib/largestack/_core
+copying largestack/_core/cost.py -> build/lib/largestack/_core
+copying largestack/_core/litellm_router.py -> build/lib/largestack/_core
+copying largestack/_core/loop_guard.py -> build/lib/largestack/_core
+copying largestack/_core/typed_agent.py -> build/lib/largestack/_core
+copying largestack/_core/streaming.py -> build/lib/largestack/_core
+copying largestack/_core/resilience.py -> build/lib/largestack/_core
+copying largestack/_core/mcp_server.py -> build/lib/largestack/_core
+copying largestack/_core/mcp_streamable.py -> build/lib/largestack/_core
+creating build/lib/largestack/_templates
+copying largestack/_templates/data_pipeline.py -> build/lib/largestack/_templates
+copying largestack/_templates/__init__.py -> build/lib/largestack/_templates
+copying largestack/_templates/research_pipeline.py -> build/lib/largestack/_templates
+copying largestack/_templates/customer_support.py -> build/lib/largestack/_templates
+copying largestack/_templates/content_factory.py -> build/lib/largestack/_templates
+copying largestack/_templates/code_generator.py -> build/lib/largestack/_templates
+creating build/lib/largestack/_indic
+copying largestack/_indic/__init__.py -> build/lib/largestack/_indic
+creating build/lib/largestack/_security
+copying largestack/_security/e2b_bridge.py -> build/lib/largestack/_security
+copying largestack/_security/encryption.py -> build/lib/largestack/_security
+copying largestack/_security/__init__.py -> build/lib/largestack/_security
+copying largestack/_security/sbom.py -> build/lib/largestack/_security
+copying largestack/_security/sandbox.py -> build/lib/largestack/_security
+copying largestack/_security/vault.py -> build/lib/largestack/_security
+copying largestack/_security/network.py -> build/lib/largestack/_security
+copying largestack/_security/permissions.py -> build/lib/largestack/_security
+copying largestack/_security/mtls.py -> build/lib/largestack/_security
+copying largestack/_security/code_sandbox.py -> build/lib/largestack/_security
+creating build/lib/largestack/_observe
+copying largestack/_observe/sqlite_exporter.py -> build/lib/largestack/_observe
+copying largestack/_observe/metrics.py -> build/lib/largestack/_observe
+copying largestack/_observe/gen_ai_instrumentor.py -> build/lib/largestack/_observe
+copying largestack/_observe/__init__.py -> build/lib/largestack/_observe
+copying largestack/_observe/event_replay.py -> build/lib/largestack/_observe
+copying largestack/_observe/cost_dashboard.py -> build/lib/largestack/_observe
+copying largestack/_observe/traces_db.py -> build/lib/largestack/_observe
+copying largestack/_observe/auto_trace.py -> build/lib/largestack/_observe
+copying largestack/_observe/log_redaction.py -> build/lib/largestack/_observe
+copying largestack/_observe/anomaly.py -> build/lib/largestack/_observe
+copying largestack/_observe/otel_helpers.py -> build/lib/largestack/_observe
+copying largestack/_observe/tracer.py -> build/lib/largestack/_observe
+copying largestack/_observe/otel_export.py -> build/lib/largestack/_observe
+creating build/lib/largestack/_compliance
+copying largestack/_compliance/dpdp_breach.py -> build/lib/largestack/_compliance
+creating build/lib/largestack/_dashboard
+copying largestack/_dashboard/auth.py -> build/lib/largestack/_dashboard
+copying largestack/_dashboard/__init__.py -> build/lib/largestack/_dashboard
+copying largestack/_dashboard/api.py -> build/lib/largestack/_dashboard
+copying largestack/_dashboard/rate_limit.py -> build/lib/largestack/_dashboard
+copying largestack/_dashboard/app.py -> build/lib/largestack/_dashboard
+creating build/lib/largestack/_ratelimit
+copying largestack/_ratelimit/__init__.py -> build/lib/largestack/_ratelimit
+creating build/lib/largestack/_evals
+copying largestack/_evals/runner.py -> build/lib/largestack/_evals
+copying largestack/_evals/__init__.py -> build/lib/largestack/_evals
+copying largestack/_evals/adapters.py -> build/lib/largestack/_evals
+creating build/lib/largestack/_a2a
+copying largestack/_a2a/multimodal.py -> build/lib/largestack/_a2a
+copying largestack/_a2a/__init__.py -> build/lib/largestack/_a2a
+copying largestack/_a2a/v03.py -> build/lib/largestack/_a2a
+creating build/lib/largestack/_rag
+copying largestack/_rag/crag.py -> build/lib/largestack/_rag
+copying largestack/_rag/reranker.py -> build/lib/largestack/_rag
+copying largestack/_rag/chunker.py -> build/lib/largestack/_rag
+copying largestack/_rag/vector_store.py -> build/lib/largestack/_rag
+copying largestack/_rag/retriever.py -> build/lib/largestack/_rag
+copying largestack/_rag/__init__.py -> build/lib/largestack/_rag
+copying largestack/_rag/graph_rag.py -> build/lib/largestack/_rag
+copying largestack/_rag/pipeline.py -> build/lib/largestack/_rag
+copying largestack/_rag/embedder.py -> build/lib/largestack/_rag
+copying largestack/_rag/eval.py -> build/lib/largestack/_rag
+copying largestack/_rag/summary_index.py -> build/lib/largestack/_rag
+copying largestack/_rag/query_engines.py -> build/lib/largestack/_rag
+creating build/lib/largestack/_cli
+copying largestack/_cli/dev_server.py -> build/lib/largestack/_cli
+copying largestack/_cli/cli_v120.py -> build/lib/largestack/_cli
+copying largestack/_cli/cli_v130_compliance.py -> build/lib/largestack/_cli
+copying largestack/_cli/scaffold.py -> build/lib/largestack/_cli
+copying largestack/_cli/cli_v09.py -> build/lib/largestack/_cli
+copying largestack/_cli/main.py -> build/lib/largestack/_cli
+copying largestack/_cli/commands.py -> build/lib/largestack/_cli
+creating build/lib/largestack/_guard
+copying largestack/_guard/injection.py -> build/lib/largestack/_guard
+copying largestack/_guard/toxicity.py -> build/lib/largestack/_guard
+copying largestack/_guard/pii_ml.py -> build/lib/largestack/_guard
+copying largestack/_guard/config.py -> build/lib/largestack/_guard
+copying largestack/_guard/redis_kill_switch.py -> build/lib/largestack/_guard
+copying largestack/_guard/policy.py -> build/lib/largestack/_guard
+copying largestack/_guard/__init__.py -> build/lib/largestack/_guard
+copying largestack/_guard/kill_switch.py -> build/lib/largestack/_guard
+copying largestack/_guard/prompt_guard.py -> build/lib/largestack/_guard
+copying largestack/_guard/memory_integrity.py -> build/lib/largestack/_guard
+copying largestack/_guard/inter_agent_auth.py -> build/lib/largestack/_guard
+copying largestack/_guard/pipeline.py -> build/lib/largestack/_guard
+copying largestack/_guard/topic.py -> build/lib/largestack/_guard
+copying largestack/_guard/agent_identity.py -> build/lib/largestack/_guard
+copying largestack/_guard/hallucination.py -> build/lib/largestack/_guard
+copying largestack/_guard/provider_policy.py -> build/lib/largestack/_guard
+copying largestack/_guard/tool_access.py -> build/lib/largestack/_guard
+copying largestack/_guard/tool_policy.py -> build/lib/largestack/_guard
+copying largestack/_guard/pii.py -> build/lib/largestack/_guard
+copying largestack/_guard/nli_hallucination.py -> build/lib/largestack/_guard
+creating build/lib/largestack/_workflow
+copying largestack/_workflow/checkpoint.py -> build/lib/largestack/_workflow
+copying largestack/_workflow/interrupt.py -> build/lib/largestack/_workflow
+copying largestack/_workflow/graph.py -> build/lib/largestack/_workflow
+copying largestack/_workflow/sub_graph.py -> build/lib/largestack/_workflow
+copying largestack/_workflow/__init__.py -> build/lib/largestack/_workflow
+creating build/lib/largestack/_rerankers
+copying largestack/_rerankers/__init__.py -> build/lib/largestack/_rerankers
+creating build/lib/largestack/_vectorstores
+copying largestack/_vectorstores/__init__.py -> build/lib/largestack/_vectorstores
+creating build/lib/largestack/_eval
+copying largestack/_eval/alerts.py -> build/lib/largestack/_eval
+copying largestack/_eval/runner.py -> build/lib/largestack/_eval
+copying largestack/_eval/extensions_v130.py -> build/lib/largestack/_eval
+copying largestack/_eval/pr_diff.py -> build/lib/largestack/_eval
+copying largestack/_eval/__init__.py -> build/lib/largestack/_eval
+creating build/lib/largestack/_integrations
+copying largestack/_integrations/embeddings_v09.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/sheets.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/stripe_toolkit.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/registry.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/toolkits_v09.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/linear.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/langfuse_adapter.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/mcp_adapter.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/litellm_bridge.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/indian_toolkits.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/__init__.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/jina_embed.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/phoenix_adapter.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/cohere_embed.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/razorpay_toolkit.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/langchain_compat.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/postgres.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/pandas_toolkit.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/openapi_toolkit.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/jira.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/sql_toolkit.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/notion.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/github.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/openai_embeddings.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/voyage_embed.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/slack.py -> build/lib/largestack/_integrations
+copying largestack/_integrations/hf_embed.py -> build/lib/largestack/_integrations
+creating build/lib/largestack/_studio
+copying largestack/_studio/pyodide_eval.py -> build/lib/largestack/_studio
+copying largestack/_studio/__init__.py -> build/lib/largestack/_studio
+copying largestack/_studio/compare.py -> build/lib/largestack/_studio
+creating build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/swarm.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/supervisor.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/dag.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/__init__.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/debate.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/state_machine.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/sequential.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/map_reduce.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/flows.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/router.py -> build/lib/largestack/_orchestrate
+copying largestack/_orchestrate/parallel.py -> build/lib/largestack/_orchestrate
+creating build/lib/largestack/_memory
+copying largestack/_memory/procedural.py -> build/lib/largestack/_memory
+copying largestack/_memory/semantic.py -> build/lib/largestack/_memory
+copying largestack/_memory/vector_store.py -> build/lib/largestack/_memory
+copying largestack/_memory/compression.py -> build/lib/largestack/_memory
+copying largestack/_memory/tools.py -> build/lib/largestack/_memory
+copying largestack/_memory/graph.py -> build/lib/largestack/_memory
+copying largestack/_memory/__init__.py -> build/lib/largestack/_memory
+copying largestack/_memory/shared.py -> build/lib/largestack/_memory
+copying largestack/_memory/postgres_store.py -> build/lib/largestack/_memory
+copying largestack/_memory/external_adapters.py -> build/lib/largestack/_memory
+copying largestack/_memory/buffer.py -> build/lib/largestack/_memory
+copying largestack/_memory/episodic.py -> build/lib/largestack/_memory
+copying largestack/_memory/observational.py -> build/lib/largestack/_memory
+copying largestack/_memory/long_term.py -> build/lib/largestack/_memory
+creating build/lib/largestack/_core/providers
+copying largestack/_core/providers/ai21_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/openrouter_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/perplexity_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/anthropic_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/azure_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/together_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/voyage_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/replicate_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/openai_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/fireworks_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/groq_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/__init__.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/ollama_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/sambanova_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/nvidia_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/cohere_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/google_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/xai_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/cloudflare_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/bedrock_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/cerebras_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/anyscale_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/mistral_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/deepseek_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/litellm_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/base.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/lepton_prov.py -> build/lib/largestack/_core/providers
+copying largestack/_core/providers/databricks_prov.py -> build/lib/largestack/_core/providers
+creating build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/files.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/db.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/web.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/_url_validator.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/shell.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/code.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/__init__.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/time_tool.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/browser.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/voice.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/http_tool.py -> build/lib/largestack/_core/builtin_tools
+copying largestack/_core/builtin_tools/calc.py -> build/lib/largestack/_core/builtin_tools
+running egg_info
+writing largestack.egg-info/PKG-INFO
+writing dependency_links to largestack.egg-info/dependency_links.txt
+writing entry points to largestack.egg-info/entry_points.txt
+writing requirements to largestack.egg-info/requires.txt
+writing top-level names to largestack.egg-info/top_level.txt
+reading manifest file 'largestack.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+warning: no files found matching '*.yaml' under directory 'largestack'
+warning: no files found matching '*.yml' under directory 'largestack'
+no previously-included directories found matching 'tmp'
+no previously-included directories found matching '.cache'
+no previously-included directories found matching '.config'
+no previously-included directories found matching '.local'
+no previously-included directories found matching '.npm'
+no previously-included directories found matching '.npm-global'
+no previously-included directories found matching '.pytest_cache'
+no previously-included directories found matching '.mypy_cache'
+no previously-included directories found matching '.ruff_cache'
+no previously-included directories found matching '.venv'
+no previously-included directories found matching 'build'
+no previously-included directories found matching 'dist'
+warning: no previously-included files matching '__pycache__' found anywhere in distribution
+warning: no previously-included files matching '*.py[cod]' found anywhere in distribution
+warning: no previously-included files matching '*.db' found anywhere in distribution
+warning: no previously-included files matching '*.db-journal' found anywhere in distribution
+warning: no previously-included files matching '*.so' found anywhere in distribution
+warning: no previously-included files matching '.DS_Store' found anywhere in distribution
+adding license file 'LICENSE'
+writing manifest file 'largestack.egg-info/SOURCES.txt'
+copying largestack/py.typed -> build/lib/largestack
+copying largestack/_dashboard/README.md -> build/lib/largestack/_dashboard
+copying largestack/_dashboard/frontend.jsx -> build/lib/largestack/_dashboard
+creating build/lib/largestack/_dashboard/spa
+copying largestack/_dashboard/spa/App.jsx -> build/lib/largestack/_dashboard/spa
+copying largestack/_dashboard/spa/README.md -> build/lib/largestack/_dashboard/spa
+copying largestack/_dashboard/spa/index.html -> build/lib/largestack/_dashboard/spa
+copying largestack/_dashboard/spa/main.jsx -> build/lib/largestack/_dashboard/spa
+installing to build/bdist.macosx-15.0-arm64/wheel
+running install
+running install_lib
+creating build/bdist.macosx-15.0-arm64/wheel
+creating build/bdist.macosx-15.0-arm64/wheel/largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_loaders
+copying build/lib/largestack/_loaders/office.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_loaders
+copying build/lib/largestack/_loaders/semantic_chunking.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_loaders
+copying build/lib/largestack/_loaders/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_loaders
+copying build/lib/largestack/_loaders/llamaparse.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_loaders
+copying build/lib/largestack/_loaders/loaders_v09.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_loaders
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_distributed
+copying build/lib/largestack/_distributed/saga.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_distributed
+copying build/lib/largestack/_distributed/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_distributed
+copying build/lib/largestack/_distributed/event_sourcing.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_distributed
+copying build/lib/largestack/_distributed/outbox.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_distributed
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_retrievers
+copying build/lib/largestack/_retrievers/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_retrievers
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/migrations
+copying build/lib/largestack/migrations/trace_db_v1_to_v1_1.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/migrations
+copying build/lib/largestack/migrations/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/migrations
+copying build/lib/largestack/migrations/memory_v1_to_v1_1.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/migrations
+copying build/lib/largestack/migrations/config_v1_to_v1_1.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/migrations
+copying build/lib/largestack/migrations/project.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/migrations
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_state
+copying build/lib/largestack/_state/durable.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_state
+copying build/lib/largestack/_state/checkpoint.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_state
+copying build/lib/largestack/_state/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_state
+copying build/lib/largestack/_state/postgres_checkpointer.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_state
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_observability
+copying build/lib/largestack/_observability/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observability
+copying build/lib/largestack/_observability/otel.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observability
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_enterprise
+copying build/lib/largestack/_enterprise/white_label.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/tenant.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/audit.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/billing.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/sso.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/canary.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/rbac.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/session_store.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+copying build/lib/largestack/_enterprise/payment.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_enterprise
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_test
+copying build/lib/largestack/_test/synthetic.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/replayer.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/regression.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/eval_metrics.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/benchmark.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/ci_gates.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/recorder.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/assertions.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/_test/llm_judge.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_test
+copying build/lib/largestack/autonomous_builder.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+copying build/lib/largestack/memory.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_core
+copying build/lib/largestack/_core/structured_output.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/smart_router.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/gateway.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/a2a_server.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/agui_v1.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/config.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/hitl.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/vision.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/registry.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/yaml_agent.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/health.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/events.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/a2a_v1.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/multiagent.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/budget.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_core/providers
+copying build/lib/largestack/_core/providers/ai21_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/openrouter_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/perplexity_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/anthropic_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/azure_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/together_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/voyage_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/replicate_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/openai_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/fireworks_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/groq_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/ollama_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/sambanova_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/nvidia_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/cohere_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/google_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/xai_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/cloudflare_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/bedrock_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/cerebras_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/anyscale_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/mistral_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/deepseek_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/litellm_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/base.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/lepton_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/providers/databricks_prov.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/providers
+copying build/lib/largestack/_core/database.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/tools.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/prompt_templates.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/ws_stream.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/steering.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/code_agent_v11.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/session.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/feature_flags.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/parsers.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/ag_ui.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/voice_agent.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/browser_tool.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/plugin_host.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/composio_adapter.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/engine.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/code_agent.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/context.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/circuit_breaker.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/agent_roles.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/yaml_schema.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/versioning.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/structured.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/citation_sandbox.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/e2b_sandbox.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/semantic_cache.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/mcp_client.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/optimizer.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/reasoning.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/license.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/cost.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/litellm_router.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/loop_guard.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/typed_agent.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/streaming.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/resilience.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/files.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/db.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/web.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/_url_validator.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/shell.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/code.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/time_tool.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/browser.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/voice.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/http_tool.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/builtin_tools/calc.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core/builtin_tools
+copying build/lib/largestack/_core/mcp_server.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+copying build/lib/largestack/_core/mcp_streamable.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_core
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_templates
+copying build/lib/largestack/_templates/data_pipeline.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_templates
+copying build/lib/largestack/_templates/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_templates
+copying build/lib/largestack/_templates/research_pipeline.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_templates
+copying build/lib/largestack/_templates/customer_support.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_templates
+copying build/lib/largestack/_templates/content_factory.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_templates
+copying build/lib/largestack/_templates/code_generator.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_templates
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_indic
+copying build/lib/largestack/_indic/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_indic
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_security
+copying build/lib/largestack/_security/e2b_bridge.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/encryption.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/sbom.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/sandbox.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/vault.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/network.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/permissions.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/mtls.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+copying build/lib/largestack/_security/code_sandbox.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_security
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_observe
+copying build/lib/largestack/_observe/sqlite_exporter.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/metrics.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/gen_ai_instrumentor.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/event_replay.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/cost_dashboard.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/traces_db.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/auto_trace.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/log_redaction.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/anomaly.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/otel_helpers.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/tracer.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/_observe/otel_export.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_observe
+copying build/lib/largestack/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_compliance
+copying build/lib/largestack/_compliance/dpdp_breach.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_compliance
+copying build/lib/largestack/serve.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+copying build/lib/largestack/observability.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+copying build/lib/largestack/types.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_dashboard
+copying build/lib/largestack/_dashboard/auth.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard
+copying build/lib/largestack/_dashboard/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard
+copying build/lib/largestack/_dashboard/frontend.jsx -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_dashboard/spa
+copying build/lib/largestack/_dashboard/spa/index.html -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard/spa
+copying build/lib/largestack/_dashboard/spa/README.md -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard/spa
+copying build/lib/largestack/_dashboard/spa/main.jsx -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard/spa
+copying build/lib/largestack/_dashboard/spa/App.jsx -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard/spa
+copying build/lib/largestack/_dashboard/README.md -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard
+copying build/lib/largestack/_dashboard/api.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard
+copying build/lib/largestack/_dashboard/rate_limit.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard
+copying build/lib/largestack/_dashboard/app.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_dashboard
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_ratelimit
+copying build/lib/largestack/_ratelimit/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_ratelimit
+copying build/lib/largestack/team.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_evals
+copying build/lib/largestack/_evals/runner.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_evals
+copying build/lib/largestack/_evals/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_evals
+copying build/lib/largestack/_evals/adapters.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_evals
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_a2a
+copying build/lib/largestack/_a2a/multimodal.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_a2a
+copying build/lib/largestack/_a2a/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_a2a
+copying build/lib/largestack/_a2a/v03.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_a2a
+copying build/lib/largestack/guardrails.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+copying build/lib/largestack/rag.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+copying build/lib/largestack/orchestrator.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+copying build/lib/largestack/provider_matrix.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_rag
+copying build/lib/largestack/_rag/crag.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/reranker.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/chunker.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/vector_store.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/retriever.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/graph_rag.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/pipeline.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/embedder.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/eval.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/summary_index.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+copying build/lib/largestack/_rag/query_engines.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rag
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_cli
+copying build/lib/largestack/_cli/dev_server.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_cli
+copying build/lib/largestack/_cli/cli_v120.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_cli
+copying build/lib/largestack/_cli/cli_v130_compliance.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_cli
+copying build/lib/largestack/_cli/scaffold.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_cli
+copying build/lib/largestack/_cli/cli_v09.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_cli
+copying build/lib/largestack/_cli/main.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_cli
+copying build/lib/largestack/_cli/commands.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_cli
+copying build/lib/largestack/agent.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_guard
+copying build/lib/largestack/_guard/injection.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/toxicity.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/pii_ml.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/config.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/redis_kill_switch.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/policy.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/kill_switch.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/prompt_guard.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/memory_integrity.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/inter_agent_auth.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/pipeline.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/topic.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/agent_identity.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/hallucination.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/provider_policy.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/tool_access.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/tool_policy.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/pii.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/_guard/nli_hallucination.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_guard
+copying build/lib/largestack/py.typed -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_workflow
+copying build/lib/largestack/_workflow/checkpoint.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_workflow
+copying build/lib/largestack/_workflow/interrupt.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_workflow
+copying build/lib/largestack/_workflow/graph.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_workflow
+copying build/lib/largestack/_workflow/sub_graph.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_workflow
+copying build/lib/largestack/_workflow/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_workflow
+copying build/lib/largestack/errors.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_rerankers
+copying build/lib/largestack/_rerankers/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_rerankers
+copying build/lib/largestack/workflow.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+copying build/lib/largestack/testing.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_vectorstores
+copying build/lib/largestack/_vectorstores/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_vectorstores
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_eval
+copying build/lib/largestack/_eval/alerts.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_eval
+copying build/lib/largestack/_eval/runner.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_eval
+copying build/lib/largestack/_eval/extensions_v130.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_eval
+copying build/lib/largestack/_eval/pr_diff.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_eval
+copying build/lib/largestack/_eval/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_eval
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_integrations
+copying build/lib/largestack/_integrations/embeddings_v09.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/sheets.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/stripe_toolkit.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/registry.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/toolkits_v09.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/linear.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/langfuse_adapter.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/mcp_adapter.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/litellm_bridge.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/indian_toolkits.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/jina_embed.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/phoenix_adapter.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/cohere_embed.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/razorpay_toolkit.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/langchain_compat.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/postgres.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/pandas_toolkit.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/openapi_toolkit.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/jira.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/sql_toolkit.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/notion.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/github.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/openai_embeddings.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/voyage_embed.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/slack.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+copying build/lib/largestack/_integrations/hf_embed.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_integrations
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_studio
+copying build/lib/largestack/_studio/pyodide_eval.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_studio
+copying build/lib/largestack/_studio/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_studio
+copying build/lib/largestack/_studio/compare.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_studio
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/swarm.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/supervisor.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/dag.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/debate.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/state_machine.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/sequential.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/map_reduce.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/flows.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/router.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+copying build/lib/largestack/_orchestrate/parallel.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_orchestrate
+creating build/bdist.macosx-15.0-arm64/wheel/largestack/_memory
+copying build/lib/largestack/_memory/procedural.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/semantic.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/vector_store.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/compression.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/tools.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/graph.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/__init__.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/shared.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/postgres_store.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/external_adapters.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/buffer.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/episodic.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/observational.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/_memory/long_term.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack/_memory
+copying build/lib/largestack/decorators.py -> build/bdist.macosx-15.0-arm64/wheel/./largestack
+running install_egg_info
+Copying largestack.egg-info to build/bdist.macosx-15.0-arm64/wheel/./largestack-1.0.0-py3.11.egg-info
+running install_scripts
+creating build/bdist.macosx-15.0-arm64/wheel/largestack-1.0.0.dist-info/WHEEL
+creating '/Users/sachiths/largestack/dist/.tmp-mv7rli0i/largestack-1.0.0-py3-none-any.whl' and adding 'build/bdist.macosx-15.0-arm64/wheel' to it
+adding 'largestack/__init__.py'
+adding 'largestack/agent.py'
+adding 'largestack/autonomous_builder.py'
+adding 'largestack/decorators.py'
+adding 'largestack/errors.py'
+adding 'largestack/guardrails.py'
+adding 'largestack/memory.py'
+adding 'largestack/observability.py'
+adding 'largestack/orchestrator.py'
+adding 'largestack/provider_matrix.py'
+adding 'largestack/py.typed'
+adding 'largestack/rag.py'
+adding 'largestack/serve.py'
+adding 'largestack/team.py'
+adding 'largestack/testing.py'
+adding 'largestack/types.py'
+adding 'largestack/workflow.py'
+adding 'largestack/_a2a/__init__.py'
+adding 'largestack/_a2a/multimodal.py'
+adding 'largestack/_a2a/v03.py'
+adding 'largestack/_cli/cli_v09.py'
+adding 'largestack/_cli/cli_v120.py'
+adding 'largestack/_cli/cli_v130_compliance.py'
+adding 'largestack/_cli/commands.py'
+adding 'largestack/_cli/dev_server.py'
+adding 'largestack/_cli/main.py'
+adding 'largestack/_cli/scaffold.py'
+adding 'largestack/_compliance/dpdp_breach.py'
+adding 'largestack/_core/__init__.py'
+adding 'largestack/_core/a2a_server.py'
+adding 'largestack/_core/a2a_v1.py'
+adding 'largestack/_core/ag_ui.py'
+adding 'largestack/_core/agent_roles.py'
+adding 'largestack/_core/agui_v1.py'
+adding 'largestack/_core/browser_tool.py'
+adding 'largestack/_core/budget.py'
+adding 'largestack/_core/circuit_breaker.py'
+adding 'largestack/_core/citation_sandbox.py'
+adding 'largestack/_core/code_agent.py'
+adding 'largestack/_core/code_agent_v11.py'
+adding 'largestack/_core/composio_adapter.py'
+adding 'largestack/_core/config.py'
+adding 'largestack/_core/context.py'
+adding 'largestack/_core/cost.py'
+adding 'largestack/_core/database.py'
+adding 'largestack/_core/e2b_sandbox.py'
+adding 'largestack/_core/engine.py'
+adding 'largestack/_core/events.py'
+adding 'largestack/_core/feature_flags.py'
+adding 'largestack/_core/gateway.py'
+adding 'largestack/_core/health.py'
+adding 'largestack/_core/hitl.py'
+adding 'largestack/_core/license.py'
+adding 'largestack/_core/litellm_router.py'
+adding 'largestack/_core/loop_guard.py'
+adding 'largestack/_core/mcp_client.py'
+adding 'largestack/_core/mcp_server.py'
+adding 'largestack/_core/mcp_streamable.py'
+adding 'largestack/_core/multiagent.py'
+adding 'largestack/_core/optimizer.py'
+adding 'largestack/_core/parsers.py'
+adding 'largestack/_core/plugin_host.py'
+adding 'largestack/_core/prompt_templates.py'
+adding 'largestack/_core/reasoning.py'
+adding 'largestack/_core/registry.py'
+adding 'largestack/_core/resilience.py'
+adding 'largestack/_core/semantic_cache.py'
+adding 'largestack/_core/session.py'
+adding 'largestack/_core/smart_router.py'
+adding 'largestack/_core/steering.py'
+adding 'largestack/_core/streaming.py'
+adding 'largestack/_core/structured.py'
+adding 'largestack/_core/structured_output.py'
+adding 'largestack/_core/tools.py'
+adding 'largestack/_core/typed_agent.py'
+adding 'largestack/_core/versioning.py'
+adding 'largestack/_core/vision.py'
+adding 'largestack/_core/voice_agent.py'
+adding 'largestack/_core/ws_stream.py'
+adding 'largestack/_core/yaml_agent.py'
+adding 'largestack/_core/yaml_schema.py'
+adding 'largestack/_core/builtin_tools/__init__.py'
+adding 'largestack/_core/builtin_tools/_url_validator.py'
+adding 'largestack/_core/builtin_tools/browser.py'
+adding 'largestack/_core/builtin_tools/calc.py'
+adding 'largestack/_core/builtin_tools/code.py'
+adding 'largestack/_core/builtin_tools/db.py'
+adding 'largestack/_core/builtin_tools/files.py'
+adding 'largestack/_core/builtin_tools/http_tool.py'
+adding 'largestack/_core/builtin_tools/shell.py'
+adding 'largestack/_core/builtin_tools/time_tool.py'
+adding 'largestack/_core/builtin_tools/voice.py'
+adding 'largestack/_core/builtin_tools/web.py'
+adding 'largestack/_core/providers/__init__.py'
+adding 'largestack/_core/providers/ai21_prov.py'
+adding 'largestack/_core/providers/anthropic_prov.py'
+adding 'largestack/_core/providers/anyscale_prov.py'
+adding 'largestack/_core/providers/azure_prov.py'
+adding 'largestack/_core/providers/base.py'
+adding 'largestack/_core/providers/bedrock_prov.py'
+adding 'largestack/_core/providers/cerebras_prov.py'
+adding 'largestack/_core/providers/cloudflare_prov.py'
+adding 'largestack/_core/providers/cohere_prov.py'
+adding 'largestack/_core/providers/databricks_prov.py'
+adding 'largestack/_core/providers/deepseek_prov.py'
+adding 'largestack/_core/providers/fireworks_prov.py'
+adding 'largestack/_core/providers/google_prov.py'
+adding 'largestack/_core/providers/groq_prov.py'
+adding 'largestack/_core/providers/lepton_prov.py'
+adding 'largestack/_core/providers/litellm_prov.py'
+adding 'largestack/_core/providers/mistral_prov.py'
+adding 'largestack/_core/providers/nvidia_prov.py'
+adding 'largestack/_core/providers/ollama_prov.py'
+adding 'largestack/_core/providers/openai_prov.py'
+adding 'largestack/_core/providers/openrouter_prov.py'
+adding 'largestack/_core/providers/perplexity_prov.py'
+adding 'largestack/_core/providers/replicate_prov.py'
+adding 'largestack/_core/providers/sambanova_prov.py'
+adding 'largestack/_core/providers/together_prov.py'
+adding 'largestack/_core/providers/voyage_prov.py'
+adding 'largestack/_core/providers/xai_prov.py'
+adding 'largestack/_dashboard/README.md'
+adding 'largestack/_dashboard/__init__.py'
+adding 'largestack/_dashboard/api.py'
+adding 'largestack/_dashboard/app.py'
+adding 'largestack/_dashboard/auth.py'
+adding 'largestack/_dashboard/frontend.jsx'
+adding 'largestack/_dashboard/rate_limit.py'
+adding 'largestack/_dashboard/spa/App.jsx'
+adding 'largestack/_dashboard/spa/README.md'
+adding 'largestack/_dashboard/spa/index.html'
+adding 'largestack/_dashboard/spa/main.jsx'
+adding 'largestack/_distributed/__init__.py'
+adding 'largestack/_distributed/event_sourcing.py'
+adding 'largestack/_distributed/outbox.py'
+adding 'largestack/_distributed/saga.py'
+adding 'largestack/_enterprise/__init__.py'
+adding 'largestack/_enterprise/audit.py'
+adding 'largestack/_enterprise/billing.py'
+adding 'largestack/_enterprise/canary.py'
+adding 'largestack/_enterprise/payment.py'
+adding 'largestack/_enterprise/rbac.py'
+adding 'largestack/_enterprise/session_store.py'
+adding 'largestack/_enterprise/sso.py'
+adding 'largestack/_enterprise/tenant.py'
+adding 'largestack/_enterprise/white_label.py'
+adding 'largestack/_eval/__init__.py'
+adding 'largestack/_eval/alerts.py'
+adding 'largestack/_eval/extensions_v130.py'
+adding 'largestack/_eval/pr_diff.py'
+adding 'largestack/_eval/runner.py'
+adding 'largestack/_evals/__init__.py'
+adding 'largestack/_evals/adapters.py'
+adding 'largestack/_evals/runner.py'
+adding 'largestack/_guard/__init__.py'
+adding 'largestack/_guard/agent_identity.py'
+adding 'largestack/_guard/config.py'
+adding 'largestack/_guard/hallucination.py'
+adding 'largestack/_guard/injection.py'
+adding 'largestack/_guard/inter_agent_auth.py'
+adding 'largestack/_guard/kill_switch.py'
+adding 'largestack/_guard/memory_integrity.py'
+adding 'largestack/_guard/nli_hallucination.py'
+adding 'largestack/_guard/pii.py'
+adding 'largestack/_guard/pii_ml.py'
+adding 'largestack/_guard/pipeline.py'
+adding 'largestack/_guard/policy.py'
+adding 'largestack/_guard/prompt_guard.py'
+adding 'largestack/_guard/provider_policy.py'
+adding 'largestack/_guard/redis_kill_switch.py'
+adding 'largestack/_guard/tool_access.py'
+adding 'largestack/_guard/tool_policy.py'
+adding 'largestack/_guard/topic.py'
+adding 'largestack/_guard/toxicity.py'
+adding 'largestack/_indic/__init__.py'
+adding 'largestack/_integrations/__init__.py'
+adding 'largestack/_integrations/cohere_embed.py'
+adding 'largestack/_integrations/embeddings_v09.py'
+adding 'largestack/_integrations/github.py'
+adding 'largestack/_integrations/hf_embed.py'
+adding 'largestack/_integrations/indian_toolkits.py'
+adding 'largestack/_integrations/jina_embed.py'
+adding 'largestack/_integrations/jira.py'
+adding 'largestack/_integrations/langchain_compat.py'
+adding 'largestack/_integrations/langfuse_adapter.py'
+adding 'largestack/_integrations/linear.py'
+adding 'largestack/_integrations/litellm_bridge.py'
+adding 'largestack/_integrations/mcp_adapter.py'
+adding 'largestack/_integrations/notion.py'
+adding 'largestack/_integrations/openai_embeddings.py'
+adding 'largestack/_integrations/openapi_toolkit.py'
+adding 'largestack/_integrations/pandas_toolkit.py'
+adding 'largestack/_integrations/phoenix_adapter.py'
+adding 'largestack/_integrations/postgres.py'
+adding 'largestack/_integrations/razorpay_toolkit.py'
+adding 'largestack/_integrations/registry.py'
+adding 'largestack/_integrations/sheets.py'
+adding 'largestack/_integrations/slack.py'
+adding 'largestack/_integrations/sql_toolkit.py'
+adding 'largestack/_integrations/stripe_toolkit.py'
+adding 'largestack/_integrations/toolkits_v09.py'
+adding 'largestack/_integrations/voyage_embed.py'
+adding 'largestack/_loaders/__init__.py'
+adding 'largestack/_loaders/llamaparse.py'
+adding 'largestack/_loaders/loaders_v09.py'
+adding 'largestack/_loaders/office.py'
+adding 'largestack/_loaders/semantic_chunking.py'
+adding 'largestack/_memory/__init__.py'
+adding 'largestack/_memory/buffer.py'
+adding 'largestack/_memory/compression.py'
+adding 'largestack/_memory/episodic.py'
+adding 'largestack/_memory/external_adapters.py'
+adding 'largestack/_memory/graph.py'
+adding 'largestack/_memory/long_term.py'
+adding 'largestack/_memory/observational.py'
+adding 'largestack/_memory/postgres_store.py'
+adding 'largestack/_memory/procedural.py'
+adding 'largestack/_memory/semantic.py'
+adding 'largestack/_memory/shared.py'
+adding 'largestack/_memory/tools.py'
+adding 'largestack/_memory/vector_store.py'
+adding 'largestack/_observability/__init__.py'
+adding 'largestack/_observability/otel.py'
+adding 'largestack/_observe/__init__.py'
+adding 'largestack/_observe/anomaly.py'
+adding 'largestack/_observe/auto_trace.py'
+adding 'largestack/_observe/cost_dashboard.py'
+adding 'largestack/_observe/event_replay.py'
+adding 'largestack/_observe/gen_ai_instrumentor.py'
+adding 'largestack/_observe/log_redaction.py'
+adding 'largestack/_observe/metrics.py'
+adding 'largestack/_observe/otel_export.py'
+adding 'largestack/_observe/otel_helpers.py'
+adding 'largestack/_observe/sqlite_exporter.py'
+adding 'largestack/_observe/tracer.py'
+adding 'largestack/_observe/traces_db.py'
+adding 'largestack/_orchestrate/__init__.py'
+adding 'largestack/_orchestrate/dag.py'
+adding 'largestack/_orchestrate/debate.py'
+adding 'largestack/_orchestrate/flows.py'
+adding 'largestack/_orchestrate/map_reduce.py'
+adding 'largestack/_orchestrate/parallel.py'
+adding 'largestack/_orchestrate/router.py'
+adding 'largestack/_orchestrate/sequential.py'
+adding 'largestack/_orchestrate/state_machine.py'
+adding 'largestack/_orchestrate/supervisor.py'
+adding 'largestack/_orchestrate/swarm.py'
+adding 'largestack/_rag/__init__.py'
+adding 'largestack/_rag/chunker.py'
+adding 'largestack/_rag/crag.py'
+adding 'largestack/_rag/embedder.py'
+adding 'largestack/_rag/eval.py'
+adding 'largestack/_rag/graph_rag.py'
+adding 'largestack/_rag/pipeline.py'
+adding 'largestack/_rag/query_engines.py'
+adding 'largestack/_rag/reranker.py'
+adding 'largestack/_rag/retriever.py'
+adding 'largestack/_rag/summary_index.py'
+adding 'largestack/_rag/vector_store.py'
+adding 'largestack/_ratelimit/__init__.py'
+adding 'largestack/_rerankers/__init__.py'
+adding 'largestack/_retrievers/__init__.py'
+adding 'largestack/_security/__init__.py'
+adding 'largestack/_security/code_sandbox.py'
+adding 'largestack/_security/e2b_bridge.py'
+adding 'largestack/_security/encryption.py'
+adding 'largestack/_security/mtls.py'
+adding 'largestack/_security/network.py'
+adding 'largestack/_security/permissions.py'
+adding 'largestack/_security/sandbox.py'
+adding 'largestack/_security/sbom.py'
+adding 'largestack/_security/vault.py'
+adding 'largestack/_state/__init__.py'
+adding 'largestack/_state/checkpoint.py'
+adding 'largestack/_state/durable.py'
+adding 'largestack/_state/postgres_checkpointer.py'
+adding 'largestack/_studio/__init__.py'
+adding 'largestack/_studio/compare.py'
+adding 'largestack/_studio/pyodide_eval.py'
+adding 'largestack/_templates/__init__.py'
+adding 'largestack/_templates/code_generator.py'
+adding 'largestack/_templates/content_factory.py'
+adding 'largestack/_templates/customer_support.py'
+adding 'largestack/_templates/data_pipeline.py'
+adding 'largestack/_templates/research_pipeline.py'
+adding 'largestack/_test/__init__.py'
+adding 'largestack/_test/assertions.py'
+adding 'largestack/_test/benchmark.py'
+adding 'largestack/_test/ci_gates.py'
+adding 'largestack/_test/eval_metrics.py'
+adding 'largestack/_test/llm_judge.py'
+adding 'largestack/_test/recorder.py'
+adding 'largestack/_test/regression.py'
+adding 'largestack/_test/replayer.py'
+adding 'largestack/_test/synthetic.py'
+adding 'largestack/_vectorstores/__init__.py'
+adding 'largestack/_workflow/__init__.py'
+adding 'largestack/_workflow/checkpoint.py'
+adding 'largestack/_workflow/graph.py'
+adding 'largestack/_workflow/interrupt.py'
+adding 'largestack/_workflow/sub_graph.py'
+adding 'largestack/migrations/__init__.py'
+adding 'largestack/migrations/config_v1_to_v1_1.py'
+adding 'largestack/migrations/memory_v1_to_v1_1.py'
+adding 'largestack/migrations/project.py'
+adding 'largestack/migrations/trace_db_v1_to_v1_1.py'
+adding 'largestack-1.0.0.dist-info/licenses/LICENSE'
+adding 'largestack-1.0.0.dist-info/METADATA'
+adding 'largestack-1.0.0.dist-info/WHEEL'
+adding 'largestack-1.0.0.dist-info/entry_points.txt'
+adding 'largestack-1.0.0.dist-info/top_level.txt'
+adding 'largestack-1.0.0.dist-info/RECORD'
+removing build/bdist.macosx-15.0-arm64/wheel
+Successfully built largestack-1.0.0.tar.gz and largestack-1.0.0-py3-none-any.whl

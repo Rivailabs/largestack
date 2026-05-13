@@ -1,0 +1,12 @@
+{
+  "total_projects_found": 48,
+  "total_compiled": 48,
+  "total_pytest_passed": 48,
+  "total_pytest_not_run": 0,
+  "total_failed": 0,
+  "missing_largestack_app": 0,
+  "missing_largestack_import": 0,
+  "missing_readme": 0,
+  "missing_report": 0,
+  "fake_mock_usage_found": 0
+}

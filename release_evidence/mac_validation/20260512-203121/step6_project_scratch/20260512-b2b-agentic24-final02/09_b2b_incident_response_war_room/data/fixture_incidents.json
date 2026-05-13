@@ -1,0 +1,14 @@
+[
+  {
+    "id": "INC-001",
+    "description": "Duplicate payment processing error causing double charges for 200 customers. Data integrity issue detected in billing system.",
+    "severity": "sev2",
+    "source": "monitoring"
+  },
+  {
+    "id": "INC-002",
+    "description": "Production database exposed customer PII due to misconfigured backup. 1500 customers affected, service down for 45 minutes.",
+    "severity": "critical",
+    "source": "security scan"
+  }
+]

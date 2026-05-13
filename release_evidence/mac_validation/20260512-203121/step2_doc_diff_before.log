@@ -1,0 +1,252 @@
+diff --git a/docs/DEPLOYMENT.md b/docs/DEPLOYMENT.md
+index fea720b..8bd0665 100644
+--- a/docs/DEPLOYMENT.md
++++ b/docs/DEPLOYMENT.md
+@@ -1,38 +1,3 @@
+ # Deployment
+ 
+-## Docker Build
+-
+-```bash
+-docker build -t largestack:test .
+-docker build -f deploy/Dockerfile -t largestack:deploy-test .
+-```
+-
+-## Runtime Probe
+-
+-```bash
+-docker run --rm -d --name largestack-test -p 8787:8787 -e LARGESTACK_API_KEY=test-key -e LARGESTACK_DASHBOARD_KEY=test-key largestack:test
+-curl -i http://localhost:8787/health
+-curl -i -H 'X-API-Key: test-key' http://localhost:8787/api/metrics
+-curl -i -H 'X-API-Key: wrong-key' http://localhost:8787/api/metrics
+-docker rm -f largestack-test
+-```
+-
+-Expected: health `200`, correct key `200`, wrong key `401` or `403`.
+-
+-## Compose
+-
+-```bash
+-docker compose config
+-docker compose up -d
+-docker compose ps
+-docker compose logs --tail=100
+-docker compose down
+-```
+-
+-## Helm
+-
+-Run `helm lint <chart-path>` when Helm is installed and chart files are present.
+-
+-## Production Notes
+-
+-Set real secrets through a secret manager, not baked images. Use non-default API keys/passwords, TLS at the edge, persistent databases for enterprise state, and centralized logs/metrics.
++Validate package build, fresh wheel install, Docker build, dashboard health/auth probes, and Compose services before release. Docker cleanup may require host admin permissions on locked-down machines.
+diff --git a/docs/QUICKSTART.md b/docs/QUICKSTART.md
+index f8a151b..4193be2 100644
+--- a/docs/QUICKSTART.md
++++ b/docs/QUICKSTART.md
+@@ -1,39 +1,24 @@
+-# Quickstart
++# Quick Start
+ 
+-## 1. Create Environment
++## Install
+ 
+ ```bash
+-python3.12 -m venv .venv-final
+-. .venv-final/bin/activate
+-python -m pip install -U pip
+-python -m pip install -e '.[dev,test,rag,guard]'
++pip install largestack
++export LARGESTACK_OPENAI_API_KEY=<openai-api-key>
+ ```
+ 
+-## 2. Run Offline Examples
++## Scaffold a project
+ 
+ ```bash
+-python examples/00_offline_test_model.py
+-python examples/rag_basic/rag_basic.py
++largestack new my-agent
++cd my-agent
++pip install -e .
++python main.py
+ ```
+ 
+-## 3. Run DeepSeek Examples
++## Develop with hot-reload
+ 
+ ```bash
+-export LARGESTACK_DEEPSEEK_API_KEY=<deepseek-api-key>
+-python examples/01_hello/main.py
+-python examples/02_tools/main.py
+-python examples/03_team/main.py
+-python examples/04_guards/main.py
+-python examples/05_rag_knowledge/main.py
+-python examples/10_full_app/main.py
+-```
+-
+-If no provider key is set, cloud examples print `SKIP:` with setup instructions and exit cleanly.
+-
+-## 4. Run Validation
+-
+-```bash
+-python -m pytest tests -q --tb=short --disable-warnings -ra --timeout=180 --timeout-method=thread --durations=30
+-python scripts/smoke_test_e2e.py
+-scripts/final_release_validate.sh
++largestack dev
++# Opens http://localhost:4111
+ ```
+diff --git a/docs/SECURITY.md b/docs/SECURITY.md
+index ab5ee93..d05aad5 100644
+--- a/docs/SECURITY.md
++++ b/docs/SECURITY.md
+@@ -1,34 +1,3 @@
+ # Security
+ 
+-## Secret Handling
+-
+-Provider keys must be supplied through environment variables or a secret manager. Do not commit `.env`, shell transcripts, validation logs, or copied chat text containing keys. Rotate any key pasted into chat or logs.
+-
+-## Required Release Scans
+-
+-```bash
+-bandit -r largestack -x tests
+-bandit -r largestack -x tests --severity-level medium
+-pip-audit
+-gitleaks detect --source . --no-git
+-```
+-
+-Release policy:
+-
+-- No high or critical security issue is acceptable.
+-- No medium Bandit issue is acceptable unless documented with reason, containment, and owner.
+-- Low Bandit findings may remain only when they are false positives or accepted framework behavior.
+-- No real secret may be committed.
+-
+-## Current Low-Finding Guidance
+-
+-Common acceptable low findings include validated dynamic imports for optional integrations, validated SQL identifier formatting with parameterized values, and test-only fake secrets. Keep `# nosec` comments narrow and documented near the relevant code.
+-
+-## Production Hardening Checklist
+-
+-- Set `LARGESTACK_ENV=production`.
+-- Configure non-default dashboard/API auth.
+-- Use persistent tenant-scoped stores for RBAC, audit, sessions, and billing.
+-- Disable mock providers in production paths.
+-- Restrict CORS and network tool allowlists.
+-- Use TLS, container image scanning, and host-level log redaction.
++Run Bandit, pip-audit, and gitleaks before release. Medium Bandit findings must be recorded in `SECURITY_TRIAGE.md` with reason, containment, and next review date. API keys exposed during validation must be revoked and replaced.
+diff --git a/docs/TROUBLESHOOTING.md b/docs/TROUBLESHOOTING.md
+index abc718b..5284a51 100644
+--- a/docs/TROUBLESHOOTING.md
++++ b/docs/TROUBLESHOOTING.md
+@@ -1,55 +1,73 @@
+-# Troubleshooting
++# Largestack AI — Troubleshooting
+ 
+-## ProviderError: no provider configured
++## Common Issues
+ 
+-Set a provider key and model:
++### "All providers failed"
++**Error:** `AllProvidersFailedError`
+ 
+-```bash
+-export LARGESTACK_DEEPSEEK_API_KEY=<deepseek-api-key>
+-export LARGESTACK_DEFAULT_MODEL=deepseek/deepseek-chat
+-```
++**Cause:** No API key configured for any provider, or all providers are rate-limited/down.
+ 
+-Or run the offline quickstart:
++**Fix:**
++1. Run `largestack doctor` to check which keys are set.
++2. Set at least one: `export LARGESTACK_OPENAI_API_KEY=<openai-api-key>`
++3. Add a local fallback: `llm="ollama/llama3"` (requires Ollama running).
++4. Check provider status pages.
+ 
+-```bash
+-python examples/00_offline_test_model.py
+-```
++### "Budget exceeded"
++**Error:** `BudgetExceededError`
+ 
+-## Python Version
++**Cause:** Agent run cost exceeded `cost_budget`.
+ 
+-Use Python 3.11 or newer. Release validation should prefer Python 3.12.
++**Fix:** Increase budget: `Agent(cost_budget=10.0)` or use cheaper model: `llm="deepseek/deepseek-chat"`.
+ 
+-```bash
+-.venv-final/bin/python --version
+-```
++### "Agent stuck in loop"
++**Error:** `LoopDetectedError`
+ 
+-## Virtual Environment
++**Cause:** One of 5 loop detectors triggered (max turns, cost, repeated actions, no progress, timeout).
+ 
+-If imports fail, reinstall editable dependencies:
++**Fix:**
++1. Improve agent instructions to be more specific.
++2. Increase `max_turns` if the task genuinely needs more iterations.
++3. Check if tool responses are useful (bad tool output → agent retries forever).
+ 
+-```bash
+-python -m pip install -U pip
+-python -m pip install -e '.[dev,test,rag,guard]'
+-```
++### "Kill switch activated"
++**Error:** `KillSwitchActivatedError`
+ 
+-## DeepSeek Key
++**Cause:** Someone activated the emergency kill switch.
+ 
+-Do not paste keys into files or reports. Export the key only in your shell. If the key was pasted into chat or logs, rotate it before release validation.
++**Fix:** Run `largestack resume` to deactivate.
+ 
+-## Docker Permission Issues
++### "Tool permission denied"
++**Error:** `ToolPermissionError`
+ 
+-If Docker cleanup or runtime probes fail with permission errors, run cleanup from an admin-enabled shell or ask the host owner to remove stale containers.
++**Cause:** Agent tried to use a tool not in its `allow` list.
+ 
+-## Pytest Timeout
++**Fix:** Add tool to permissions: `Agent(tool_permissions={"allow": ["web_search", "calculator"]})`.
+ 
+-Run with thread timeouts and durations:
++### PII detected in output
++**Warning:** Guardrail triggered PII detection.
+ 
+-```bash
+-python -m pytest tests -q --tb=short --disable-warnings -ra --timeout=180 --timeout-method=thread --durations=30
+-```
++**Fix:** This is working as intended. To change behavior: `create_guardrails(pii_action="block")` or `"redact"` or `"warn"`.
++
++### "Presidio/spaCy not installed"
++**Warning:** Enhanced PII detection falls back to regex.
++
++**Fix:** `pip install presidio-analyzer presidio-anonymizer && python -m spacy download en_core_web_sm`
++
++### Slow first request
++**Cause:** Model loading, connection establishment, tracing setup.
+ 
+-If a single test hangs, fix the blocking code or gate the external dependency. Do not hide a hang with broad deselection.
++**Fix:** This is normal for first request. Subsequent requests use connection pooling and caching.
+ 
+-## Dashboard Auth
++### Dashboard shows no data
++**Cause:** Tracing or audit trail not populated.
+ 
+-In production, `/health` may be public, but metrics/API endpoints must require the configured key or cookie auth. A wrong key should return `401` or `403`.
++**Fix:** Run an agent first: `python examples/01_hello/main.py`. Dashboard reads from `~/.largestack/traces.db` and `~/.largestack/audit.db`.
++
++## Diagnostic Commands
++
++```bash
++largestack doctor        # Check Python, API keys, Ollama, dependencies
++largestack trace         # View recent traces
++largestack cost          # View cost breakdown per agent
++```

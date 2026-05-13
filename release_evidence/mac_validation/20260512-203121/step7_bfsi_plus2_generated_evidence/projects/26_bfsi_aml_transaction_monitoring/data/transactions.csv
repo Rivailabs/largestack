@@ -1,0 +1,5 @@
+txn_id,amount,currency,counterparty_country,date
+T001,50000,USD,IR,2025-03-01
+T002,200,USD,US,2025-03-02
+T003,100000,USD,KP,2025-03-03
+T004,3000,USD,GB,2025-03-04
