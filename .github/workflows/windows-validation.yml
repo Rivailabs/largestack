@@ -1,0 +1,50 @@
+name: Windows Validation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  windows-basic:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Show environment
+        shell: pwsh
+        run: |
+          python --version
+          python -c "import sys; print(sys.executable)"
+          dir
+
+      - name: Install package
+        shell: pwsh
+        run: |
+          python -m pip install -U pip setuptools wheel
+          python -m pip install build twine
+          python -m pip install -e ".[dev]"
+
+      - name: Compile
+        shell: pwsh
+        run: |
+          python -m compileall largestack tests examples scripts
+
+      - name: Windows smoke tests
+        shell: pwsh
+        run: |
+          python -m pytest tests/unit/test_memory.py -q --tb=short
+          python -m pytest tests/unit/test_health.py -q --tb=short
+          python -m pytest tests/unit/test_autonomous_builder.py -q --tb=short
+          python -m pytest tests/unit/test_real_feature_certify.py -q --tb=short
+
+      - name: Build package
+        shell: pwsh
+        run: |
+          python -m build
+          twine check dist/*
