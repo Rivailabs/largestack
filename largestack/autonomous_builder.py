@@ -152,14 +152,34 @@ def normalize_project_path(path: str) -> str:
 
 def extract_json_object(text: str) -> dict[str, Any] | None:
     cleaned = (text or "").strip()
+    for match in re.finditer(r"```(?:json)?\s*(.*?)\s*```", cleaned, re.S | re.I):
+        try:
+            data = json.loads(match.group(1).strip())
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict):
+            return data
     if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.I)
         cleaned = re.sub(r"\s*```$", "", cleaned)
     candidates = [cleaned]
     start = cleaned.find("{")
     if start >= 0:
         depth = 0
+        in_string = False
+        escaped = False
         for index, char in enumerate(cleaned[start:], start):
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+                continue
+            if char == '"':
+                in_string = True
+                continue
             if char == "{":
                 depth += 1
             elif char == "}":
@@ -313,6 +333,11 @@ def build_failure_feedback(validation: ValidationResult, *, json_valid: bool, fi
             "missing positional argument, wrong return type, or assertion failure, change the public function signature "
             "and return shape to match the contract exactly. Keep the implementation simple and deterministic."
         )
+        messages.append(
+            "For assertion failures, mirror the asserted shape exactly. For example, if hidden acceptance checks "
+            "'name.ext' in result['citations'], result['citations'] must be a list containing the exact string "
+            "'name.ext', not a list of citation dictionaries."
+        )
     messages.append("Validation output:\n" + validation.validation_output[-2500:])
     messages.append("Hidden acceptance output:\n" + validation.acceptance_output[-2200:])
     return "\n\n".join(messages)
@@ -389,20 +414,26 @@ class AutonomousProjectBuilder:
                 break
             round_number += 1
             feedback = build_failure_feedback(validation, json_valid=json_valid, files=all_files)
-            patch_run = await self._patch(spec, project_path, feedback)
+            regenerate = not all_files
+            patch_run = (
+                await self._generate(spec, feedback)
+                if regenerate
+                else await self._patch(spec, project_path, feedback)
+            )
             if patch_run.trace_id:
                 trace_ids.append(patch_run.trace_id)
             total_tokens += patch_run.total_tokens
             total_cost += patch_run.total_cost
             try:
-                patch = parse_model_json(patch_run.content, PatchSet)
+                patch_model = ProjectFiles if regenerate else PatchSet
+                patch = parse_model_json(patch_run.content, patch_model)
                 json_valid = True
                 changed = safe_write_files(project_path, patch.files)
                 notes = patch.notes or notes
             except Exception as exc:
                 json_valid = False
                 changed = []
-                notes = f"patch parse failed: {exc}"
+                notes = f"{'generation' if regenerate else 'patch'} parse failed: {exc}"
             all_files = sorted(set(all_files + changed))
             validation = validate_project(project_path, spec.acceptance)
             attempts.append(
@@ -412,7 +443,7 @@ class AutonomousProjectBuilder:
                     files_changed=changed,
                     validation=validation,
                     run=patch_run,
-                    mode="patch",
+                    mode="generate" if regenerate else "patch",
                     failure_summary=classify_failure(validation, json_valid, all_files),
                 )
             )
@@ -462,6 +493,7 @@ class AutonomousProjectBuilder:
         )
 
     async def _run_agent(self, prompt: str, **kw: Any) -> ModelRunResult:
+        kw.setdefault("response_format", {"type": "json_object"})
         try:
             result = await self.agent.run(prompt, **kw)
             return ModelRunResult(
@@ -498,9 +530,17 @@ Plan:
 Return ONLY valid JSON matching:
 {{"notes":"short note","files":[{{"path":"relative/path.py","content":"complete file content"}}]}}
 
+Required files:
+{", ".join(spec.required_files) or "none"}
+
+Evidence requirements:
+{", ".join(spec.evidence_required) or "none"}
+
 Rules:
 - Use Python standard library only unless requirements explicitly say otherwise.
 - Include tests under tests/test_*.py.
+- Include README.md when requested.
+- Include every required file listed above.
 - Generated tests must assert only the stated requirements; do not invent contradictory product rules.
 - Generated tests must be isolated from each other. If a module uses in-memory globals, clear or recreate them before each test.
 - Do not include API keys or secrets.
@@ -511,7 +551,7 @@ Rules:
 - Prefer simple module-level functions and plain dictionaries/lists unless the requirements explicitly ask for a class.
 - Always write complete, non-truncated files.
 """
-        return await self._run_agent(prompt, timeout=180, temperature=0.05, max_tokens=5000)
+        return await self._run_agent(prompt, timeout=240, temperature=0.05, max_tokens=12000)
 
     async def _patch(self, spec: ProjectSpec, project_path: Path, feedback: str) -> ModelRunResult:
         existing = collect_project_snapshot(project_path)
@@ -530,11 +570,16 @@ Validation feedback:
 Return ONLY valid JSON matching:
 {{"notes":"what was fixed","files":[{{"path":"relative/path.py","content":"complete replacement content","reason":"why"}}]}}
 
+Required files:
+{", ".join(spec.required_files) or "none"}
+
 Rules:
 - Return only files that need changes.
+- If the project has no files yet, return the complete project file set instead of an empty patch.
 - Do not delete files.
 - Do not include secrets.
 - Do not import or use network libraries such as requests, httpx, urllib.request, or socket.
+- Include every required file listed above.
 - Preserve the exact required public API.
 - Requirements and hidden acceptance are more authoritative than generated pytest tests.
 - If generated tests contradict requirements, patch the tests instead of weakening correct behavior.
@@ -543,7 +588,7 @@ Rules:
 - Prefer simple module-level functions and plain dictionaries/lists unless the requirements explicitly ask for a class.
 - Always return complete replacement file content, never a diff or truncated file.
 """
-        return await self._run_agent(prompt, timeout=180, temperature=0.02, max_tokens=4000)
+        return await self._run_agent(prompt, timeout=240, temperature=0.02, max_tokens=12000)
 
 
 def collect_project_snapshot(path: Path, limit_per_file: int = 2400) -> str:

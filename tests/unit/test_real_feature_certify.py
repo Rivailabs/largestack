@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -104,3 +105,37 @@ def test_suite_selector_uses_stricter_b2b_thresholds():
     assert all_min == 95
     assert all_avg == 98.0
     assert all_label == "combined-real-feature-and-b2b-agentic"
+
+
+def test_partial_slice_summary_can_pass_scope_without_full_suite_go(tmp_path):
+    project = cert.FeatureProjectCertification(
+        name="slice_project",
+        features=["orchestrator_router"],
+        passed=True,
+        score=99,
+        blocker_type="PASS",
+        failed_checks=[],
+        project_path=str(tmp_path / "project"),
+        report_path=str(tmp_path / "report.json"),
+        reviewer=cert.ReviewerOutcome(score=95, passed=True, json_valid=True),
+        generated_files=["README.md", "largestack_app.py"],
+        trace_ids=["trace"],
+        tokens=100,
+        actual_cost=0.001,
+    )
+
+    rc = cert.write_summary(
+        tmp_path,
+        "partial-run",
+        True,
+        [project],
+        expected_total=26,
+        project_min_score=90,
+        suite_min_average=95.0,
+    )
+    data = json.loads((tmp_path / "summary.json").read_text())
+
+    assert rc == 0
+    assert data["scope_decision"] == "GO"
+    assert data["final_decision"] == "HOLD"
+    assert data["full_suite_project_count_met"] is False

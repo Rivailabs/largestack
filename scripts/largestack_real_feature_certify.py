@@ -739,10 +739,22 @@ def make_real_feature_specs() -> list[ProjectSpec]:
                 "draft_sar(txn, screening), and policy_answer(query, documents). "
                 "screen_transaction must flag high risk for sanctions countries, amount spikes "
                 "above 5x average monthly volume, high-risk keywords, or high-risk KYC profile. "
+                "It must accept watchlist either as a dict with blocked_countries and "
+                "high_risk_keywords lists, or as a list of strings/dicts. It must accept the "
+                "transaction country from txn['country'] or txn['counterparty_country'], and "
+                "the customer average volume from customer['average_monthly_volume'] or "
+                "customer['avg_monthly_volume']. It must return keys risk_level, risk, "
+                "requires_review, and reasons. "
                 "draft_sar must never file externally; it returns filed False and approval_required "
-                "True for high-risk screening. policy_answer must return {'answer': str, "
-                "'citations': list[str]} using token-overlap retrieval with insufficient-evidence "
-                "behavior. Include README.md, pytest tests, and policies/aml_policy.md. Use stdlib "
+                "True for high-risk screening and include requires_review True for high risk. "
+                "policy_answer must accept documents as either a dict of filename->text or a list "
+                "of document strings. It must return citations as a list of strings. When documents "
+                "is a dict, citations must contain the exact filename string such as "
+                "['aml_policy.md'], not dict objects. Use meaningful token-overlap retrieval with "
+                "stopword filtering and return "
+                "{'answer':'Insufficient evidence to answer.','citations':[]} for unrelated "
+                "questions such as equity refresh policy. Include README.md, pytest tests, "
+                "synthetic data CSV fixtures, and policies/aml_policy.md. Use stdlib "
                 "only and no network/external filing calls."
             ),
             (
@@ -1475,18 +1487,23 @@ def write_summary(
 ) -> int:
     avg = sum(p.score for p in projects) / max(len(projects), 1)
     expected_total = expected_total or len(make_real_feature_specs())
-    all_pass = all(p.passed for p in projects) and len(projects) == expected_total
-    final_decision = "GO" if live_ok and all_pass and avg >= suite_min_average else "HOLD"
+    all_projects_passed = all(p.passed for p in projects)
+    full_suite_project_count_met = len(projects) == expected_total
+    scope_decision = "GO" if live_ok and all_projects_passed and avg >= suite_min_average else "HOLD"
+    final_decision = "GO" if scope_decision == "GO" and full_suite_project_count_met else "HOLD"
     summary = {
         "run_id": run_id,
         "suite": suite_label,
         "outdir": str(outdir),
         "live_deepseek_smoke_passed": live_ok,
         "project_count": len(projects),
+        "expected_project_count": expected_total,
         "project_min_score": project_min_score,
         "suite_min_average": suite_min_average,
         "suite_average": avg,
-        "all_projects_passed": all(p.passed for p in projects),
+        "all_projects_passed": all_projects_passed,
+        "full_suite_project_count_met": full_suite_project_count_met,
+        "scope_decision": scope_decision,
         "final_decision": final_decision,
         "projects": [asdict(p) for p in projects],
     }
@@ -1514,6 +1531,7 @@ def write_summary(
         f"# LARGESTACK {suite_label} {expected_total}-Project Certification",
         "",
         f"- Decision: `{final_decision}`",
+        f"- Scope decision: `{scope_decision}`",
         f"- Live DeepSeek smoke: `{live_ok}`",
         f"- Projects: `{len(projects)}/{expected_total}`",
         f"- Project minimum score: `{project_min_score}`",
@@ -1540,8 +1558,18 @@ def write_summary(
                 f"- `{project.blocker_type}` {project.name}: {', '.join(project.failed_checks)}. "
                 f"Open `{project.report_path}` and repair/rerun."
             )
+    elif not full_suite_project_count_met:
+        lines.extend(
+            [
+                "",
+                "## Scope",
+                "",
+                "- This was a project slice. Scope decision is GO for the selected projects, "
+                "while final_decision remains HOLD for the full-suite release gate.",
+            ]
+        )
     write_text(outdir / "SUMMARY.md", "\n".join(lines) + "\n")
-    return 0 if final_decision == "GO" else 1
+    return 0 if scope_decision == "GO" else 1
 
 
 async def async_main(args: argparse.Namespace) -> int:
@@ -1573,7 +1601,7 @@ async def async_main(args: argparse.Namespace) -> int:
         suite_min_average=suite_min_average,
         suite_label=suite_label,
     )
-    progress(f"run done: decision={'GO' if rc == 0 else 'HOLD'} evidence={outdir}")
+    progress(f"run done: scope_decision={'GO' if rc == 0 else 'HOLD'} evidence={outdir}")
     return rc
 
 

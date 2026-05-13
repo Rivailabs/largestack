@@ -40,6 +40,16 @@ def test_parse_model_json_extracts_fenced_payload():
     assert parsed.files[0].path == "app.py"
 
 
+def test_parse_model_json_extracts_fenced_payload_after_prose_and_braces():
+    parsed = parse_model_json(
+        'Here is the project:\n```JSON\n{"notes":"ok {literal}","files":[{"path":"app.py","content":"DATA={\\"x\\": 1}\\n"}]}\n```',
+        ProjectFiles,
+    )
+
+    assert parsed.notes == "ok {literal}"
+    assert parsed.files[0].content == 'DATA={"x": 1}\n'
+
+
 def test_safe_write_files_blocks_absolute_paths(tmp_path):
     with pytest.raises(ValueError):
         safe_write_files(tmp_path, [GeneratedFile.model_construct(path="/tmp/bad.py", content="x=1")])
@@ -139,6 +149,33 @@ def test_autonomous_builder_repairs_with_patch(tmp_path):
     assert report.attempts[0].validation.acceptance_passed is False
     assert report.attempts[1].mode == "patch"
     assert "app.py" in report.generated_files
+
+
+def test_autonomous_builder_regenerates_when_initial_json_has_no_files(tmp_path):
+    responses = [
+        _json({"project_name": "calc", "summary": "tiny", "files": ["app.py"], "tests": ["tests/test_app.py"]}),
+        "I cannot provide JSON for this one.",
+        _json(
+            {
+                "notes": "regenerated",
+                "files": [
+                    {"path": "app.py", "content": "def add(a, b):\n    return a + b\n"},
+                    {"path": "tests/test_app.py", "content": "from app import add\n\ndef test_add():\n    assert add(1, 2) == 3\n"},
+                ],
+            }
+        ),
+    ]
+    agent = make_static_agent(responses)
+    builder = AutonomousProjectBuilder(agent, BuilderBudget(max_attempts=3, max_tokens=20_000, max_seconds=60))
+    spec = ProjectSpec(name="calc", requirements="Create add(a,b).", acceptance="from app import add\nassert add(1, 2) == 3\n")
+
+    report = asyncio.run(builder.build(spec, tmp_path))
+
+    assert report.passed is True
+    assert [item.mode for item in report.attempts] == ["generate", "generate"]
+    assert report.attempts[0].json_valid is False
+    assert report.attempts[1].json_valid is True
+    assert sorted(report.generated_files) == ["app.py", "tests/test_app.py"]
 
 
 def test_autonomous_builder_fails_honestly_after_budget(tmp_path):
