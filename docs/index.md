@@ -1,37 +1,27 @@
-# Largestack AI
+# Largestack Documentation
 
-Production-grade candidate Python framework for agentic AI.
+Largestack is an agentic AI framework for building governed agents, tools,
+RAG assistants, workflows, guardrails, observability, and deployment-ready
+runtime surfaces.
 
-## Why LARGESTACK
+Start with the quickstart, then use the architecture and validation pages to
+understand what is proven today and what still needs hardening before public
+SaaS or regulated-enterprise claims.
 
-- **Typed decorator API** with full mypy/pyright support
-- **15 guardrail layers** — PII, injection, toxicity, hallucination, OWASP coverage
-- **6 native LLM providers** + **LiteLLM router** for 100+ more
-- **Production-ready** — hash-chain audit, mTLS, RBAC, encryption out of box
-- **Protocol-native** — MCP 2025-11-25, A2A v1.0, AG-UI 25 events, OTel GenAI
+## Core Guides
 
-## Quick Install
+- [Quickstart](quickstart.md)
+- [Architecture](architecture.md)
+- [Testing and Validation](testing-and-validation.md)
+- [Examples and Use Cases](examples-and-use-cases.md)
+- [Security and Governance](security-governance.md)
+- [Deployment](deployment.md)
+- [Roadmap](roadmap.md)
 
-```bash
-pip install largestack
-```
+## Deep Dives
 
-## Hello World
-
-```python
-from largestack.decorators import Agent, RunContext
-
-agent = Agent("openai/gpt-4o-mini", instructions="Be helpful.")
-
-@agent.tool_plain
-def add(x: int, y: int) -> int:
-    """Add numbers."""
-    return x + y
-
-result = await agent.run("What is 5 + 3?")
-print(result.output)  # "5 + 3 = 8"
-```
-
-[Get started →](quickstart.md)
-
-- [Competitive positioning](competitive-positioning.md)
+- [Agent Concepts](concepts/agents.md)
+- [Tool Concepts](concepts/tools.md)
+- [Workflow Concepts](concepts/workflows.md)
+- [Guardrails](concepts/guardrails.md)
+- [API Reference](api/agent.md)

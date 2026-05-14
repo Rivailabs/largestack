@@ -1,195 +1,247 @@
 # Largestack AI
 
-Largestack AI helps you build practical AI agent apps without starting from a blank file. Start with a working support-ticket project, inspect the generated agents/tools/workflow/RAG/guardrails, then edit simple YAML before touching Python.
+**Largestack AI** is an agentic AI framework for building practical AI applications with agents, tools, workflows, RAG, guardrails, observability, and deployment support in one project.
 
-Public brand: **Largestack AI**. Package, import, and CLI: `largestack`.
+It is designed for developers who want to build real AI systems without starting from a blank file: support-ticket agents, RAG assistants, code reviewers, workflow automations, BFSI governance flows, and enterprise-style AI copilots.
 
-## 5-Minute Quickstart
+> Current status: **v1.0 Release Candidate / controlled-pilot ready**. Ubuntu, Mac evidence, Windows clean validation, Docker, security, package, DeepSeek live validation, and 24-hour soak evidence have passed.
 
-Install, create the flagship support-ticket demo, inspect it, and run it:
+---
 
-```bash
-pip install largestack
-largestack init support-ticket-ai
-cd support-ticket-ai
-largestack doctor
-largestack explain project
-largestack explain agents
-largestack explain workflow
-largestack explain rag
-largestack explain guardrails
-largestack graph --mermaid
-largestack run app/main.py
-largestack test
-```
+## Why Largestack?
 
-What to edit first:
+Most agent frameworks solve only one layer: agents, chains, RAG, or observability. Largestack brings the main production surfaces together:
 
-1. `agents.yaml` — rename roles and responsibilities.
-2. `tools.yaml` — add read tools; keep write/delete/send/payment tools approved.
-3. `app/rag/knowledge/` — add docs, then run `largestack rag build`.
-4. `workflow.yaml` — choose `sequential`, `parallel`, `router`, `supervisor`, or `debate`.
-5. `guardrails.yaml` — use `protect` by default, `strict` for BFSI/customer-sensitive work.
+| Layer | What Largestack provides |
+|---|---|
+| Agents | `Agent`, typed agents, role-based agents, multi-agent teams |
+| Tools | Safe tool calling, schemas, retries, timeout controls, approval policies |
+| Workflows | Sequential, parallel, router, supervisor, graph/DAG-style orchestration |
+| RAG | Loaders, chunking, retrievers, rerankers, vector stores, citations, no-answer behavior |
+| Guardrails | PII checks, injection controls, topic/sensitive data policies, tool/provider policies |
+| Memory | Buffer, long-term, vector-backed, shared and isolated memory patterns |
+| Observability | Traces, cost tracking, event logs, dashboard APIs, OTEL helpers |
+| Enterprise | RBAC, audit trail, tenant scoping, SSO/session modules, payment/billing scaffolds |
+| Deployment | Docker, Compose, Helm charts, CI validation, release evidence |
+| Testing | Unit, integration, security, RAG eval, live provider validation, generated project checks |
 
-## Install Options
+---
 
-For local development from this checkout:
+## 5-minute quickstart
+
+### 1. Clone
 
 ```bash
-python3.12 -m venv .venv-final
-. .venv-final/bin/activate
-python -m pip install -U pip
-python -m pip install -e '.[dev,test,rag,guard]'
+git clone https://github.com/Rivailabs/largestack.git
+cd largestack
 ```
 
-For a wheel install:
+### 2. Create environment
 
 ```bash
-python -m build
-python -m pip install dist/largestack-1.0.0-py3-none-any.whl
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip setuptools wheel
 ```
 
-## Templates
+### 3. Install
 
-Other built-in templates:
+For normal development:
 
 ```bash
-largestack templates
-largestack templates explain support-ticket
-largestack init rag-demo --template rag
-largestack init code-review-demo --template code-review
-largestack init ml-demo --template ml-automation
-largestack init website-demo --template website-builder
-largestack init video-demo --template video-pipeline
-largestack init social-demo --template social-media
-largestack init bfsi-demo --template bfsi
-largestack init extraction-demo --template document-extraction
+python -m pip install -e ".[dev]"
 ```
 
-## Productization Pillars
-
-Largestack AI is being hardened around eight beginner and ecosystem surfaces:
-
-- Onboarding: a 5-minute path from install to running app.
-- Templates: polished starter projects with generated tests.
-- Integrations: registry metadata with risk and approval behavior.
-- RAG depth: local, vector, hybrid, graph, and SQL+vector starters.
-- Visual workflows: text, Mermaid, and local HTML reports.
-- Observability UI: dashboard, trace, cost, guardrail/RAG visibility.
-- Enterprise governance: strict/BFSI, audit, RBAC/SSO/tenant controls.
-- Ecosystem maturity: 100-scenario productization validation and release gates.
-
-See `docs/PRODUCTIZATION_PILLARS.md`.
-
-Offline, no API key:
+For CPU-only PyTorch dependency resolution on Linux/macOS:
 
 ```bash
-python examples/00_offline_test_model.py
+PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu \
+python -m pip install -e ".[dev]"
 ```
 
-Cloud provider examples prefer DeepSeek when configured:
+### 4. Run a first validation
 
 ```bash
-export LARGESTACK_DEEPSEEK_API_KEY=<deepseek-api-key>
-python examples/01_hello/main.py
-python examples/02_tools/main.py
-python examples/05_rag_knowledge/main.py
+python -m pytest tests/unit/test_memory.py -q --tb=short
 ```
 
-Use OpenAI explicitly only when that is your intended provider:
+### 5. Run the full suite
 
 ```bash
-export LARGESTACK_OPENAI_API_KEY=<openai-api-key>
-export LARGESTACK_DEFAULT_MODEL=openai/gpt-4o-mini
-python examples/01_hello/main.py
+python -m pytest tests -q --tb=short -ra
 ```
 
-## Minimal Agent
+---
+
+## Minimal agent example
 
 ```python
+import asyncio
 from largestack import Agent
 
-agent = Agent(name="assistant", llm="deepseek/deepseek-chat", instructions="Be concise.")
-result = await agent.run("Say hello")
-print(result.content)
+async def main():
+    agent = Agent(
+        name="assistant",
+        llm="deepseek/deepseek-chat",
+        instructions="Be concise and practical."
+    )
+    result = await agent.run("Explain Largestack in one sentence.")
+    print(result.content)
+
+asyncio.run(main())
 ```
 
-For deterministic tests, use `TestModel` instead of a cloud provider.
+For deterministic tests, use the built-in test/offline model patterns instead of a live cloud provider.
 
-## Main Capabilities
+---
 
-- Core SDK: `Agent`, typed decorator agents, tools, teams, workflows, and testing helpers.
-- Providers: DeepSeek, OpenAI, Anthropic, Google, Groq, Cohere, Ollama, Bedrock, LiteLLM, and adapter catalogs.
-- Tool calling: sync/async tools, schema generation, idempotency controls, permissions, timeouts, and retries.
-- Memory and RAG: buffer, semantic, graph, procedural, shared memory, retrievers, rerankers, vector stores, citations.
-- Guardrails and security: PII, injection, toxicity, topic, hallucination checks, RBAC, vault, tenant scoping, audit chain.
-- Observability: health monitor, event recorder, traces, cost accounting, dashboard/API, OTEL helpers.
-- Deployment: Dockerfiles, Compose, Helm chart tests, release validation script.
+## Live provider setup
 
-## Examples
-
-See `docs/EXAMPLES.md`. Required quick examples:
+DeepSeek:
 
 ```bash
-python examples/00_offline_test_model.py
-python examples/rag_basic/rag_basic.py
+export LARGESTACK_DEEPSEEK_API_KEY="your_key_here"
 python examples/01_hello/main.py
-python examples/02_tools/main.py
-python examples/03_team/main.py
-python examples/04_guards/main.py
-python examples/05_rag_knowledge/main.py
-python examples/10_full_app/main.py
 ```
 
-Cloud examples skip cleanly with a clear message when no provider key is configured.
-
-## Testing And Validation
+OpenAI:
 
 ```bash
-python -m pytest tests -q --tb=short --disable-warnings -ra --timeout=180 --timeout-method=thread --durations=30
-python scripts/smoke_test_e2e.py
-python scripts/scenario_kyc_nbfc.py
-python scripts/scenario_rag_legaltech.py
-python scripts/scenario_breach_dpdp.py
-scripts/final_release_validate.sh
+export LARGESTACK_OPENAI_API_KEY="your_key_here"
+export LARGESTACK_DEFAULT_MODEL="openai/gpt-4o-mini"
+python examples/01_hello/main.py
 ```
 
-Live DeepSeek tests run only when `LARGESTACK_DEEPSEEK_API_KEY` is present in the environment. Never commit `.env` or paste keys into source files.
+Never commit `.env` or paste API keys into source files.
 
-## Security
+---
 
-Before release run Bandit, pip-audit, and a secret scan. Medium/high Bandit findings and known vulnerabilities are release blockers unless explicitly triaged with containment. Low Bandit findings must be documented when retained. See `docs/SECURITY.md`.
+## Built-in example areas
 
-## Docker
+| Example | Purpose |
+|---|---|
+| `examples/00_offline_test_model.py` | Offline deterministic model check |
+| `examples/01_hello` | Basic provider-backed agent |
+| `examples/02_tools` | Tool calling |
+| `examples/03_team` | Multi-agent/team behavior |
+| `examples/04_guards` | Guardrails/security behavior |
+| `examples/05_rag_knowledge` | RAG with knowledge files |
+| `examples/06_streaming` | Streaming responses |
+| `examples/07_structured` | Structured outputs |
+| `examples/08_mcp_server` | MCP server pattern |
+| `examples/10_full_app` | Integrated app pattern |
+| `examples/rag_basic` | Basic RAG assistant |
+| `examples/fintech_kyc` | BFSI/KYC style workflow |
+| `examples/riva_ai` | Riva/Largestack demo pipelines |
 
-```bash
-docker build -t largestack:test .
-docker build -f deploy/Dockerfile -t largestack:deploy-test .
-docker run --rm -d --name largestack-test -p 8787:8787 -e LARGESTACK_API_KEY=test-key -e LARGESTACK_DASHBOARD_KEY=test-key largestack:test
-curl -i http://localhost:8787/health
-curl -i -H 'X-API-Key: test-key' http://localhost:8787/api/metrics
-curl -i -H 'X-API-Key: wrong-key' http://localhost:8787/api/metrics
-docker rm -f largestack-test
+---
+
+## Validation status
+
+Latest confirmed release-candidate evidence includes:
+
+| Gate | Status |
+|---|---|
+| Ubuntu full pytest | Passed |
+| Mac validation | Passed / evidence added |
+| Windows validation | Passed / clean Windows validation confirmed |
+| DeepSeek live difficult projects | 5/5 passed |
+| Full DeepSeek integration suite | Passed with one known provider-format skip |
+| Security suite | Passed |
+| RAG eval suite | Passed |
+| Package build + twine check | Passed |
+| Docker runtime `/health` | Passed |
+| Helm lint/template | Passed |
+| 4-hour soak evidence | Passed |
+| 24-hour soak | Passed / 210 successful cycles / 0 recorded failures |
+
+---
+
+## Architecture at a glance
+
+```mermaid
+flowchart TD
+    U[User / API / CLI / App] --> C[CLI or SDK]
+    C --> A[Agent Runtime]
+    A --> W[Workflow Orchestrator]
+    A --> T[Tool Registry]
+    A --> M[Memory Layer]
+    A --> R[RAG Layer]
+    A --> G[Guardrails]
+    W --> S[State / Checkpoints]
+    T --> I[Integrations]
+    R --> V[Vector Stores / Retrievers / Rerankers]
+    G --> E[Enterprise Policies]
+    A --> O[Observability]
+    O --> D[Dashboard / Metrics / Traces]
+    E --> AUD[Audit / RBAC / Tenant Controls]
+    C --> DEP[Docker / Compose / Helm]
 ```
 
-## Release Status
+---
 
-Current classification should be based on the latest `FINAL_VALIDATION_SUMMARY.md`, not on old generated reports. Known limitations are tracked in `docs/known-limitations.md` and must be reviewed before public release. A controlled pilot requires: full pytest pass, smoke/scenario pass, DeepSeek live validation when key is configured, clean package build, Bandit medium/high clean, pip-audit clean, Docker build/runtime healthcheck, and no committed secrets.
+## Repository map
 
-## Documentation
+| Path | Purpose |
+|---|---|
+| `largestack/_core` | Main agent/tool/runtime primitives |
+| `largestack/_workflow` | Workflow graph, checkpoints, interrupts, subgraphs |
+| `largestack/_rag` | RAG query engines, eval, summary index |
+| `largestack/_memory` | Memory stores and memory tools |
+| `largestack/_guard` | Provider/tool guardrail policies |
+| `largestack/_security` | Sandbox, permissions, vault, encryption, network controls |
+| `largestack/_enterprise` | RBAC, audit, tenant, SSO/session, billing/payment modules |
+| `largestack/_observe` | Cost, traces, OTEL, telemetry helpers |
+| `largestack/_dashboard` | Dashboard app and APIs |
+| `largestack/_integrations` | Provider/tool integrations |
+| `largestack/_templates` | Project starter templates |
+| `examples/` | Runnable examples |
+| `tests/` | Unit, integration, security, RAG eval tests |
+| `scripts/` | Certification, smoke, scenario, and live DeepSeek validation scripts |
+| `deploy/` | Docker, Compose, Helm, monitoring assets |
+| `release_evidence/` | Validation evidence and release proof |
 
-- `docs/QUICKSTART.md`
-- `docs/PROVIDER_SETUP.md`
-- `docs/EXAMPLES.md`
-- `docs/TESTING_AND_VALIDATION.md`
-- `docs/DEPLOYMENT.md`
-- `docs/SOAK_TEST.md`
-- `docs/CONTROL_PLANE_READINESS.md`
-- `docs/PRODUCTIZATION_PILLARS.md`
-- `docs/SECURITY.md`
-- `docs/PRODUCTION_READINESS.md`
-- `docs/TROUBLESHOOTING.md`
+---
+
+## Production-positioning honesty
+
+Largestack is strong for:
+
+- developer demos,
+- investor demos,
+- internal AI platform experiments,
+- controlled pilots,
+- agentic framework portfolio proof,
+- private beta deployments.
+
+Largestack should not yet be marketed as:
+
+- fully BFSI-certified,
+- SOC2/ISO-certified,
+- full LangChain/LangGraph ecosystem replacement,
+- public SaaS production platform without load tests, external VAPT, and real Kubernetes install proof.
+
+Known limitations are tracked in [`docs/known-limitations.md`](docs/known-limitations.md). Review that file before publishing release, SaaS, BFSI, or regulated-enterprise claims.
+
+---
+
+## Roadmap
+
+| Priority | Work |
+|---|---|
+| P0 | Add load/concurrency evidence after completed 24h soak |
+| P0 | Queue/backpressure for high traffic |
+| P0 | Distributed workers and job leasing |
+| P0 | Durable replay/checkpoint recovery |
+| P1 | Real Kubernetes cluster install test |
+| P1 | Observability UI polish and replay debugger |
+| P1 | More beginner templates and tutorials |
+| P2 | Public docs website |
+| P2 | Community examples and plugin ecosystem |
+| P3 | Enterprise certifications, VAPT, compliance evidence |
+
+---
 
 ## License
 
-Apache 2.0.
+Apache-2.0.

@@ -43,6 +43,12 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Quick Start: quickstart.md
+  - Architecture: architecture.md
+  - Testing and Validation: testing-and-validation.md
+  - Examples and Use Cases: examples-and-use-cases.md
+  - Security and Governance: security-governance.md
+  - Deployment: deployment.md
+  - Roadmap: roadmap.md
   - Concepts:
     - Agents: concepts/agents.md
     - Tools: concepts/tools.md
