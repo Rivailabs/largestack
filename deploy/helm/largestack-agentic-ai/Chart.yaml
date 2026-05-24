@@ -9,9 +9,8 @@ keywords:
   - llm
   - agent
   - dashboard
-home: https://github.com/Rivailabs/largestack
-sources:
-  - https://github.com/Rivailabs/largestack
+home: https://rivailabs.com/largestack
+sources: []
 maintainers:
   - name: RivaiLabs
 icon: https://largestack-ai.dev/icon.png

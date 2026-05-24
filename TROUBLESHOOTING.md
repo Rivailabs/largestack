@@ -38,5 +38,5 @@ export LARGESTACK_LOG_CONTENT=1  # Log prompts (PII risk!)
 ## Get help
 
 - Discord: https://discord.gg/largestack-ai (coming soon)
-- GitHub Issues: https://github.com/rivailabs/largestack-agentic-ai/issues
+- GitHub Issues: add the public issue tracker URL after repository visibility is enabled
 - Email: hello@rivailabs.com

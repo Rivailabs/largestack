@@ -6,7 +6,7 @@ Built for: lawyers, legal-tech platforms, contract review tools.
 
 ## Setup
 ```bash
-pip install largestack-agentic-ai
+pip install largestack
 export LARGESTACK_ESIGN_CLIENT_ID=...      # eMudhra or NSDL
 export LARGESTACK_ESIGN_CLIENT_SECRET=...
 export LARGESTACK_MCA_API_KEY=...          # Probe42 for company lookup

@@ -6,7 +6,7 @@ Built-in compliance: DPDP Act 2023, RBI PA-PG Master Directions 2024, PMLA.
 
 ## Setup
 ```bash
-pip install largestack-agentic-ai
+pip install largestack
 export LARGESTACK_RAZORPAY_KEY_ID=rzp_test_...
 export LARGESTACK_RAZORPAY_KEY_SECRET=...
 export LARGESTACK_KYC_API_KEY=...   # Signzy or IDfy

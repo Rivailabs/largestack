@@ -4,8 +4,8 @@ We welcome contributions!
 
 ## Setup
 ```bash
-git clone https://github.com/rivailabs/largestack-agentic-ai
-cd largestack-agentic-ai
+# Public GitHub clone URL should be added after repository visibility is enabled.
+cd largestack
 pip install -e ".[dev]"
 ```
 

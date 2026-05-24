@@ -35,7 +35,7 @@ This is the playbook you follow **before every deploy**. Six layers, in order. E
 
 **Run:**
 ```bash
-cd largestack-agentic-ai-v0.14.0
+cd largestack
 python -m pytest tests/ -q --tb=no
 ```
 

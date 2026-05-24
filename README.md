@@ -1,10 +1,27 @@
 # Largestack AI
 
-**Largestack AI** is an agentic AI framework for building practical AI applications with agents, tools, workflows, RAG, guardrails, observability, and deployment support in one project.
+[![PyPI version](https://img.shields.io/pypi/v/largestack.svg)](https://pypi.org/project/largestack/)
+[![Python](https://img.shields.io/pypi/pyversions/largestack.svg)](https://pypi.org/project/largestack/)
+[![License](https://img.shields.io/pypi/l/largestack.svg)](https://pypi.org/project/largestack/)
+
+**Largestack AI** is a Python 3.11+ production-grade candidate framework for typed agents, tools, RAG, guardrails, observability, and orchestration.
 
 It is designed for developers who want to build real AI systems without starting from a blank file: support-ticket agents, RAG assistants, code reviewers, workflow automations, BFSI governance flows, and enterprise-style AI copilots.
 
 > Current status: **v1.0 Release Candidate / controlled-pilot ready**. Ubuntu, Mac evidence, Windows clean validation, Docker, security, package, DeepSeek live validation, and 24-hour soak evidence have passed.
+
+## Install
+
+```bash
+pip install largestack
+```
+
+Verify:
+
+```bash
+largestack --help
+python -c "import largestack; print(largestack.__version__)"
+```
 
 ---
 
@@ -27,12 +44,12 @@ Most agent frameworks solve only one layer: agents, chains, RAG, or observabilit
 
 ---
 
-## 5-minute quickstart
+## Development quickstart
 
-### 1. Clone
+### 1. Open a source checkout
 
 ```bash
-git clone https://github.com/Rivailabs/largestack.git
+# Public GitHub clone URL should be added after repository visibility is enabled.
 cd largestack
 ```
 
@@ -44,9 +61,9 @@ source .venv/bin/activate
 python -m pip install -U pip setuptools wheel
 ```
 
-### 3. Install
+### 3. Install editable development dependencies
 
-For normal development:
+For normal source development:
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -116,6 +133,107 @@ Never commit `.env` or paste API keys into source files.
 
 ---
 
+## LLM/API provider support
+
+Largestack is provider-switchable. The core agent, workflow, RAG, guardrail,
+and observability layers run through a model string such as
+`openai/gpt-4o-mini`, `anthropic/claude-sonnet-4-6`,
+`deepseek/deepseek-chat`, `litellm/groq/llama-3.1-70b-versatile`, or
+`local/llama3.2`.
+
+Recommended public claim:
+
+> Largestack supports OpenAI/GPT, Anthropic/Claude, DeepSeek, LiteLLM,
+> Ollama/local models, and many OpenAI-compatible providers through a
+> verified/partial capability matrix.
+
+Do not claim every provider has identical production-grade tool calling,
+structured output, streaming, and cost tracking until that provider/model has
+passed live E2E validation.
+
+| Provider/API path | Model string example | Env/config | Status |
+|---|---|---|---|
+| OpenAI / GPT | `openai/gpt-4o-mini` | `LARGESTACK_OPENAI_API_KEY` | Verified primary adapter path |
+| Anthropic / Claude | `anthropic/claude-sonnet-4-6` | `LARGESTACK_ANTHROPIC_API_KEY` | Verified native adapter path |
+| DeepSeek | `deepseek/deepseek-chat` | `LARGESTACK_DEEPSEEK_API_KEY` | Live E2E validated |
+| LiteLLM gateway | `litellm/<provider>/<model>` | Provider-specific LiteLLM env vars | Partial; downstream capability varies |
+| Local OpenAI-compatible | `local/<model>` | `LARGESTACK_OPENAI_COMPATIBLE_BASE_URL` | Partial; gateway/model capability varies |
+| Ollama native | `ollama/<model>` | `LARGESTACK_OLLAMA_BASE_URL` optional | Partial; chat path first |
+| Azure OpenAI | `azure/<deployment>` | `LARGESTACK_AZURE_OPENAI_KEY`, `LARGESTACK_AZURE_OPENAI_ENDPOINT` | Partial; deployment-specific |
+| Groq, Mistral, OpenRouter, xAI, Cerebras, SambaNova, NVIDIA | `<provider>/<model>` | `LARGESTACK_<PROVIDER>_API_KEY` | Partial/OpenAI-compatible; verify live |
+| Google/Gemini, Cohere, Bedrock | `<provider>/<model>` | Provider env/credentials | Partial; feature support differs |
+
+Inspect the runtime matrix:
+
+```bash
+python - <<'PY'
+from largestack import provider_support_matrix
+for row in provider_support_matrix():
+    print(row["provider"], row["status"], "tools=", row["tool_calling"], "structured=", row["structured_output"])
+PY
+```
+
+Run the provider-switchable flow demo offline:
+
+```bash
+python examples/provider_flow_demo/main.py
+```
+
+Run the same flow against GPT:
+
+```bash
+export LARGESTACK_OPENAI_API_KEY="your_key_here"
+export LARGESTACK_DEFAULT_MODEL="openai/gpt-4o-mini"
+export LARGESTACK_FLOW_DEMO_LIVE=1
+python examples/provider_flow_demo/main.py
+```
+
+Run the same flow against Claude:
+
+```bash
+export LARGESTACK_ANTHROPIC_API_KEY="your_key_here"
+export LARGESTACK_DEFAULT_MODEL="anthropic/claude-sonnet-4-6"
+export LARGESTACK_FLOW_DEMO_LIVE=1
+python examples/provider_flow_demo/main.py
+```
+
+Run the same flow against a local OpenAI-compatible endpoint:
+
+```bash
+export LARGESTACK_OPENAI_COMPATIBLE_BASE_URL="http://localhost:11434/v1"
+export LARGESTACK_OPENAI_COMPATIBLE_API_KEY="ollama"
+export LARGESTACK_DEFAULT_MODEL="local/llama3.2"
+export LARGESTACK_FLOW_DEMO_LIVE=1
+python examples/provider_flow_demo/main.py
+```
+
+---
+
+## Flow demo
+
+The quickest workflow demo is `examples/provider_flow_demo/main.py`. It runs
+offline by default and can be switched to any configured provider by changing
+only `LARGESTACK_DEFAULT_MODEL`.
+
+```mermaid
+flowchart LR
+    U[User task] --> I[Intake agent]
+    I --> P[Planner agent]
+    P --> R[Responder agent]
+    R --> O[Final answer]
+```
+
+What the demo proves:
+
+- one task flows through three agents,
+- DAG dependencies control execution order,
+- each agent can use the same model string or provider family,
+- offline `TestModel` validation requires no API key,
+- live mode works with GPT, Claude, DeepSeek, LiteLLM, or local-compatible
+  providers when credentials are configured.
+
+---
+
 ## Built-in example areas
 
 | Example | Purpose |
@@ -130,6 +248,7 @@ Never commit `.env` or paste API keys into source files.
 | `examples/07_structured` | Structured outputs |
 | `examples/08_mcp_server` | MCP server pattern |
 | `examples/10_full_app` | Integrated app pattern |
+| `examples/provider_flow_demo` | Provider-switchable workflow demo |
 | `examples/rag_basic` | Basic RAG assistant |
 | `examples/fintech_kyc` | BFSI/KYC style workflow |
 | `examples/riva_ai` | Riva/Largestack demo pipelines |
@@ -147,6 +266,8 @@ Latest confirmed release-candidate evidence includes:
 | Windows validation | Passed / clean Windows validation confirmed |
 | DeepSeek live difficult projects | 5/5 passed |
 | Full DeepSeek integration suite | Passed with one known provider-format skip |
+| Provider support matrix | Present / explicit verified-partial-adapter statuses |
+| Offline provider flow demo | Passed with `TestModel` |
 | Security suite | Passed |
 | RAG eval suite | Passed |
 | Package build + twine check | Passed |

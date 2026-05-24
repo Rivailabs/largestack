@@ -175,6 +175,17 @@ async def test_shell_allows_command_with_quoted_arg():
     assert "hello world" in out
 
 
+def test_shell_tool_decorator_is_on_public_tool():
+    """The tool decorator must describe shell_command, not its private cleanup helper."""
+    from largestack._core.builtin_tools.shell import _terminate_process_safely, shell_command
+
+    assert getattr(shell_command, "_is_largestack_tool", False) is True
+    assert getattr(shell_command, "_tool_timeout", None) == 15
+    assert shell_command._tool_schema["name"] == "shell_command"
+    assert "command" in shell_command._tool_schema["parameters"]["properties"]
+    assert not getattr(_terminate_process_safely, "_is_largestack_tool", False)
+
+
 # ---------------------------------------------------------------------------
 # code.py — bash branch gated behind opt-in
 # ---------------------------------------------------------------------------

@@ -6,7 +6,7 @@ Three specialists: researcher → writer → critic.
 
 ## Run
 ```bash
-pip install largestack-agentic-ai
+pip install largestack
 export LARGESTACK_OPENAI_API_KEY="sk-..."
 largestack run workflow.yaml --task "Write a brief on agentic AI"
 ```

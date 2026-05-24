@@ -127,13 +127,14 @@ def create_api(agent) -> Any:
     from fastapi import FastAPI, Depends
     from fastapi.responses import StreamingResponse, JSONResponse
     from pydantic import BaseModel
+    from largestack import __version__
     try:
         from sse_starlette.sse import EventSourceResponse
     except ImportError:
         # Fallback: plain StreamingResponse with SSE format
         from fastapi.responses import StreamingResponse as EventSourceResponse
 
-    app = FastAPI(title=f"Largestack AI — {agent.name}", version="1.0.0")
+    app = FastAPI(title=f"Largestack AI — {agent.name}", version=__version__)
     
     # v0.3.7: CORS middleware on serve API. Reuses dashboard's resolver so the
     # same allowlist policy applies (LARGESTACK_CORS_ALLOWED_ORIGINS env, no '*' silently,

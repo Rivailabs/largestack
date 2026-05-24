@@ -1,13 +1,13 @@
 # LARGESTACK Agentic AI
 
-> Alpha-stage Python framework for agentic AI.
+> v1.0 release-candidate Python framework for governed agentic AI.
 
 LARGESTACK is an open-source (Apache 2.0) Python framework for building AI agents with typed dependency injection, 15-layer guardrails, native MCP/A2A/AG-UI protocols, and built-in observability.
 
 ## Install
 
 ```bash
-pip install largestack-agentic-ai
+pip install largestack
 ```
 
 ## Quick Start
@@ -40,6 +40,6 @@ result = await agent.run("Find docs", deps=Deps(user_id="u1"))
 
 ## Optional
 
-- [GitHub](https://github.com/rivailabs/largestack-agentic-ai)
-- [PyPI](https://pypi.org/project/largestack-agentic-ai)
+- GitHub: add the public repository URL after visibility is enabled.
+- [PyPI](https://pypi.org/project/largestack)
 - [Discord](https://discord.gg/largestack-ai)

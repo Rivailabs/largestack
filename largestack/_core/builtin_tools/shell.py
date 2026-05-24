@@ -32,8 +32,6 @@ _FORBIDDEN_CHARS = set(";&|<>`$\n\r\\\"")
 _FORBIDDEN_SUBSTRINGS = ("&&", "||", ">>", "<<", "$(", "${")
 
 
-@tool(timeout=15)
-
 async def _terminate_process_safely(proc):
     """Terminate subprocess and drain pipes to avoid ResourceWarning leaks."""
     import asyncio
@@ -52,6 +50,8 @@ async def _terminate_process_safely(proc):
     with contextlib.suppress(Exception):
         await asyncio.wait_for(proc.wait(), timeout=2)
 
+
+@tool(timeout=15)
 async def shell_command(command: str) -> str:
     """Execute a restricted shell command (no shell interpretation).
 
@@ -114,10 +114,7 @@ async def shell_command(command: str) -> str:
     try:
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=10)
     except asyncio.TimeoutError:
-        try:
-            proc.kill()
-        except ProcessLookupError:
-            pass
+        await _terminate_process_safely(proc)
         return "Command timed out after 10s"
 
     out = (stdout.decode("utf-8", errors="replace")

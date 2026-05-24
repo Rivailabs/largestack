@@ -12,9 +12,8 @@ keywords:
   - rag
   - india-fintech
 
-home: https://github.com/rivailabs/largestack
-sources:
-  - https://github.com/rivailabs/largestack
+home: https://rivailabs.com/largestack
+sources: []
 
 maintainers:
   - name: Sachith S

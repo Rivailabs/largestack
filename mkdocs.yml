@@ -1,8 +1,6 @@
 site_name: LARGESTACK Agentic AI
 site_description: Universal agentic AI framework for Python
 site_url: https://docs.rivailabs.com
-repo_url: https://github.com/rivailabs/largestack-agentic-ai
-repo_name: rivailabs/largestack-agentic-ai
 
 theme:
   name: material

@@ -4,7 +4,7 @@ A minimal LARGESTACK agent template.
 
 ## Setup
 ```bash
-pip install largestack-agentic-ai
+pip install largestack
 cp .env.example .env
 # Edit .env with your OPENAI_API_KEY
 ```

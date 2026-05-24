@@ -4,7 +4,7 @@ LARGESTACK template for retrieval-augmented generation.
 
 ## Setup
 ```bash
-pip install largestack-agentic-ai[postgres]
+pip install largestack[postgres]
 docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres pgvector/pgvector:pg16
 export DATABASE_URL="postgresql://postgres:postgres@localhost/postgres"
 export LARGESTACK_OPENAI_API_KEY="sk-..."

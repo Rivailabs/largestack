@@ -53,8 +53,8 @@ if os.environ.get("LARGESTACK_CYTHON", "0") == "1":
         )
         
         setup(
-            name="largestack-agentic-ai",
-            version="0.1.1",
+            name="largestack",
+            version="1.0.1",
             packages=find_packages(),
             ext_modules=ext_modules,
             cmdclass={"build_ext": build_ext},

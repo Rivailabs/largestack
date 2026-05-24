@@ -2,7 +2,7 @@
 # These keep pip from backtracking across old transitive versions.
 anyio==4.13.0
 fastapi==0.136.1
-starlette==1.0.0
+starlette==1.0.1
 uvicorn==0.46.0
 sse-starlette==3.4.2
 httpx==0.28.1

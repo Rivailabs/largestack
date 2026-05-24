@@ -15,7 +15,7 @@
     # Multi-agent with error recovery
     team = Team(agents=[a1, a2, a3], on_error="skip", retries_per_agent=2)
 """
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # v0.3.7: auto-install logging redaction filter in production. Strips
 # API keys / Bearer tokens / JWTs from log records before they're emitted.
