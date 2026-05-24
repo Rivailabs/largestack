@@ -1,5 +1,0 @@
-tool_permissions:
-  deny:
-    - dangerous_delete
-  allow:
-    - safe_tool

@@ -58,3 +58,16 @@ venv/
 private_key.hex
 private.pem
 *.pem
+
+# Release evidence policy:
+# keep curated Markdown summaries in git, but do not commit generated project
+# trees, raw logs, scan caches, or bulky machine-output from validation runs.
+release_evidence/**
+!release_evidence/
+!release_evidence/README.md
+!release_evidence/FINAL_PUBLIC_VALIDATION_*.md
+!release_evidence/*_LATEST.md
+!release_evidence/**/
+!release_evidence/**/SUMMARY.md
+!release_evidence/**/FINAL*_SUMMARY.md
+!release_evidence/**/MAC_FIX_VALIDATION_REPORT.md

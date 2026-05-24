@@ -1,6 +1,0 @@
-Lead Scoring Policy:
-- Score is based on name length and stage.
-- Base score = min(len(name) * 10, 100)
-- Prospect stage adds 10 points.
-- Customer stage adds 20 points.
-- Final score is clamped between 0 and 100.

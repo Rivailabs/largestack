@@ -1,4 +1,0 @@
-{
-  "risky_actions": ["delete_file", "send_email", "shutdown"],
-  "approval_required": true
-}

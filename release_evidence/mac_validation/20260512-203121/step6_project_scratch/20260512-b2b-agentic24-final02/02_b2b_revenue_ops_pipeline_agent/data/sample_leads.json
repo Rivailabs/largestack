@@ -1,5 +1,0 @@
-[
-  {"email": "Buyer@ACME.COM", "company": "  Acme Inc. ", "employees": 1500, "source": "web", "last_touch_days": 5},
-  {"email": "lead@smallbiz.com", "company": "Small Biz", "employees": 50, "source": "referral", "last_touch_days": 2},
-  {"email": "vp@bigcorp.com", "company": "BigCorp", "employees": 2000, "source": "event", "last_touch_days": 45}
-]

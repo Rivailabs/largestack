@@ -1,3 +1,0 @@
-name,features,passed,score,failed_checks,tokens,actual_cost,project_path
-bfsi_loan_origination_maker_checker,"workflow_dag,tool_policy_approval,guardrails_pii",True,99,,11184,0.002736,/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-autofix2-20260512-203121/projects/25_bfsi_loan_origination_maker_checker
-bfsi_aml_transaction_monitoring,"orchestrator_router,rag_citations,observability_trace",True,99,,8829,0.00309,/Users/sachiths/largestack/release_evidence/final_95_plus/mac-bfsi-plus2-autofix2-20260512-203121/projects/26_bfsi_aml_transaction_monitoring

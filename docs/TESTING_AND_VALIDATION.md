@@ -55,4 +55,8 @@ twine check dist/*
 scripts/final_release_validate.sh
 ```
 
-Logs are written under `/tmp/largestack-final-validate-<timestamp>`.
+Logs are written under `/tmp/largestack-final-validate-<timestamp>`. The script
+also writes a curated public summary to
+`release_evidence/FINAL_PUBLIC_VALIDATION_<timestamp>.md` and refreshes
+`release_evidence/FINAL_PUBLIC_VALIDATION_LATEST.md`; raw logs should remain in
+CI/release artifacts, not in the public repo.

@@ -23,7 +23,7 @@ Each recipe is **self-contained**: copy the code, install LARGESTACK, run.
 ## Prerequisites
 
 ```bash
-pip install largestack>=1.0.0
+pip install "largestack>=1.0.0"
 ```
 
 For India-specific aggregators (Signzy / IDfy / Razorpay / DigiLocker),

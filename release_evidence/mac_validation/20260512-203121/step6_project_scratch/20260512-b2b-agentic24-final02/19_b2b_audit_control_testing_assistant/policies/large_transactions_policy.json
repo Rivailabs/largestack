@@ -1,7 +1,0 @@
-{
-  "policy_name": "Large Transactions Require Approval",
-  "rule": "large_transactions_require_approval",
-  "description": "Any transaction with amount > 50000 must be approved.",
-  "threshold": 50000,
-  "action": "block_if_unapproved"
-}

@@ -1,6 +1,0 @@
-Approval Policy:
-- Refund requests require manager approval.
-- Payment disputes require finance team approval.
-- Security incidents require security team approval.
-- Data export requests require data protection officer approval.
-- Login resets require identity verification.

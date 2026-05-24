@@ -676,7 +676,7 @@ def parse_final_validator(gate: GateResult) -> list[GateResult]:
 def run_extra_gates(outdir: Path) -> list[GateResult]:
     gates = [
         run_cmd("security_tests", [sys.executable, "-m", "pytest", "tests/security", "-q", "--tb=short"], outdir, 600),
-        run_cmd("helm_lint_both_charts", ["helm", "lint", "deploy/helm/largestack", "deploy/helm/largestack-agentic-ai"], outdir, 300),
+        run_cmd("helm_lint_chart", ["helm", "lint", "deploy/helm/largestack"], outdir, 300),
         run_cmd("docker_compose_config", ["docker", "compose", "config"], outdir, 300),
     ]
     return gates

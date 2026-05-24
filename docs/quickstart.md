@@ -18,7 +18,7 @@ This guide takes a beginner from clone to first validation.
 ## 1. Clone
 
 ```bash
-git clone https://github.com/Rivailabs/largestack.git
+# Public GitHub clone URL should be added after repository visibility is enabled.
 cd largestack
 ```
 

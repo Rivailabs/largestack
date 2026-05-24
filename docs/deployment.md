@@ -46,8 +46,8 @@ Check project-specific variables in `.env.example` and `deploy/.env.example`.
 Template/lint validation:
 
 ```bash
-helm lint deploy/helm/largestack-agentic-ai
-helm template largestack deploy/helm/largestack-agentic-ai > /tmp/largestack-rendered.yaml
+helm lint deploy/helm/largestack
+helm template largestack deploy/helm/largestack > /tmp/largestack-rendered.yaml
 ```
 
 Do not claim full Kubernetes production readiness until installed and tested on a real cluster with:

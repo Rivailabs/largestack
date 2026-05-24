@@ -1,9 +1,0 @@
-{
-  "default_owner": "qa-team",
-  "risk_mapping": {
-    "low": "low",
-    "medium": "medium",
-    "high": "high",
-    "critical": "critical"
-  }
-}

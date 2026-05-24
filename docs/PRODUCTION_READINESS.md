@@ -26,6 +26,20 @@ This project should be classified from the latest validation evidence, not from 
 - Customer-specific data residency.
 - Cloud-managed database, KMS, SSO, SIEM, and incident response integration.
 
+## Enterprise Evidence Gates
+
+Do not claim enterprise-ready SaaS until these have release artifacts:
+
+| Claim area | Required proof |
+|---|---|
+| SSO/OIDC/SAML | End-to-end login tests against at least one real identity provider |
+| Tenant isolation | Automated cross-tenant data, memory, trace, and vector-store leakage tests |
+| RBAC | Role/permission matrix tests against dashboard/API actions |
+| Kubernetes | Real cluster install with Helm, health probes, secret injection, and rollback notes |
+| Load/stability | `load100`, `load500`, `load1000`, 4h soak, and 24h soak from the load/soak harness |
+| Security | External VAPT or third-party review, plus local Bandit/pip-audit/gitleaks/SBOM evidence |
+| Operations | Incident runbook, backup/restore proof, and monitored deployment evidence |
+
 ## Classification Rules
 
 - Any failed required gate: Strong POC or lower.

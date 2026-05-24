@@ -1,4 +1,0 @@
-Approval Policy:
-- All delete operations require manager approval.
-- Refund requests under $1000 are auto-approved.
-- High-value opportunities (>$50000) require VP approval.

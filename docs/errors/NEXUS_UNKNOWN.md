@@ -10,4 +10,4 @@
 1. **Check the error message** — it usually describes what went wrong
 2. **Check the suggestion** — every LargestackError includes a `.suggestion` field
 3. **Enable debug logging:** `LARGESTACK_LOG_LEVEL=DEBUG python agent.py`
-4. **File a bug:** If this is unexpected, report at github.com/rivailabs/largestack-ai/issues
+4. **File a bug:** If this is unexpected, report it through the public issue tracker once the GitHub repository is visible.

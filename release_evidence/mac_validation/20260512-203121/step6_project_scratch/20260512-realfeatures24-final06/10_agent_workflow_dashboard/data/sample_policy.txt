@@ -1,2 +1,0 @@
-This is a sample policy file for the agent_workflow_dashboard project.
-It contains no real secrets or API keys.

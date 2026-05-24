@@ -1,1 +1,0 @@
-Sample trading policy: All trades must be approved by the risk manager.

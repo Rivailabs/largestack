@@ -1,4 +1,0 @@
-Hiring Policy:
-- Hire additional FTE when gap_hours > 0.
-- No protected-class criteria considered.
-- Budget approval required for any hire.

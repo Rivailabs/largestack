@@ -6,11 +6,16 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TS="$(date +%Y%m%d-%H%M%S)"
 LOG_DIR="/tmp/largestack-final-validate-${TS}"
 SUMMARY="${LOG_DIR}/summary.tsv"
+PUBLIC_SUMMARY="${ROOT}/release_evidence/FINAL_PUBLIC_VALIDATION_${TS}.md"
+PUBLIC_LATEST="${ROOT}/release_evidence/FINAL_PUBLIC_VALIDATION_LATEST.md"
 mkdir -p "${LOG_DIR}"
+mkdir -p "${ROOT}/release_evidence"
 cd "${ROOT}" || exit 2
 
 if [[ -x ".venv-final/bin/python" ]]; then
   PY=".venv-final/bin/python"
+elif [[ -x ".venv/bin/python" ]]; then
+  PY=".venv/bin/python"
 elif command -v python3.12 >/dev/null 2>&1; then
   PY="python3.12"
 elif command -v python3 >/dev/null 2>&1; then
@@ -101,6 +106,8 @@ if command -v bandit >/dev/null 2>&1; then
   BANDIT="bandit"
 elif [[ -x ".venv-final/bin/bandit" ]]; then
   BANDIT=".venv-final/bin/bandit"
+elif [[ -x ".venv/bin/bandit" ]]; then
+  BANDIT=".venv/bin/bandit"
 else
   BANDIT=""
 fi
@@ -114,6 +121,8 @@ if command -v pip-audit >/dev/null 2>&1; then
   PIPAUDIT="pip-audit"
 elif [[ -x ".venv-final/bin/pip-audit" ]]; then
   PIPAUDIT=".venv-final/bin/pip-audit"
+elif [[ -x ".venv/bin/pip-audit" ]]; then
+  PIPAUDIT=".venv/bin/pip-audit"
 else
   PIPAUDIT=""
 fi
@@ -134,6 +143,8 @@ if command -v twine >/dev/null 2>&1; then
   TWINE="twine"
 elif [[ -x ".venv-final/bin/twine" ]]; then
   TWINE=".venv-final/bin/twine"
+elif [[ -x ".venv/bin/twine" ]]; then
+  TWINE=".venv/bin/twine"
 else
   TWINE=""
 fi
@@ -182,6 +193,32 @@ echo ""
 echo "Final validation logs: ${LOG_DIR}"
 echo "Summary: ${SUMMARY}"
 column -t -s $'\t' "${SUMMARY}" 2>/dev/null || cat "${SUMMARY}"
+
+{
+  echo "# Final Public Validation"
+  echo ""
+  echo "Generated: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  echo "Log root: \`${LOG_DIR}\`"
+  echo "Summary TSV: \`${SUMMARY}\`"
+  echo ""
+  echo "This is the curated public summary. Raw logs stay outside the git tree and"
+  echo "should be attached as release/CI artifacts only when needed."
+  echo ""
+  echo "| Step | Status | Log |"
+  echo "|---|---|---|"
+  tail -n +2 "${SUMMARY}" | while IFS=$'\t' read -r step status log; do
+    echo "| \`${step}\` | ${status} | \`${log}\` |"
+  done
+  echo ""
+  if [[ $FAILURES -gt 0 ]]; then
+    echo "Result: **FAIL** (${FAILURES} required gate(s) failed)."
+  else
+    echo "Result: **PASS** for required gates. Review SKIP rows for optional/provider gates."
+  fi
+} > "${PUBLIC_SUMMARY}"
+cp "${PUBLIC_SUMMARY}" "${PUBLIC_LATEST}"
+echo "Public validation summary: ${PUBLIC_SUMMARY}"
+echo "Latest public validation summary: ${PUBLIC_LATEST}"
 
 if [[ $FAILURES -gt 0 ]]; then
   echo "FAILED required gates: ${FAILURES}"

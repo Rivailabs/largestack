@@ -1,5 +1,0 @@
-{
-  "max_file_size": 1048576,
-  "allowed_extensions": [".txt", ".csv", ".json", ".xml"],
-  "description": "Upload policy for document portal"
-}

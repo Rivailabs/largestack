@@ -1,6 +1,0 @@
-{
-  "security_keywords": ["delete", "remove", "purge", "wipe", "destroy", "terminate", "shutdown", "kill", "erase", "drop"],
-  "payment_keywords": ["payment", "billing", "invoice", "charge", "refund", "credit", "debit", "pay", "transaction", "purchase"],
-  "approval_required": true,
-  "executed": false
-}

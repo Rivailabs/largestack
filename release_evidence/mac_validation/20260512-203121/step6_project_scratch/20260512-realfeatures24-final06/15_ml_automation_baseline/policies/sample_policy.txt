@@ -1,1 +1,0 @@
-This is a sample policy file for the ml_automation_baseline project.

@@ -5,7 +5,10 @@ LARGESTACK is a **production-grade candidate** Python framework. This document l
 ## Runtime
 
 - **Cost tracker is module-global, not per-run.** Two concurrent agents share the same `CostTracker` instance and its `run_cost`/`run_tokens` accumulate together. For per-run accounting, instantiate separate `Agent` objects with separate `LLMGateway` instances, or read `AgentResult.total_cost` / `total_tokens` only — these are populated correctly per call.
-- **Tool idempotency cache has no TTL or size bound.** It grows unbounded for long-lived agents. Reset with `agent._tool_exec._idem.clear()` between batches, or restart the process periodically.
+- **Tool idempotency cache is per-agent and bounded.** The current executor uses
+  an LRU limit and TTL. For very long-lived agents with high-cardinality
+  idempotent tool calls, still monitor cache behavior and reset between large
+  batches if needed.
 - **Vision path bypasses some engine logic.** Image messages skip parts of the loop guard / memory write-back / tool retry path.
 
 ## Provider Layer
@@ -56,7 +59,11 @@ Not yet:
 
 ## Deployment
 
-- Dockerfile copies source before pip install; runs as non-root `largestack` user; healthcheck imports the package (does not hit a live endpoint).
+- Root `Dockerfile` copies source before pip install, runs as non-root `largestack`,
+  and probes the dashboard `/health` endpoint with `curl` on port 8787. The
+  `deploy/Dockerfile`/Compose path serves an agent API on port 8000 and probes
+  `/health` there. Keep both paths in the final validation log before making a
+  public production claim.
 - docker-compose has dev defaults (`POSTGRES_PASSWORD=largestack_dev_change_me` fallback). For production, override via `.env` or use the Helm chart.
 - Helm charts ship under `deploy/helm/largestack/` and `deploy/helm/largestack/`. Chart versions are pinned independently from package version per Helm convention.
 - Production secrets via `largestack._security.vault.SecretStore` — supports HashiCorp Vault, AWS Secrets Manager, Azure Key Vault.

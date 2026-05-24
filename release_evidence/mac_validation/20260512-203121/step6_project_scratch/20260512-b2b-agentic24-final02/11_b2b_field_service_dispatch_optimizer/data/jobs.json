@@ -1,5 +1,0 @@
-[
-  {"id": "J1", "skill": "hvac", "region": "north", "duration_hours": 3, "priority": "high"},
-  {"id": "J2", "skill": "hvac", "region": "north", "duration_hours": 3, "priority": "low"},
-  {"id": "J3", "skill": "network", "region": "south", "duration_hours": 1, "priority": "medium"}
-]

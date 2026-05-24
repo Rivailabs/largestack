@@ -1,3 +1,0 @@
-Access Control Policy:
-- Quarterly access reviews must be performed.
-- Incident response tabletop exercises must be conducted annually.

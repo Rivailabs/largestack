@@ -1,3 +1,0 @@
-Duplicate payments occur when the same invoice is paid twice.
-Refund policy allows returns within 30 days of purchase.
-Duplicate payment detection is handled by the finance team.

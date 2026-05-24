@@ -1,4 +1,0 @@
-rm 'docs/DEPLOYMENT.md'
-rm 'docs/QUICKSTART.md'
-rm 'docs/SECURITY.md'
-rm 'docs/TROUBLESHOOTING.md'

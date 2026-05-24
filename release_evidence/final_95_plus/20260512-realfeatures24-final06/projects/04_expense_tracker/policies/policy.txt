@@ -1,1 +1,0 @@
-Policy: Cash or gift expenses over 500 are flagged as violations.
