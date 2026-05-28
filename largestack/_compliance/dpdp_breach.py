@@ -31,7 +31,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Literal, Protocol
 
-log = logging.getLogger("largestack.compliance.dpdp_breach")
+log = logging.getLogger(__name__)
 
 
 BreachSeverity = Literal["low", "medium", "high", "critical"]

@@ -39,4 +39,4 @@ export LARGESTACK_LOG_CONTENT=1  # Log prompts (PII risk!)
 
 - Discord: https://discord.gg/largestack-ai (coming soon)
 - GitHub Issues: add the public issue tracker URL after repository visibility is enabled
-- Email: hello@rivailabs.com
+- Email: support@largestack.ai

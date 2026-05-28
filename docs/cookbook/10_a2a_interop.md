@@ -160,7 +160,7 @@ async def end_to_end_loan_origination(customer_id: str):
   "default_input_modes": ["text/plain"],
   "default_output_modes": ["text/plain"],
   "provider_name": "RivaiLabs",
-  "provider_url": "https://rivailabs.com"
+  "provider_url": "https://largestack.ai"
 }
 ```
 

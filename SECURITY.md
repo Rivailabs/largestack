@@ -2,7 +2,7 @@
 
 ## Reporting
 
-Email: security@rivailabs.com (PGP key on website)
+Email: security@largestack.ai (PGP key on website)
 
 Do **not** open public GitHub issues for security vulnerabilities.
 

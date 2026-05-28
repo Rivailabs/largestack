@@ -3,7 +3,7 @@
 class LargestackError(Exception):
     retryable = False
     error_code = "LARGESTACK_UNKNOWN"
-    docs_url = "https://largestack-ai.dev/errors/"
+    docs_url = "https://docs.largestack.ai/errors/"
     def __init__(self, message: str, suggestion: str = ""):
         self.suggestion = suggestion
         super().__init__(message)
@@ -52,7 +52,7 @@ class ContextWindowExceededError(LargestackError):
 class LicenseRequiredError(LargestackError):
     error_code = "LARGESTACK_LICENSE"
     def __init__(self):
-        super().__init__("Production requires license", "Get one at https://largestack-ai.dev/pricing ($299/yr)")
+        super().__init__("Production requires license", "Get one at https://largestack.ai/pricing")
 
 class GuardrailBlockedError(LargestackError):
     error_code = "LARGESTACK_GUARDRAIL"

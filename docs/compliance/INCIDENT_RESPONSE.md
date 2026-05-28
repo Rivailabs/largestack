@@ -47,7 +47,7 @@ What data was affected: [Specific data types]
 What we're doing: [Remediation steps]
 What you should do: [Customer actions]
 
-Contact: security@rivailabs.com
+Contact: security@largestack.ai
 ```
 
 ## Recovery Procedures

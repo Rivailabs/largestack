@@ -1,8 +1,25 @@
-# Largestack Documentation
+# Largestack AI Documentation
 
-Largestack is an agentic AI framework for building governed agents, tools,
-RAG assistants, workflows, guardrails, observability, and deployment-ready
-runtime surfaces.
+Largestack AI is an open-source AI framework and Python framework for agents,
+RAG, guardrails, observability, and orchestration.
+
+Install from PyPI with Python 3.11+:
+
+```bash
+pip install largestack
+largestack --help
+```
+
+Public links:
+
+- Website: https://largestack.ai
+- Docs: https://docs.largestack.ai
+- PyPI: https://pypi.org/project/largestack/
+- GitHub: https://github.com/Rivailabs/largestack
+
+Largestack AI is suitable for developer demos, controlled pilots, AI workflow
+experiments, and early enterprise evaluation. It is not currently presented as
+a certified enterprise SaaS platform.
 
 Start with the quickstart, then use the architecture and validation pages to
 understand what is proven today and what still needs hardening before public

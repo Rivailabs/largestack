@@ -31,7 +31,7 @@
 - **Code sandbox**: subprocess/Docker/E2B with network isolation
 
 ## Vulnerability Disclosure
-Report security issues to: security@rivailabs.com
+Report security issues to: security@largestack.ai
 Response commitment: 48 hours acknowledgment, 7-day assessment
 
 ## SBOM

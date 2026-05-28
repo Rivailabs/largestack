@@ -1,6 +1,6 @@
 # Quickstart
 
-This guide takes a beginner from clone to first validation.
+This guide takes a beginner from PyPI install to first validation.
 
 ---
 
@@ -15,16 +15,31 @@ This guide takes a beginner from clone to first validation.
 
 ---
 
-## 1. Clone
+## 1. Install from PyPI
 
 ```bash
-# Public GitHub clone URL should be added after repository visibility is enabled.
+python -m pip install -U pip
+pip install largestack
+largestack --help
+```
+
+- PyPI: https://pypi.org/project/largestack/
+- GitHub: https://github.com/Rivailabs/largestack
+
+---
+
+## 2. Source development checkout
+
+Use this only when you want to work on the framework source:
+
+```bash
+git clone https://github.com/Rivailabs/largestack.git
 cd largestack
 ```
 
 ---
 
-## 2. Create virtual environment
+## 3. Create virtual environment
 
 Linux/macOS:
 
@@ -42,7 +57,7 @@ py -3.12 -m venv .venv-win
 
 ---
 
-## 3. Install
+## 4. Install development dependencies
 
 ```bash
 python -m pip install -U pip setuptools wheel
@@ -58,7 +73,7 @@ python -m pip install -e ".[dev]"
 
 ---
 
-## 4. First test
+## 5. First test
 
 ```bash
 python -m pytest tests/unit/test_memory.py -q --tb=short
@@ -72,7 +87,7 @@ Expected:
 
 ---
 
-## 5. Compile check
+## 6. Compile check
 
 ```bash
 python -m compileall largestack tests examples scripts
@@ -82,7 +97,7 @@ This catches syntax/import-path problems early.
 
 ---
 
-## 6. Full test suite
+## 7. Full test suite
 
 ```bash
 python -m pytest tests -q --tb=short -ra
@@ -92,7 +107,7 @@ Live DeepSeek tests run only when `LARGESTACK_DEEPSEEK_API_KEY` is set.
 
 ---
 
-## 7. Live DeepSeek check
+## 8. Live DeepSeek check
 
 ```bash
 export LARGESTACK_DEEPSEEK_API_KEY="your_key_here"
@@ -103,7 +118,7 @@ Never commit keys.
 
 ---
 
-## 8. Docker health check
+## 9. Docker health check
 
 ```bash
 docker build -t largestack:test .
@@ -113,3 +128,9 @@ docker rm -f largestack-test
 ```
 
 Expected health response should show an OK/healthy status.
+
+## Status
+
+Largestack AI is suitable for developer demos, controlled pilots, AI workflow
+experiments, and early enterprise evaluation. It is not currently presented as
+a certified enterprise SaaS platform.

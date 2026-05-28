@@ -525,7 +525,7 @@ def expose_largestack_agent(
     url: str,
     skills: list[AgentSkill] | None = None,
     provider_name: str = "RivaiLabs",
-    provider_url: str = "https://rivailabs.com",
+    provider_url: str = "https://largestack.ai",
 ) -> A2AServer:
     """Convenience: wrap a LARGESTACK Agent as an A2A server.
 

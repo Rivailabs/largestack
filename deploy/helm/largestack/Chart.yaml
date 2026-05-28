@@ -12,13 +12,13 @@ keywords:
   - rag
   - india-fintech
 
-home: https://rivailabs.com/largestack
+home: https://largestack.ai
 sources: []
 
 maintainers:
   - name: Sachith S
-    email: info@rivailabs.com
-    url: https://rivailabs.com
+    email: hello@largestack.ai
+    url: https://largestack.ai
 
 dependencies:
   - name: redis

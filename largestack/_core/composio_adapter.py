@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import os
 
-log = logging.getLogger("largestack.composio")
+log = logging.getLogger(__name__)
 
 
 class ComposioToolset:

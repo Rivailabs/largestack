@@ -1090,7 +1090,7 @@ enterprise hardening gates.
 ### Quickstart block
 
 ```bash
-# Add the public GitHub clone URL after repository visibility is enabled.
+git clone https://github.com/Rivailabs/largestack.git
 cd largestack
 python3.12 -m venv .venv
 source .venv/bin/activate

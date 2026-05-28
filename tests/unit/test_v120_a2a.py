@@ -393,4 +393,4 @@ async def test_expose_largestack_agent_default_provider():
         largestack_agent, name="x", description="y", url="z",
     )
     assert server.card.provider_name == "RivaiLabs"
-    assert "rivailabs" in server.card.provider_url.lower()
+    assert server.card.provider_url == "https://largestack.ai"

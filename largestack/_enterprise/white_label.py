@@ -10,8 +10,8 @@ class WhiteLabelConfig:
     primary_color: str = "#7c6cf0"
     dashboard_title: str = "Largestack AI Dashboard"
     error_prefix: str = "LARGESTACK"
-    docs_url: str = "https://largestack-ai.dev"
-    support_email: str = "support@largestack-ai.dev"
+    docs_url: str = "https://docs.largestack.ai"
+    support_email: str = "support@largestack.ai"
     custom_css: str = ""
     hide_powered_by: bool = False
     custom_domain: str = ""

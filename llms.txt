@@ -1,8 +1,8 @@
-# LARGESTACK Agentic AI
+# Largestack AI
 
 > v1.0 release-candidate Python framework for governed agentic AI.
 
-LARGESTACK is an open-source (Apache 2.0) Python framework for building AI agents with typed dependency injection, 15-layer guardrails, native MCP/A2A/AG-UI protocols, and built-in observability.
+Largestack AI is an open-source (Apache 2.0) Python framework for building AI agents with typed dependency injection, guardrails, native MCP/A2A/AG-UI protocols, and built-in observability.
 
 ## Install
 
@@ -32,14 +32,15 @@ result = await agent.run("Find docs", deps=Deps(user_id="u1"))
 
 ## Docs
 
-- [Quick Start](https://docs.rivailabs.com/quickstart)
-- [Agents](https://docs.rivailabs.com/concepts/agents)
-- [Tools](https://docs.rivailabs.com/concepts/tools)
-- [Cookbook](https://docs.rivailabs.com/cookbook)
-- [API Reference](https://docs.rivailabs.com/api/agent)
+- [Quick Start](https://docs.largestack.ai/quickstart)
+- [Agents](https://docs.largestack.ai/concepts/agents)
+- [Tools](https://docs.largestack.ai/concepts/tools)
+- [Cookbook](https://docs.largestack.ai/cookbook)
+- [API Reference](https://docs.largestack.ai/api/agent)
 
 ## Optional
 
-- GitHub: add the public repository URL after visibility is enabled.
+- [Website](https://largestack.ai)
+- [GitHub](https://github.com/Rivailabs/largestack)
 - [PyPI](https://pypi.org/project/largestack)
 - [Discord](https://discord.gg/largestack-ai)

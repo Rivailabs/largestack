@@ -3,12 +3,28 @@
 [![PyPI version](https://img.shields.io/pypi/v/largestack.svg)](https://pypi.org/project/largestack/)
 [![Python](https://img.shields.io/pypi/pyversions/largestack.svg)](https://pypi.org/project/largestack/)
 [![License](https://img.shields.io/pypi/l/largestack.svg)](https://pypi.org/project/largestack/)
+[![GitHub stars](https://img.shields.io/github/stars/Rivailabs/largestack?style=social)](https://github.com/Rivailabs/largestack/stargazers)
 
-**Largestack AI** is a Python 3.11+ production-grade candidate framework for typed agents, tools, RAG, guardrails, observability, and orchestration.
+Largestack AI is the production stack for typed agents, tools, RAG, guardrails, observability, and orchestration.
+
+```bash
+pip install largestack
+```
+
+Largestack requires Python 3.11+.
+
+- Website: https://largestack.ai
+- Docs: https://docs.largestack.ai
+- PyPI: https://pypi.org/project/largestack/
+- GitHub: https://github.com/Rivailabs/largestack
+
+**Largestack AI** is an open-source AI framework and Python framework for agents, RAG, guardrails, observability, and orchestration.
 
 It is designed for developers who want to build real AI systems without starting from a blank file: support-ticket agents, RAG assistants, code reviewers, workflow automations, BFSI governance flows, and enterprise-style AI copilots.
 
 > Current status: **v1.0 Release Candidate / controlled-pilot ready**. Ubuntu, Mac evidence, Windows clean validation, Docker, security, package, DeepSeek live validation, and 24-hour soak evidence have passed.
+
+Largestack AI is suitable for developer demos, controlled pilots, AI workflow experiments, and early enterprise evaluation. It is not currently presented as a certified enterprise SaaS platform.
 
 ## Install
 
@@ -49,7 +65,7 @@ Most agent frameworks solve only one layer: agents, chains, RAG, or observabilit
 ### 1. Open a source checkout
 
 ```bash
-# Public GitHub clone URL should be added after repository visibility is enabled.
+git clone https://github.com/Rivailabs/largestack.git
 cd largestack
 ```
 

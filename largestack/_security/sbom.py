@@ -174,7 +174,7 @@ class SBOMGenerator:
             "dataLicense": "CC0-1.0",
             "SPDXID": "SPDXRef-DOCUMENT",
             "name": self.package_name,
-            "documentNamespace": f"https://rivailabs.com/sbom/{self.package_name}/{self.version}/{uuid.uuid4()}",
+            "documentNamespace": f"https://largestack.ai/sbom/{self.package_name}/{self.version}/{uuid.uuid4()}",
             "creationInfo": {
                 "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "creators": [f"Tool: largestack-sbom-{self.version}"],

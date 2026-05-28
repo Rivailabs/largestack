@@ -98,7 +98,7 @@ class LicenseValidator:
         if not self.key:
             return {"valid": False, "tier": "community", "mode": "degraded",
                     "production_score": score,
-                    "message": "Production detected but no license key. Get one at https://largestack-ai.dev/pricing"}
+                    "message": "Production detected but no license key. Get one at https://largestack.ai/pricing"}
 
         # Try Rust compiled module (only exists after maturin build)
         try:
@@ -201,8 +201,8 @@ class LicenseValidator:
         if _BUILD_STRIPPED or os.environ.get("LARGESTACK_DISABLE_KEYGEN_BUILD") == "1":
             raise RuntimeError(
                 "License key generation is disabled in this build. "
-                "Use the official issuance service (https://rivailabs.com/license) "
-                "or contact support@rivailabs.com."
+                "Use the official issuance service (https://app.largestack.ai/license) "
+                "or contact support@largestack.ai."
             )
         if not os.environ.get("LARGESTACK_KEYGEN_ENABLED"):
             raise RuntimeError(
@@ -241,4 +241,4 @@ def check_license():
             log.warning(
                 "Largestack AI — Production environment detected (score=%d). "
                 "Set LARGESTACK_LICENSE_KEY for licensed use. "
-                "Get a key at https://rivailabs.com/largestack/pricing", score)
+                "Get a key at https://largestack.ai/pricing", score)
