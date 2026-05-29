@@ -12,7 +12,7 @@ Scope: Recheck failed validation items from the senior/principal validation pass
 | TypeScript SDK strict compile error | P1 SDK failure | Typed parsed API error response as `{ detail?: string; code?: string; suggestion?: string }` | ✅ | `npm run build` passed |
 | TypeScript SDK test script used missing Jest | P1 SDK test failure | Changed test script to deterministic `tsc --noEmit` | ✅ | `npm test` passed |
 | Docker build context 6.32 GB | P0 Docker hygiene failure | Added strict `.dockerignore` excluding venvs, caches, node_modules, artifacts, DBs, archives, logs | ✅ code-side | Context estimate now ~3.73 MB / 698 files before Docker build |
-| Docker/Compose config blocked by missing env | P1 compose config issue | Made `deploy/docker-compose.yml` `.env` optional and provided explicit local-config fallback placeholders | ✅ code-side | YAML parse passed; real Docker Compose runtime still requires Docker host |
+| Docker/Compose config blocked by missing env | P1 compose config issue | Made `deploy/docker-compose.yml` `.env` optional and provided explicit local-config fallback values | ✅ code-side | YAML parse passed; real Docker Compose runtime still requires Docker host |
 | Docker deploy image depended on absent `agent.yaml` | P1 runtime risk | `deploy/Dockerfile` now falls back to a default `Agent` if `agent.yaml` is absent | ✅ code-side | Dockerfile static review + compile/import gates passed |
 | Docker deploy image lacked curl | P2 runtime/debug gap | Added curl to deploy runtime image | ✅ code-side | Dockerfile patched |
 | Bandit high findings from MD5 | P0 security scan issue | Replaced internal non-security `hashlib.md5` uses with `hashlib.sha256` | ✅ | Bandit now reports 0 HIGH; remaining findings are MEDIUM |
@@ -38,7 +38,7 @@ Scope: Recheck failed validation items from the senior/principal validation pass
 | `largestack/_core/loop_guard.py` | MD5 → SHA256 | Remove weak-hash SAST finding |
 | `sdk/typescript/src/index.ts` | Typed error response object | Fix strict TypeScript build |
 | `sdk/typescript/package.json` | `test` now runs `tsc --noEmit` | Deterministic SDK test without missing Jest |
-| `deploy/docker-compose.yml` | Optional `.env`; explicit fallback placeholders | Let Compose config render while still documenting production env requirements |
+| `deploy/docker-compose.yml` | Optional `.env`; explicit fallback values | Let Compose config render while still documenting production env requirements |
 | `deploy/Dockerfile` | Added curl; default Agent fallback when no `agent.yaml` exists | Prevent runtime crash and improve health/debug path |
 | `pyproject.toml` | Raised FastAPI/Starlette/LiteLLM dependency floors | Avoid known vulnerable old resolver outputs |
 | `scripts/run_pytest_matrix.py` | Added per-file pytest matrix runner | Prevent silent global pytest hangs from hiding exact failing file |

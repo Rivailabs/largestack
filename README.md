@@ -1,17 +1,17 @@
 # Largestack AI
 
-[![PyPI version](https://img.shields.io/pypi/v/largestack.svg)](https://pypi.org/project/largestack/)
-[![Python](https://img.shields.io/pypi/pyversions/largestack.svg)](https://pypi.org/project/largestack/)
-[![License](https://img.shields.io/pypi/l/largestack.svg)](https://pypi.org/project/largestack/)
-[![GitHub stars](https://img.shields.io/github/stars/Rivailabs/largestack?style=social)](https://github.com/Rivailabs/largestack/stargazers)
-
 Largestack AI (`largestack`) is a Python 3.11+ framework for AI agents, RAG, guardrails, observability, workflow orchestration, and tool-based automation.
 
 ```bash
 pip install largestack
 ```
 
-The largestack Python framework is built for developers and teams moving from AI demos to production-style AI workflows.
+Largestack is built for developers and teams moving from AI demos to production-style AI workflows. The largestack Python framework helps teams structure agents, retrieval, guardrails, traces, and orchestration without starting from a blank file.
+
+[![PyPI version](https://img.shields.io/pypi/v/largestack.svg)](https://pypi.org/project/largestack/)
+[![Python](https://img.shields.io/pypi/pyversions/largestack.svg)](https://pypi.org/project/largestack/)
+[![License](https://img.shields.io/pypi/l/largestack.svg)](https://pypi.org/project/largestack/)
+[![GitHub stars](https://img.shields.io/github/stars/Rivailabs/largestack?style=social)](https://github.com/Rivailabs/largestack/stargazers)
 
 - Website: https://largestack.ai
 - Docs: https://docs.largestack.ai
