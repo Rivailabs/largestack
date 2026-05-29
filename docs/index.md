@@ -1,7 +1,7 @@
 # Largestack AI Documentation
 
-Largestack AI is an open-source AI framework and Python framework for agents,
-RAG, guardrails, observability, and orchestration.
+Largestack AI (`largestack`) is a Python framework for AI agents, RAG,
+guardrails, observability, and orchestration.
 
 Install from PyPI with Python 3.11+:
 

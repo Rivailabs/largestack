@@ -5,18 +5,20 @@
 [![License](https://img.shields.io/pypi/l/largestack.svg)](https://pypi.org/project/largestack/)
 [![GitHub stars](https://img.shields.io/github/stars/Rivailabs/largestack?style=social)](https://github.com/Rivailabs/largestack/stargazers)
 
-Largestack AI is the production stack for typed agents, tools, RAG, guardrails, observability, and orchestration.
+Largestack AI (`largestack`) is a Python 3.11+ framework for AI agents, RAG, guardrails, observability, workflow orchestration, and tool-based automation.
 
 ```bash
 pip install largestack
 ```
 
-Largestack requires Python 3.11+.
+The largestack Python framework is built for developers and teams moving from AI demos to production-style AI workflows.
 
 - Website: https://largestack.ai
 - Docs: https://docs.largestack.ai
 - PyPI: https://pypi.org/project/largestack/
 - GitHub: https://github.com/Rivailabs/largestack
+
+Largestack requires Python 3.11+.
 
 **Largestack AI** is an open-source AI framework and Python framework for agents, RAG, guardrails, observability, and orchestration.
 
@@ -376,6 +378,25 @@ Known limitations are tracked in [`docs/known-limitations.md`](docs/known-limita
 | P2 | Public docs website |
 | P2 | Community examples and plugin ecosystem |
 | P3 | Enterprise certifications, VAPT, compliance evidence |
+
+---
+
+## Search and discovery
+
+If you are looking for this project, search for:
+
+- Largestack AI
+- largestack Python framework
+- RivaiLabs Largestack
+- pip install largestack
+- Largestack agents RAG guardrails observability
+
+Official links:
+
+- Website: https://largestack.ai
+- PyPI: https://pypi.org/project/largestack/
+- GitHub: https://github.com/Rivailabs/largestack
+- Docs: https://docs.largestack.ai
 
 ---
 
