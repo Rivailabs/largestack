@@ -32,4 +32,6 @@ Failed:
 - Real connectors (calendar, email, filesystem, social, payments, HR, production
   databases) remain intentionally unexecuted.
 
-Raw per-run data: `release_evidence/jarvis_capstone_live/<run-id>/summary.json`.
+Raw per-run data is generated locally under `release_evidence/jarvis_capstone_live/`
+when you run the harness; it is intentionally **not committed** (see this folder's
+README evidence policy).

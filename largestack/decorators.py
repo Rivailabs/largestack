@@ -406,6 +406,8 @@ class Agent(Generic[DepsT, OutputT]):
                             retry_count=ctx.retry_count,
                             cost=result.total_cost,
                             trace_id=result.trace_id,
+                            tool_calls_made=list(getattr(result, "tool_calls_made", [])),
+                            tool_calls_failed=list(getattr(result, "tool_calls_failed", [])),
                         )
                 except ModelRetry as e:
                     ctx.increment_retry()
@@ -461,6 +463,8 @@ class AgentRunResult(Generic[OutputT]):
     retry_count: int = 0
     cost: float = 0.0
     trace_id: str = ""
+    tool_calls_made: list = field(default_factory=list)
+    tool_calls_failed: list = field(default_factory=list)
     
     def __repr__(self) -> str:
         return f"AgentRunResult(output={self.output!r}, cost=${self.cost:.6f}, retries={self.retry_count})"

@@ -6,7 +6,7 @@ Fixes three real gaps found by live testing against DeepSeek, adds a Tika
 document loader, and lays the test-trustworthiness foundation (measured coverage
 + a live end-to-end job in CI).
 
-- **2551 passing** (tests/, canonical CI environment).
+- **2559 passing** (tests/, canonical CI environment, all extras installed).
 
 **Fixed (live-verified on DeepSeek):**
 - **Structured/typed output now works on DeepSeek** and other OpenAI-compatible
@@ -35,6 +35,12 @@ document loader, and lays the test-trustworthiness foundation (measured coverage
 
 **Packaging:**
 - Full Apache-2.0 license text; consistent maintainer email; honest Beta positioning.
+
+**Hardening (strict-review remediation):**
+- PII: anchored the phone regex so 16-digit credit cards are fully `[CREDIT_CARD_REDACTED]`, not partially leaked.
+- Typed decorator API: `output_type=` returns a validated Pydantic model; added `guardrails=` + `retries=`; `AgentRunResult` now exposes `tool_calls_made`/`tool_calls_failed`.
+- Bundles: bounded calculators (no `9**9**9` DoS), workspace-confined file listing, persisted approval queues; `enterprise_jarvis/` adds RBAC + audit + multi-tenant on the typed decorator API.
+- `scripts/check_changelog.sh` made robust to optional-dependency variance; removed stale pre-rebrand `docs/errors/NEXUS_*` pages.
 
 ## v1.0.0 — 2026-05-06 — Rebrand: NEXUS → LARGESTACK + 100-scenario validation
 

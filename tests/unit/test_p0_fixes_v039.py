@@ -239,18 +239,20 @@ def test_frontend_jsx_handles_auth_errors():
 # ─── R2-P1-A: CHANGELOG count tolerance ────────────────────────────────
 
 def test_changelog_check_script_tolerates_optional_dep_variance():
-    """v0.3.9: scripts/check_changelog.sh accepts ±3 test variance to
-    absorb optional-dep-conditional skip cases (e.g., OTel SDK), AND uses
-    a strict bold-marker regex so prose mentions of '823 passing tests'
-    don't accidentally satisfy the count check.
+    """scripts/check_changelog.sh treats the CHANGELOG count as the canonical
+    full-extras MAXIMUM: running with fewer optional extras (fewer passing tests)
+    must NOT fail the gate; only ADDING tests beyond the claim does. It also uses a
+    strict bold-marker regex so prose mentions of '823 passing tests' don't satisfy
+    the count check.
     """
     from pathlib import Path
     root = Path(__file__).resolve().parent.parent.parent
     script = (root / "scripts" / "check_changelog.sh").read_text()
-    # Tolerance machinery present
-    assert "DIFF" in script
-    assert "-gt 3" in script or "-gt 5" in script, \
-        "must accept some variance to handle optional-dep skip cases"
+    # Downward variance (fewer extras installed) must be tolerated, not failed.
+    assert "fewer optional extras" in script or "canonical" in script, \
+        "must tolerate downward optional-dep variance"
+    # A small + tolerance for freshly-added tests before demanding a CHANGELOG bump.
+    assert "-gt 3" in script, "must allow a small +tolerance"
     # Strict bold-marker regex — must require ** ** wrapping
     assert "\\*\\*[0-9]+ passing\\*\\*" in script, \
         "must use bold-marker regex to avoid matching prose mentions of test counts"

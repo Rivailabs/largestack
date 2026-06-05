@@ -19,7 +19,7 @@ from pathlib import Path
 # Make `jarvis` importable when run from anywhere.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from jarvis.assistant import Jarvis  # noqa: E402
+from jarvis.assistant import Jarvis, JarvisReply  # noqa: E402
 from jarvis.config import MODEL, has_api_key  # noqa: E402
 
 DEMO_SCRIPT = [
@@ -33,7 +33,7 @@ DEMO_SCRIPT = [
 ]
 
 
-def _print_turn(user: str, out: dict) -> None:
+def _print_turn(user: str, out: JarvisReply) -> None:
     print(f"\n\033[1mYou:\033[0m {user}")
     print(f"\033[36mJarvis:\033[0m {out.reply}")
     meta = f"  · tools: {out.tools_used or '—'} · turn ${out.turn_cost:.6f} · total ${out.total_cost:.6f}"
