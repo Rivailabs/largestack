@@ -50,6 +50,7 @@ class AgentResult(BaseModel):
     trace_id: str = ""
     duration_ms: float = 0.0
     tool_calls_made: list[str] = []
+    tool_calls_failed: list[str] = []  # tools attempted but errored; succeeded = made minus these
     status: str = "completed"
 
 class CostEstimate(BaseModel):

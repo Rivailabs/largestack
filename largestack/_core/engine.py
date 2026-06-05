@@ -152,6 +152,7 @@ class AgentEngine:
                 cost_budget=kw.get("cost_budget", self.cost_budget),
             )
         tc_made = []
+        guard.tool_failures = []  # tool names attempted but errored (for observability accuracy)
         # P0.5: track actual run status for audit
         run_status = "completed"
         # v0.3.6: per-run cost/token accumulators — replace reliance on shared
@@ -272,6 +273,8 @@ class AgentEngine:
                         await bus.emit("tool.exec", {"tool": tc.name, "agent": self.name})
                         t_start = time.monotonic()
                         res = await self.tool_exec.execute(tc)
+                        if res.error:
+                            guard.tool_failures.append(tc.name)
                         duration_ms = res.duration_ms if res.duration_ms is not None else (time.monotonic() - t_start) * 1000
                         try:
                             from largestack._observe.metrics import track_tool_call
@@ -418,7 +421,8 @@ class AgentEngine:
             total_cost=run_cost,
             total_tokens=run_tokens,
             turns=guard.turn, trace_id=tid,
-            duration_ms=duration_ms, tool_calls_made=tc_made)
+            duration_ms=duration_ms, tool_calls_made=tc_made,
+            tool_calls_failed=list(getattr(guard, "tool_failures", [])))
 
     async def stream(self, task: str, **kw) -> AsyncIterator[str]:
         """Stream tokens with policy parity to execute().

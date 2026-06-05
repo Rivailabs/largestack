@@ -199,14 +199,6 @@ class LLMGateway:
             await asyncio.sleep(0)
             await asyncio.sleep(0.10)
 
-    async def close(self) -> None:
-        await self.aclose()
-
-    async def close(self) -> None:
-        """Async-compatible close alias."""
-        await self.aclose()
-
-
     async def chat(self, model: str, messages: list[dict], tools: list[dict]|None=None,
                    stream: bool=False, temperature: float=0.7, max_tokens: int|None=None,
                    agent_name: str = "default", **kw) -> LLMResponse:

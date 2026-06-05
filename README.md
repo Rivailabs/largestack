@@ -20,13 +20,13 @@ Largestack is built for developers and teams moving from AI demos to production-
 
 Largestack requires Python 3.11+.
 
-**Largestack AI** is an open-source AI framework and Python framework for agents, RAG, guardrails, observability, and orchestration.
+**Largestack AI** is an open-source Python framework for building AI agents with guardrails, cost tracking, and traces built in — so you can put agents in front of real users without wiring the safety layer yourself.
 
-It is designed for developers who want to build real AI systems without starting from a blank file: support-ticket agents, RAG assistants, code reviewers, workflow automations, BFSI governance flows, and enterprise-style AI copilots.
+It is designed for developers building support agents, RAG assistants, code reviewers, and workflow automations who want structure (typed agents, tools, retrieval, guardrails, observability) instead of a blank file.
 
-> Current status: **v1.0 Release Candidate / controlled-pilot ready**. Ubuntu, Mac evidence, Windows clean validation, Docker, security, package, DeepSeek live validation, and 24-hour soak evidence have passed.
+> **Status: Beta (v1.1.0), maintained by a single developer.** Largestack installs and runs, ships a large test suite, and is a good fit for prototypes, internal experiments, and learning. It has **not** been independently audited, load-tested at scale, or certified for any regulated or enterprise use. The checks listed below are internal smoke/soak runs on the maintainer's own machines, not third-party validation — evaluate it for your own use case before relying on it.
 
-Largestack AI is suitable for developer demos, controlled pilots, AI workflow experiments, and early enterprise evaluation. It is not currently presented as a certified enterprise SaaS platform.
+See [`docs/known-limitations.md`](docs/known-limitations.md) for an honest, up-to-date list of what is and isn't proven.
 
 ## Install
 
@@ -159,15 +159,11 @@ and observability layers run through a model string such as
 `deepseek/deepseek-chat`, `litellm/groq/llama-3.1-70b-versatile`, or
 `local/llama3.2`.
 
-Recommended public claim:
-
-> Largestack supports OpenAI/GPT, Anthropic/Claude, DeepSeek, LiteLLM,
-> Ollama/local models, and many OpenAI-compatible providers through a
-> verified/partial capability matrix.
-
-Do not claim every provider has identical production-grade tool calling,
-structured output, streaming, and cost tracking until that provider/model has
-passed live E2E validation.
+Largestack supports OpenAI/GPT, Anthropic/Claude, DeepSeek, LiteLLM,
+Ollama/local models, and many OpenAI-compatible providers through the
+capability matrix below. Support depth varies by provider — adapters marked
+"Partial" have not all been through live end-to-end validation, so verify the
+specific provider/model you depend on.
 
 | Provider/API path | Model string example | Env/config | Status |
 |---|---|---|---|
@@ -273,26 +269,23 @@ What the demo proves:
 
 ---
 
-## Validation status
+## Internal checks
 
-Latest confirmed release-candidate evidence includes:
+These are checks the maintainer runs locally before publishing. They are **not**
+independent audits, certifications, or production guarantees — read them as "the
+author exercised this path on their own machine."
 
-| Gate | Status |
+| Check | What it means |
 |---|---|
-| Ubuntu full pytest | Passed |
-| Mac validation | Passed / evidence added |
-| Windows validation | Passed / clean Windows validation confirmed |
-| DeepSeek live difficult projects | 5/5 passed |
-| Full DeepSeek integration suite | Passed with one known provider-format skip |
-| Provider support matrix | Present / explicit verified-partial-adapter statuses |
-| Offline provider flow demo | Passed with `TestModel` |
-| Security suite | Passed |
-| RAG eval suite | Passed |
-| Package build + twine check | Passed |
-| Docker runtime `/health` | Passed |
-| Helm lint/template | Passed |
-| 4-hour soak evidence | Passed |
-| 24-hour soak | Passed / 210 successful cycles / 0 recorded failures |
+| Unit + security test suite | 2,551 tests run in CI on Python 3.11–3.13; coverage gated ≥75% on the core wedge |
+| Live DeepSeek e2e | Typed output, cost tracking, and tool calling run against the real DeepSeek API in CI (when the API-key secret is set; auto-skips otherwise) |
+| Provider support matrix | Present, with explicit verified/partial adapter statuses |
+| Offline provider flow demo | Runs deterministically with `TestModel`, no API key |
+| Package build + `twine check` | Passes locally |
+| Docker `/health` smoke | Container builds and the health endpoint responds |
+| Local soak run | A repeated test loop ran for several hours without crashing — a stability smoke check, **not** a load or concurrency test |
+
+For exactly what has and hasn't been proven, see [`docs/known-limitations.md`](docs/known-limitations.md).
 
 ---
 
@@ -338,7 +331,7 @@ flowchart TD
 | `tests/` | Unit, integration, security, RAG eval tests |
 | `scripts/` | Certification, smoke, scenario, and live DeepSeek validation scripts |
 | `deploy/` | Docker, Compose, Helm, monitoring assets |
-| `release_evidence/` | Validation evidence and release proof |
+| `release_evidence/` | Internal smoke/soak logs from the maintainer's local runs |
 
 ---
 

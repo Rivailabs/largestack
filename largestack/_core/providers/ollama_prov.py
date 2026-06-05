@@ -73,4 +73,3 @@ class OllamaProvider(BaseProvider):
             raise ProviderError(f"{self.name} request error: {e}") from e
 
     def count_tokens(self, text: str, model: str) -> int: return len(text) // 4
-    async def close(self): await self._c.aclose()

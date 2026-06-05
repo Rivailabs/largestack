@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "largestack"
-version = "1.0.1"
-description = "Largestack AI — production-grade candidate framework for typed agents, tools, RAG, guardrails, observability, and orchestration"
+version = "1.1.0"
+description = "Largestack AI — a Beta Python framework for typed agents, tools, RAG, guardrails, observability, and orchestration"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
-authors = [{name = "RivaiLabs"}]
+authors = [{name = "RivaiLabs", email = "hello@largestack.ai"}]
 maintainers = [{name = "RivaiLabs", email = "hello@largestack.ai"}]
 keywords = ["ai", "agents", "llm", "framework", "mcp", "observability"]
 classifiers = [
@@ -52,16 +52,17 @@ anthropic = ["anthropic>=0.40"]
 otel = ["opentelemetry-api>=1.25", "opentelemetry-sdk>=1.25"]
 guard = ["presidio-analyzer>=2.2", "presidio-anonymizer>=2.2"]
 rag = ["sentence-transformers>=3.0", "beautifulsoup4>=4.12", "faiss-cpu>=1.8", "duckdb>=0.10", "qdrant-client>=1.9"]
-test = ["pytest>=8.0", "pytest-asyncio>=0.24", "pytest-timeout>=2.3", "hypothesis>=6.0", "respx>=0.22"]
+test = ["pytest>=8.0", "pytest-asyncio>=0.24", "pytest-timeout>=2.3", "hypothesis>=6.0", "respx>=0.22", "pytest-cov>=5.0"]
 postgres = ["psycopg[binary,pool]>=3.1", "sqlalchemy>=2.0"]
 migrations = ["alembic>=1.13", "sqlalchemy>=2.0"]
-all = ["largestack[openai,anthropic,otel,guard,rag,test,litellm,mcp,dev-server,postgres,migrations,office]"]
+all = ["largestack[openai,anthropic,otel,guard,rag,test,litellm,mcp,dev-server,postgres,migrations,office,tika]"]
 dev = ["largestack[all]", "ruff>=0.5", "mypy>=1.10"]
 docs = ["mkdocs-material>=9.5", "pymdown-extensions>=10.0", "mkdocstrings[python]>=0.24"]
 litellm = ["litellm>=1.83.14"]
 mcp = ["fastapi>=0.110", "uvicorn>=0.27"]
 dev-server = ["fastapi>=0.110", "uvicorn[standard]>=0.27", "watchfiles>=0.21"]
 office = ["openpyxl>=3.1", "python-pptx>=0.6.23", "pandas>=2.2"]
+tika = ["tika>=3.1.0"]
 
 [project.scripts]
 largestack = "largestack._cli.main:app"
@@ -76,3 +77,18 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint.per-file-ignores]
+# Package __init__ files intentionally re-export their public API.
+"__init__.py" = ["F401", "F403"]
+
+[tool.coverage.run]
+branch = false
+omit = ["tests/*", "*/_templates/*", "examples/*"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if TYPE_CHECKING:"]
+
+# Wedge = the public surface we hold to a real coverage bar (see ci.yml coverage gate).
+# Measured directly via: pytest --cov=largestack.agent --cov=largestack._core.engine ...

@@ -72,4 +72,3 @@ class CohereProvider(BaseProvider):
         for c in r.content: yield c
 
     def count_tokens(self, text, model): return len(text) // 4
-    async def close(self): await self._c.aclose()

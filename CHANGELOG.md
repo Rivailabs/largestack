@@ -1,5 +1,41 @@
 # Changelog
 
+## v1.1.0 — 2026-06-05 — Typed output + cost on DeepSeek, observability accuracy, test trustworthiness
+
+Fixes three real gaps found by live testing against DeepSeek, adds a Tika
+document loader, and lays the test-trustworthiness foundation (measured coverage
++ a live end-to-end job in CI).
+
+- **2551 passing** (tests/, canonical CI environment).
+
+**Fixed (live-verified on DeepSeek):**
+- **Structured/typed output now works on DeepSeek** and other OpenAI-compatible
+  providers that reject strict `json_schema`. `response_model=` previously failed
+  with `AllProvidersFailedError`; `run_structured` now catches provider errors and
+  falls back to prompt-based JSON. (`largestack/_core/structured.py`)
+- **DeepSeek cost is tracked (was $0).** The API serves `deepseek-chat` as
+  `deepseek-v4-flash`, which was missing from the in-code pricing table (the YAML
+  override only loaded relative to the working directory). Pricing for the served
+  DeepSeek models is now complete in code. (`largestack/_core/cost.py`)
+- **`AgentResult.tool_calls_failed`** added — `tool_calls_made` counted attempted
+  tool calls including failures; the new field records the failed subset so
+  observability reflects what actually succeeded. (`largestack/_core/engine.py`)
+- Removed duplicate `close()` methods across the gateway and provider clients (the
+  active one lazily re-created the HTTP client just to close it).
+
+**Added:**
+- Apache Tika document loader for rich file formats (`largestack/_loaders/tika.py`).
+
+**Tests & CI:**
+- Coverage measured and gated on the public wedge (CI fails under 75%).
+- New behavioral tests for Team, structured-output parsing, the loop guard, cost,
+  and the fixes above.
+- Live DeepSeek end-to-end job (`tests/integration/test_live_deepseek_e2e.py`) runs
+  in CI when `LARGESTACK_DEEPSEEK_API_KEY` is set as a repo secret; auto-skips otherwise.
+
+**Packaging:**
+- Full Apache-2.0 license text; consistent maintainer email; honest Beta positioning.
+
 ## v1.0.0 — 2026-05-06 — Rebrand: NEXUS → LARGESTACK + 100-scenario validation
 
 This release renames the project from **NEXUS Agentic AI** to **LARGESTACK

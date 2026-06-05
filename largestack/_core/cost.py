@@ -18,7 +18,15 @@ PRICING = {
     "gemini-2.5-pro": {"in": 1.25, "out": 10.0},
     "gemini-2.5-flash": {"in": 0.15, "out": 0.6},
     "deepseek-v3": {"in": 0.14, "out": 0.28},
+    "deepseek-v3.2": {"in": 0.14, "out": 0.28},
     "deepseek-chat": {"in": 0.14, "out": 0.28},
+    "deepseek-v4": {"in": 0.27, "out": 1.10},
+    # DeepSeek serves `deepseek-chat` as deepseek-v4-flash; without this entry,
+    # cost silently computes to $0 when pricing/models.yaml is not in the cwd.
+    "deepseek-v4-flash": {"in": 0.14, "out": 0.55},
+    "deepseek-reasoner": {"in": 0.55, "out": 2.19},
+    "deepseek-r1": {"in": 0.55, "out": 2.19},
+    "deepseek-r2": {"in": 0.55, "out": 2.19},
 }
 
 class CostTracker:

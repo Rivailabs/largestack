@@ -1,7 +1,11 @@
-# Release Evidence
+# Internal Test & Soak Logs
 
-This directory is the public evidence index, not a dumping ground for every
-generated project, raw log, cache file, or scratch run.
+This directory holds the maintainer's own local test, soak, and smoke-run logs.
+They are development notes — **not** independent validation, audits, or
+certifications. See `docs/known-limitations.md` for what is actually proven.
+
+It is a curated index, not a dumping ground for every generated project, raw
+log, cache file, or scratch run.
 
 ## Public Repo Policy
 

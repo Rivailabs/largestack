@@ -4,4 +4,5 @@ Real-world recipes:
 
 - [Customer Support Bot](support-bot.md)
 - [RAG with PDFs](rag-pdf.md)
+- [Apache Tika Document Loader](tika-loader.md)
 - [Multi-Agent](multi-agent.md)

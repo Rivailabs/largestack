@@ -58,6 +58,7 @@ nav:
     - cookbook/index.md
     - Customer Support: cookbook/support-bot.md
     - RAG with PDFs: cookbook/rag-pdf.md
+    - Apache Tika Loader: cookbook/tika-loader.md
     - Multi-Agent: cookbook/multi-agent.md
   - Protocols:
     - MCP: protocols/mcp.md

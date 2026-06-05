@@ -93,4 +93,3 @@ class AnthropicProvider(BaseProvider):
                     continue
 
     def count_tokens(self, text: str, model: str) -> int: return int(len(text) / 3.5)
-    async def close(self): await self._c.aclose()

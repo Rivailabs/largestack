@@ -70,9 +70,6 @@ class OpenAIProvider(BaseProvider):
             await asyncio.sleep(0)
             await asyncio.sleep(0.25)
 
-    async def close(self) -> None:
-        await self.aclose()
-
     async def chat(self, messages, model, tools=None, stream=False, temperature=0.7, max_tokens=None, **kw) -> LLMResponse:
         mn = self.get_model(model)
         body: dict[str, Any] = {"model": mn, "messages": messages, "temperature": temperature}
@@ -141,4 +138,3 @@ class OpenAIProvider(BaseProvider):
         try:
             import tiktoken; return len(tiktoken.encoding_for_model(self.get_model(model)).encode(text))
         except Exception: return len(text) // 4
-    async def close(self): await self._c.aclose()
