@@ -75,7 +75,41 @@ def tool_capable_providers(*, include_partial: bool = True) -> list[str]:
     return [p.provider for p in PROVIDER_CAPABILITIES if p.tool_calling and (include_partial or p.status == "verified")]
 
 
+async def check_connection(model: str, timeout: int = 30) -> dict:
+    """Live connectivity self-test: make a minimal real call to the provider behind
+    ``model`` and report whether the API connection works. Needs the provider's API
+    key in the environment. Returns: ``{provider, model, ok, detail, cost}``.
+
+    This is the honest way to verify a provider — "the adapter shares DeepSeek's code"
+    is not the same as "your key + endpoint answer." Run it once per provider/key.
+
+    Example::
+
+        import asyncio
+        from largestack import check_connection
+        print(asyncio.run(check_connection("groq/llama-3.3-70b-versatile")))
+    """
+    from largestack import Agent
+
+    provider = model.split("/")[0] if "/" in model else model
+    try:
+        agent = Agent(name="conncheck", llm=model, guardrails=None, max_turns=1, cost_budget=0.05)
+        try:
+            result = await agent.run("Reply with the single word: ok", timeout=timeout)
+        finally:
+            try:
+                await agent.aclose()
+            except Exception:
+                pass
+        return {"provider": provider, "model": model, "ok": bool(getattr(result, "content", None)),
+                "detail": (result.content or "")[:80],
+                "cost": float(getattr(result, "total_cost", 0.0) or 0.0)}
+    except Exception as exc:  # noqa: BLE001 — a connectivity probe reports the error as data
+        return {"provider": provider, "model": model, "ok": False,
+                "detail": f"{type(exc).__name__}: {exc}"[:160], "cost": 0.0}
+
+
 __all__ = [
     "ProviderCapability", "PROVIDER_CAPABILITIES", "provider_support_matrix",
-    "get_provider_capabilities", "tool_capable_providers",
+    "get_provider_capabilities", "tool_capable_providers", "check_connection",
 ]

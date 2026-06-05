@@ -72,7 +72,7 @@ else:
     from largestack.memory import create_memory
     from largestack.rag import create_rag
     from largestack.observability import Monitor, FeedbackRecord
-    from largestack.provider_matrix import provider_support_matrix, get_provider_capabilities, tool_capable_providers
+    from largestack.provider_matrix import provider_support_matrix, get_provider_capabilities, tool_capable_providers, check_connection
     from largestack.autonomous_builder import (
         AutonomousProjectBuilder,
         BuilderBudget,
@@ -126,7 +126,7 @@ else:
         "Guardrails", "create_guardrails", "PIIGuard", "InjectionGuard",
         "ConversationMemory", "EpisodicMemory", "ObservationalMemory",
         "ProceduralMemory", "SemanticMemory", "GraphMemory", "SharedMemorySpace",
-        "create_memory", "create_rag", "Monitor", "FeedbackRecord", "provider_support_matrix", "get_provider_capabilities", "tool_capable_providers",
+        "create_memory", "create_rag", "Monitor", "FeedbackRecord", "provider_support_matrix", "get_provider_capabilities", "tool_capable_providers", "check_connection",
         "AutonomousProjectBuilder", "BuilderBudget", "BuildReport", "GeneratedFile", "NoOpMemory",
         "PatchSet", "ProjectBuildPlan", "ProjectSpec", "RepairAttempt", "ValidationResult",
         "AgentResult", "ToolCall", "ToolResult", "LLMResponse", "CostEstimate",
