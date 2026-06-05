@@ -6,7 +6,7 @@ Fixes three real gaps found by live testing against DeepSeek, adds a Tika
 document loader, and lays the test-trustworthiness foundation (measured coverage
 + a live end-to-end job in CI).
 
-- **2589 passing** (tests/, canonical CI environment, all extras installed).
+- **2592 passing** (tests/, canonical CI environment, all extras installed).
 
 **Fixed (live-verified on DeepSeek):**
 - **Structured/typed output now works on DeepSeek** and other OpenAI-compatible
@@ -45,6 +45,7 @@ document loader, and lays the test-trustworthiness foundation (measured coverage
 - Fixed `GoogleProvider` (Gemini): a malformed `httpx.Timeout` (missing `pool=`) made the provider impossible to construct — Gemini was unusable. + a test that all 26 provider adapters construct.
 - Exposed `MCPServer` and `MCPClient` in the public `largestack` API (were `_core`-private). MCP verified end-to-end: `initialize` / `tools/list` / `tools/call`.
 - Added `largestack.check_connection(model)` — a live connectivity self-test (one minimal call) so you can verify any provider with your own key (returns `{ok, detail, cost}`). 19 OpenAI-compatible adapters share DeepSeek's exact `chat()` path; `replicate`/`voyage`/`databricks` are skeleton adapters (matrix `adapter_only`) and need a real endpoint, not just a key.
+- **Google/Gemini: implemented function-calling (tools)** — OpenAI↔Gemini schema translation, `functionDeclarations`, and the multi-turn `functionResponse` round-trip (recovering the function name from the engine's `tool_call_id`). Gemini was previously chat-only; now **live-verified end-to-end on `gemini-2.5-flash`** (chat + tools + structured + cost). Matrix status `partial → verified`.
 
 ## v1.0.0 — 2026-05-06 — Rebrand: NEXUS → LARGESTACK + 100-scenario validation
 

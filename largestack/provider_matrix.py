@@ -30,7 +30,7 @@ PROVIDER_CAPABILITIES: tuple[ProviderCapability, ...] = (
     ProviderCapability("local", True, True, True, True, False, local=True, status="partial", notes="Generic OpenAI-compatible local endpoint using LARGESTACK_OPENAI_COMPATIBLE_BASE_URL or Ollama /v1 compat mode."),
     ProviderCapability("ollama", True, True, False, False, False, local=True, status="partial", notes="Native Ollama chat path. Use local/ or ollama_openai/ for OpenAI-compatible tool attempts."),
     ProviderCapability("ollama_openai", True, True, True, True, False, local=True, status="experimental", notes="Ollama OpenAI-compatible /v1 endpoint. Tool success depends on model/runtime support."),
-    ProviderCapability("google", True, True, False, False, True, status="partial", notes="Chat path present; tool path not first-class."),
+    ProviderCapability("google", True, True, True, True, True, status="verified", notes="Live-verified on gemini-2.5-flash: chat, function-calling (tools), structured output, cost."),
     ProviderCapability("groq", True, True, True, True, True, status="partial", notes="OpenAI-compatible provider; verify model-specific tool support."),
     ProviderCapability("mistral", True, True, True, True, True, status="partial", notes="Verify model-specific tool support."),
     ProviderCapability("cohere", True, False, False, False, True, status="partial", notes="Chat path present; full tool parsing not guaranteed."),

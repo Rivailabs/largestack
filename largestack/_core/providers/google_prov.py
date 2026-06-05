@@ -5,7 +5,65 @@ from typing import Any, AsyncIterator
 import httpx
 from largestack._core.providers.base import BaseProvider
 from largestack.errors import ProviderAuthError, ProviderTimeoutError, ProviderRateLimitError, ProviderError
-from largestack.types import LLMResponse
+from largestack.types import LLMResponse, ToolCall
+
+# Gemini accepts only a subset of JSON Schema for function parameters.
+_SCHEMA_DROP = {"additionalProperties", "$schema", "title", "default", "examples"}
+
+
+def _clean_schema(schema):
+    if not isinstance(schema, dict):
+        return schema
+    out = {}
+    for k, v in schema.items():
+        if k in _SCHEMA_DROP:
+            continue
+        if k == "properties" and isinstance(v, dict):
+            out[k] = {pk: _clean_schema(pv) for pk, pv in v.items()}
+        elif k == "items":
+            out[k] = _clean_schema(v)
+        else:
+            out[k] = v
+    return out
+
+
+def _to_gemini_contents(messages):
+    """Translate OpenAI-style messages (incl. tool calls/results) into Gemini contents.
+
+    The engine's tool-result messages carry tool_call_id (not the function name) that
+    Gemini needs, so we map id -> name from the preceding assistant tool_calls.
+    """
+    contents = []
+    system_instruction = ""
+    id_to_name = {}
+    for m in messages:
+        role = m.get("role")
+        if role == "system":
+            system_instruction += (m.get("content") or "") + "\n"
+        elif role == "assistant" and m.get("tool_calls"):
+            parts = []
+            if m.get("content"):
+                parts.append({"text": m["content"]})
+            for tc in m["tool_calls"]:
+                fn = tc.get("function", {})
+                name = fn.get("name", "")
+                id_to_name[tc.get("id")] = name
+                try:
+                    args = json.loads(fn.get("arguments") or "{}")
+                except Exception:
+                    args = {}
+                parts.append({"functionCall": {"name": name, "args": args}})
+            contents.append({"role": "model", "parts": parts})
+        elif role == "tool":
+            name = id_to_name.get(m.get("tool_call_id")) or m.get("name") or "tool"
+            contents.append({"role": "user", "parts": [
+                {"functionResponse": {"name": name, "response": {"result": m.get("content", "")}}}
+            ]})
+        else:
+            grole = "user" if role == "user" else "model"
+            contents.append({"role": grole, "parts": [{"text": m.get("content", "")}]})
+    return contents, system_instruction.strip()
+
 
 class GoogleProvider(BaseProvider):
     name = "google"
@@ -35,13 +93,16 @@ class GoogleProvider(BaseProvider):
 
     async def chat(self, messages, model, tools=None, stream=False, temperature=0.7, max_tokens=None, **kw) -> LLMResponse:
         mn = self.get_model(model)
-        contents = []; system_instruction = ""
-        for m in messages:
-            if m["role"] == "system": system_instruction += m["content"]
-            else: contents.append({"role": "user" if m["role"] == "user" else "model", "parts": [{"text": m.get("content", "")}]})
+        contents, system_instruction = _to_gemini_contents(messages)
         body: dict[str, Any] = {"contents": contents, "generationConfig": {"temperature": temperature}}
         if max_tokens: body["generationConfig"]["maxOutputTokens"] = max_tokens
         if system_instruction: body["systemInstruction"] = {"parts": [{"text": system_instruction}]}
+        if tools:
+            body["tools"] = [{"function_declarations": [
+                {"name": t["name"], "description": t.get("description", ""),
+                 "parameters": _clean_schema(t.get("parameters") or {"type": "object", "properties": {}})}
+                for t in tools
+            ]}]
         # P0.2: forward Google structured-output equivalents
         # OpenAI-style response_format → Google responseMimeType + responseSchema
         rf = kw.get("response_format")
@@ -74,10 +135,18 @@ class GoogleProvider(BaseProvider):
             raise ProviderError(f"{self.name} HTTP {r.status_code}: {msg}")
         d = r.json()
         candidate = d.get("candidates", [{}])[0]
-        content = "".join(p.get("text", "") for p in candidate.get("content", {}).get("parts", []) if "text" in p)
+        content = ""; tcs = []
+        for p in candidate.get("content", {}).get("parts", []):
+            if "text" in p:
+                content += p["text"]
+            elif "functionCall" in p:
+                fc = p["functionCall"]
+                tcs.append(ToolCall(id=f"call_{len(tcs)}", name=fc.get("name", ""), params=fc.get("args", {}) or {}))
         usage = d.get("usageMetadata", {})
-        return LLMResponse(content=content, model=mn, input_tokens=usage.get("promptTokenCount", 0),
-            output_tokens=usage.get("candidatesTokenCount", 0), latency_ms=ms, finish_reason=candidate.get("finishReason", ""))
+        return LLMResponse(content=content, model=mn, tool_calls=tcs,
+            input_tokens=usage.get("promptTokenCount", 0),
+            output_tokens=usage.get("candidatesTokenCount", 0), latency_ms=ms,
+            finish_reason=candidate.get("finishReason", ""))
 
     async def chat_stream(self, messages, model, **kw) -> AsyncIterator[str]:
         """Real SSE streaming via Gemini streamGenerateContent."""
