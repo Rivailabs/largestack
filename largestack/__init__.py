@@ -102,6 +102,11 @@ else:
         ALLOW_MODEL_REQUESTS,
     )
 
+    # MCP (Model Context Protocol): expose Largestack tools to MCP clients via the
+    # stdio server, and connect OUT to external MCP servers via the client.
+    from largestack._core.mcp_server import MCPServer
+    from largestack._core.mcp_client import MCPClient
+
     from largestack.types import AgentResult, ToolCall, ToolResult, LLMResponse, CostEstimate
     from largestack.errors import (
         LargestackError, BudgetExceededError, LoopDetectedError,
@@ -115,6 +120,7 @@ else:
         "TestModel", "FunctionModel", "capture_run_messages",
         "disable_model_requests", "enable_model_requests", "block_model_requests",
         "ALLOW_MODEL_REQUESTS",
+        "MCPServer", "MCPClient",
         "AgentContext", "SessionStore", "HumanInTheLoop", "AgentRegistry", "AGUIServer", "ToolAccessPolicy", "AgentIdentityManager", "MemoryIntegrityChecker", "InterAgentAuth",
         "steer_before_tool", "steer_after_model", "proceed", "guide", "interrupt", "accept", "discard",
         "Guardrails", "create_guardrails", "PIIGuard", "InjectionGuard",

@@ -11,7 +11,7 @@ class GoogleProvider(BaseProvider):
     name = "google"
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self._c = httpx.AsyncClient(timeout=httpx.Timeout(connect=10, read=120, write=30))
+        self._c = httpx.AsyncClient(timeout=httpx.Timeout(connect=10, read=120, write=30, pool=5))
 
 
     async def aclose(self) -> None:
