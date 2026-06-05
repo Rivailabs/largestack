@@ -246,8 +246,15 @@ def _load_text_fallback(path: Path) -> dict[str, Any]:
 
 
 def _resolve_server_url(server_url: str | None) -> str:
-    resolved = server_url or os.environ.get(TIKA_SERVER_URL_ENV) or DEFAULT_TIKA_SERVER_URL
-    return resolved.rstrip("/")
+    """Resolve the Tika server URL.
+
+    This must be TRUSTED configuration (your own Tika server), not untrusted user
+    input. Non-HTTP(S) schemes are rejected as a basic SSRF guard (file://, etc.).
+    """
+    resolved = (server_url or os.environ.get(TIKA_SERVER_URL_ENV) or DEFAULT_TIKA_SERVER_URL).rstrip("/")
+    if not resolved.startswith(("http://", "https://")):
+        raise ValueError(f"Tika server URL must be http(s), got {resolved!r}")
+    return resolved
 
 
 def _endpoint_url(base_url: str, endpoint: str) -> str:
