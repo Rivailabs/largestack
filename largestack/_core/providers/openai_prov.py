@@ -116,7 +116,7 @@ class OpenAIProvider(BaseProvider):
         return LLMResponse(content=msg.get("content") or "", model=d.get("model", mn), tool_calls=tcs,
             reasoning_content=msg.get("reasoning_content"),
             input_tokens=u.get("prompt_tokens", 0), output_tokens=u.get("completion_tokens", 0),
-            cached_tokens=u.get("prompt_tokens_details", {}).get("cached_tokens", 0),
+            cached_tokens=(u.get("prompt_tokens_details") or {}).get("cached_tokens", 0),
             latency_ms=ms, finish_reason=ch.get("finish_reason", ""))
 
     async def chat_stream(self, messages, model, tools=None, **kw) -> AsyncIterator[str]:
