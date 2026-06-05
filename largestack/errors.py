@@ -19,7 +19,7 @@ class ProviderError(LargestackError):
 class ProviderTimeoutError(ProviderError):
     retryable = True; error_code = "LARGESTACK_PROVIDER_TIMEOUT"
     def __init__(self, provider: str, timeout: float):
-        super().__init__(f"{provider} timed out after {timeout}s", f"Increase timeout or add fallback provider")
+        super().__init__(f"{provider} timed out after {timeout}s", "Increase timeout or add fallback provider")
 
 class ProviderAuthError(ProviderError):
     error_code = "LARGESTACK_PROVIDER_AUTH"

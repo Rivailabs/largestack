@@ -106,7 +106,7 @@ def retry_with(config: RetryConfig):
             for attempt in range(1, config.max_attempts + 1):
                 try:
                     return await fn(*args, **kwargs)
-                except config.do_not_retry_on as e:
+                except config.do_not_retry_on:
                     # Don't retry these
                     raise
                 except config.retry_on as e:

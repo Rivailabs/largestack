@@ -3,6 +3,12 @@ site_description: Python framework for agents, RAG, guardrails, observability, a
 site_url: https://docs.largestack.ai
 repo_url: https://github.com/Rivailabs/largestack
 
+# API reference and per-error pages are reachable via search + autorefs; not every
+# one is listed in the top nav, so don't fail strict builds on that alone.
+validation:
+  nav:
+    omitted_files: info
+
 theme:
   name: material
   palette:

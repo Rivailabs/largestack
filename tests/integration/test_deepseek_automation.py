@@ -135,7 +135,7 @@ def test_04_parallel_fanout():
     from largestack._orchestrate.parallel import ParallelFanOut
 
     agents = [
-        Agent(name=f"analyst-{i}", instructions=f"Give one unique benefit of AI. Be brief (1 sentence).", 
+        Agent(name=f"analyst-{i}", instructions="Give one unique benefit of AI. Be brief (1 sentence).",
               llm=LLM, cost_budget=0.05, max_turns=2)
         for i in range(3)
     ]
@@ -186,7 +186,7 @@ def test_06_guardrails_pii():
     result = asyncio.run(_run_live_and_cleanup(agent, "Tell me your contact info"))
     # PII should be redacted
     assert "test@example.com" not in result.content or True  # Depends on output format
-    print(f"  PII check passed")
+    print("  PII check passed")
 
 
 @skip_no_key

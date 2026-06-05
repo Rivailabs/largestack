@@ -122,7 +122,6 @@ def test_dotenv_example_has_no_real_secrets():
 
 def test_license_keygen_default_disabled():
     """Without LARGESTACK_KEYGEN_ENABLED, keygen must raise."""
-    import os
     from largestack._core.license import LicenseValidator
     os.environ.pop("LARGESTACK_KEYGEN_ENABLED", None)
     os.environ.pop("LARGESTACK_DISABLE_KEYGEN_BUILD", None)
@@ -135,7 +134,6 @@ def test_license_keygen_default_disabled():
 
 def test_license_keygen_build_flag_overrides_runtime():
     """LARGESTACK_DISABLE_KEYGEN_BUILD=1 must take priority over LARGESTACK_KEYGEN_ENABLED=1."""
-    import os
     from largestack._core.license import LicenseValidator
     os.environ["LARGESTACK_KEYGEN_ENABLED"] = "1"
     os.environ["LARGESTACK_DISABLE_KEYGEN_BUILD"] = "1"

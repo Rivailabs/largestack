@@ -6,3 +6,4 @@ Real-world recipes:
 - [RAG with PDFs](rag-pdf.md)
 - [Apache Tika Document Loader](tika-loader.md)
 - [Multi-Agent](multi-agent.md)
+- [India fintech recipes](india-recipes.md)

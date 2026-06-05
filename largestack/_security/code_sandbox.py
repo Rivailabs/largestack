@@ -176,7 +176,7 @@ class CodeSandbox:
         try:
             proc = await asyncio.create_subprocess_exec(
                 "docker", "run", "--rm", "--network=none",
-                f"--memory={self.max_memory_mb}m", f"--cpus=0.5",
+                f"--memory={self.max_memory_mb}m", "--cpus=0.5",
                 "--pids-limit=50", "--read-only",
                 image, "sh", "-c", cmd_in_container,
                 stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)

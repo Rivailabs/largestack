@@ -107,7 +107,7 @@ async def hf_embed(
     # or list of list of floats (some models return per-token vectors).
     vec = _normalize_embedding(data)
     if vec is None:
-        return f"error: malformed HuggingFace response shape"
+        return "error: malformed HuggingFace response shape"
 
     return json.dumps({
         "model": model,

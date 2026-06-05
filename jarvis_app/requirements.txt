@@ -1,0 +1,3 @@
+# Jarvis depends on the Largestack framework.
+# >=1.1.0 is required: the DeepSeek cost-tracking + typed-output fixes are in 1.1.0.
+largestack>=1.1.0

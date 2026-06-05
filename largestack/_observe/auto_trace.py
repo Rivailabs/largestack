@@ -28,7 +28,7 @@ def patch_httpx():
             elif "localhost:11434" in url: provider = "ollama"
             elif "generativelanguage" in url: provider = "google"
             
-            span_name = f"gen_ai.chat" if "/chat" in url or "/messages" in url else f"http.{request.method}"
+            span_name = "gen_ai.chat" if "/chat" in url or "/messages" in url else f"http.{request.method}"
             
             with tracer.start_as_current_span(span_name) as span:
                 span.set_attribute("gen_ai.provider.name", provider)

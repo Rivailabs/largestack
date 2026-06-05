@@ -61,7 +61,7 @@ class Router:
                 category = self.default
                 log.info(f"Router: no match, using default '{self.default}'")
             else:
-                log.warning(f"Router: unclassified and no default set")
+                log.warning("Router: unclassified and no default set")
                 return classification
         
         # Dispatch

@@ -231,7 +231,7 @@ def test_embedder_runtime_failure_raises_in_production(monkeypatch):
         try:
             await e.embed("test text")
             return "no-raise"
-        except RuntimeError as ex:
+        except RuntimeError:
             return "raised"
     
     result = asyncio.run(run())

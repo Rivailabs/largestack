@@ -440,7 +440,10 @@ cost/monitoring, guardrails, HITL approvals, and a realistic missing-features li
     _write_json(OUTDIR / "tool_events.json", TOOL_EVENTS)
 
     lines = [
-        "# Jarvis Capstone Live Summary",
+        "# Jarvis Capstone — Internal Harness Run (self-graded smoke test)",
+        "",
+        "> Internal harness run, not independent validation or production-readiness proof.",
+        "> The generated artifacts are LLM design documents, not a running application.",
         "",
         f"- Classification: `{summary['classification']}`",
         f"- Passed: `{summary['passed']}`",
@@ -464,7 +467,7 @@ cost/monitoring, guardrails, HITL approvals, and a realistic missing-features li
         "## Missing Or Weak",
         *[f"- {item}" for item in missing],
         "",
-        "## Strict Reviewer Output",
+        "## Raw model reviewer notes (unverified LLM output — not a feature audit)",
         reviewer_result.content,
     ]
     summary_md = "\n".join(lines)

@@ -83,7 +83,7 @@ async def jina_embed(
         return f"error: invalid task {task!r}; valid: {sorted(_VALID_TASKS)}"
     if output_dimension is not None:
         if model != "jina-embeddings-v3":
-            return f"error: output_dimension only supported on jina-embeddings-v3"
+            return "error: output_dimension only supported on jina-embeddings-v3"
         if not (256 <= output_dimension <= 1024):
             return "error: output_dimension must be in [256, 1024]"
 

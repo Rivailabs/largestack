@@ -233,9 +233,9 @@ class SSOProvider:
             aud = claims["aud"]
             if isinstance(aud, list):
                 if self.client_id not in aud:
-                    raise SSOError(f"Audience mismatch")
+                    raise SSOError("Audience mismatch")
             elif aud != self.client_id:
-                raise SSOError(f"Audience mismatch")
+                raise SSOError("Audience mismatch")
     
     def _build_user_info(self, claims: dict) -> dict:
         """Extract user info from validated claims."""

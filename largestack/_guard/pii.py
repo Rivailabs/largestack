@@ -87,7 +87,7 @@ class PIIGuard:
                     m["content"] = self.redact_financial(self.redact(c))  # MUTATE in place
                 elif self.action == "warn":
                     if self._detect_any(c) or self._detect_financial(c):
-                        log.warning(f"PII detected in input (action=warn, not blocking)")
+                        log.warning("PII detected in input (action=warn, not blocking)")
                         if cfg.pii_action == GuardrailAction.REDACT:
                             m["content"] = self.redact_financial(self.redact(c))
 
@@ -112,7 +112,7 @@ class PIIGuard:
                 response.content = self.redact_financial(self.redact(response.content))
             elif self.action == "warn":
                 if self._detect_any(response.content) or self._detect_financial(response.content):
-                    log.warning(f"PII detected in output (action=warn, not blocking)")
+                    log.warning("PII detected in output (action=warn, not blocking)")
                     if cfg.pii_action == GuardrailAction.REDACT:
                         response.content = self.redact_financial(self.redact(response.content))
 

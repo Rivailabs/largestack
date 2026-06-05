@@ -171,16 +171,17 @@ def _function_takes_ctx(func: Callable) -> bool:
 class Agent(Generic[DepsT, OutputT]):
     """Typed agent with decorator-based tool registration.
     
-    Type parameters:
-        DepsT: Type of user dependencies passed via deps=
-        OutputT: Expected output type (str, BaseModel subclass, etc.)
+    ``DepsT`` is the type of user dependencies passed via ``deps=``;
+    ``OutputT`` is the expected output type (``str``, a ``BaseModel`` subclass, etc.).
     
     Example:
+        ```python
         agent = Agent[MyDeps, str](
-            'openai/gpt-4o-mini',
+            "openai/gpt-4o-mini",
             deps_type=MyDeps,
-            instructions='Be helpful.',
+            instructions="Be helpful.",
         )
+        ```
     """
     
     def __init__(

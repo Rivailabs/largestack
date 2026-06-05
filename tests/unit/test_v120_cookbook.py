@@ -43,7 +43,7 @@ def test_all_ten_recipes_present():
 
 
 def test_readme_indexes_all_recipes():
-    readme = COOKBOOK / "README.md"
+    readme = COOKBOOK / "india-recipes.md"
     assert readme.exists()
     text = readme.read_text(encoding="utf-8")
     for recipe in EXPECTED_RECIPES:

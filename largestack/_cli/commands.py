@@ -100,7 +100,7 @@ def register_commands(app: typer.Typer):
         v = LicenseValidator(key or "")
         result = v.validate()
         is_prod, score, details = detect_production()
-        console.print(f"\n[bold]License Status[/bold]")
+        console.print("\n[bold]License Status[/bold]")
         console.print(f"  Mode: {result['mode']}")
         console.print(f"  Tier: {result['tier']}")
         console.print(f"  Production score: {score}/5 ({'production' if is_prod else 'development'})")

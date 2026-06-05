@@ -78,6 +78,19 @@ testpaths = ["tests"]
 line-length = 100
 target-version = "py311"
 
+[tool.ruff.lint]
+# Lint policy = CORRECTNESS, not formatting. Pure style/formatting rules
+# (E1/E2/E3/E5, E701/E702/E4xx) are delegated to `ruff format` and not gated here.
+# F401 (unused-import) is not gated tree-wide because the codebase uses
+# optional-dependency *probe* imports that ruff cannot distinguish from dead code.
+# Real-bug rules (undefined names, redefinitions, unused vars, bad comparisons,
+# invalid escapes, f-strings) ARE gated.
+select = ["F", "E711", "E712", "E713", "E714", "W605", "E9"]
+# F401 (unused import) and F841 (unused variable) are not gated: both have
+# autofixes that would delete optional-dependency probe imports / side-effecting
+# calls. They are cosmetic, not correctness, so we don't fail CI on them.
+ignore = ["F401", "F841"]
+
 [tool.ruff.lint.per-file-ignores]
 # Package __init__ files intentionally re-export their public API.
 "__init__.py" = ["F401", "F403"]

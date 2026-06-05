@@ -8,12 +8,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from _provider import close_quietly, main_or_skip, select_model
 from largestack import Agent, tool
 
+def _safe_pow(base, exp):
+    # Bound exponentiation so a crafted expression like "9**9**9" can't hang the process.
+    if abs(exp) > 100 or abs(base) > 10 ** 12:
+        raise ValueError("number too large")
+    return operator.pow(base, exp)
+
+
 _ALLOWED = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
     ast.Div: operator.truediv,
-    ast.Pow: operator.pow,
+    ast.Pow: _safe_pow,
     ast.USub: operator.neg,
 }
 

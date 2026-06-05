@@ -78,7 +78,7 @@ async def voyage_embed(
     if model not in _VALID_MODELS:
         return f"error: unknown model {model!r}; valid: {sorted(_VALID_MODELS)}"
     if input_type is not None and input_type not in {"query", "document"}:
-        return f"error: input_type must be None, 'query', or 'document'"
+        return "error: input_type must be None, 'query', or 'document'"
     if output_dimension is not None:
         if model not in _DIM_SUPPORTED:
             return f"error: model {model} doesn't support custom dimensions"
@@ -122,7 +122,7 @@ async def voyage_embed(
             return f"error: no embedding returned: {data}"
         vec = items[0].get("embedding") or []
         if not vec:
-            return f"error: empty embedding in response"
+            return "error: empty embedding in response"
         tokens = data.get("usage", {}).get("total_tokens", 0)
     except (KeyError, IndexError, TypeError) as e:
         return f"error: malformed Voyage response: {e}"

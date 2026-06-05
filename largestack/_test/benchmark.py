@@ -227,7 +227,7 @@ class BenchmarkRunner:
     def print_report(self):
         """Print formatted benchmark report."""
         print(f"\n{'='*70}")
-        print(f"  Largestack AI v0.1.1 — Benchmark Results")
+        print("  Largestack AI v0.1.1 — Benchmark Results")
         print(f"  Iterations: {self.iterations} | Warmup: {self.warmup}")
         print(f"{'='*70}")
         print(f"{'Benchmark':<35} {'Mean':>8} {'P95':>8} {'P99':>8} {'ops/s':>10}")

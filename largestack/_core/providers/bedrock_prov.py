@@ -94,7 +94,7 @@ class BedrockProvider(BaseProvider):
                 yield chunk
         except (ProviderError, ProviderAuthError, ProviderRateLimitError, ProviderTimeoutError):
             raise
-        except Exception as e:
+        except Exception:
             try:
                 resp = await self.chat(messages, model, tools, **kw)
                 yield resp.content

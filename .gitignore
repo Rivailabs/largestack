@@ -6,6 +6,7 @@ __pycache__/
 *.pyd
 dist/
 build/
+site/
 *.egg-info/
 .eggs/
 
@@ -39,6 +40,11 @@ htmlcov/
 .env.*
 !.env.example
 .largestack/
+
+# Jarvis demo bundle: keep the source (jarvis_app/), ignore generated artifacts
+jarvis_app.zip
+jarvis_app/jarvis_data/
+.jarvis/
 
 # Tooling
 .mypy_cache/

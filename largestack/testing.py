@@ -161,12 +161,14 @@ class FunctionModel:
               info contains: tools, model, attempt.
 
     Example:
+        ```python
         def my_logic(messages, info):
             last = messages[-1]["content"]
             return {"content": f"Echo: {last}"}
 
         with agent.override(model=FunctionModel(my_logic)):
             result = await agent.run("ping")
+        ```
     """
 
     def __init__(self, func: Callable[[list, dict], dict]):

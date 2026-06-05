@@ -58,6 +58,8 @@ else:
     )
 
     from largestack._guard.pipeline import GuardrailPipeline as Guardrails
+    from largestack._guard.pii import PIIGuard
+    from largestack._guard.injection import InjectionGuard
     from largestack.guardrails import create_guardrails
 
     from largestack._memory.buffer import ConversationMemory
@@ -115,7 +117,7 @@ else:
         "ALLOW_MODEL_REQUESTS",
         "AgentContext", "SessionStore", "HumanInTheLoop", "AgentRegistry", "AGUIServer", "ToolAccessPolicy", "AgentIdentityManager", "MemoryIntegrityChecker", "InterAgentAuth",
         "steer_before_tool", "steer_after_model", "proceed", "guide", "interrupt", "accept", "discard",
-        "Guardrails", "create_guardrails",
+        "Guardrails", "create_guardrails", "PIIGuard", "InjectionGuard",
         "ConversationMemory", "EpisodicMemory", "ObservationalMemory",
         "ProceduralMemory", "SemanticMemory", "GraphMemory", "SharedMemorySpace",
         "create_memory", "create_rag", "Monitor", "FeedbackRecord", "provider_support_matrix", "get_provider_capabilities", "tool_capable_providers",

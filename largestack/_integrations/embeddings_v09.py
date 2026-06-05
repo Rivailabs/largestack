@@ -138,7 +138,7 @@ async def ollama_embed(
     if isinstance(vec, list) and vec and isinstance(vec[0], list):
         vec = vec[0]  # some Ollama versions wrap in list
     if not vec:
-        return f"error: no embedding in Ollama response"
+        return "error: no embedding in Ollama response"
 
     return json.dumps({
         "model": model,
@@ -207,7 +207,7 @@ async def nomic_embed(
 
     embeddings = data.get("embeddings") or []
     if not embeddings:
-        return f"error: no embedding in Nomic response"
+        return "error: no embedding in Nomic response"
     vec = embeddings[0]
     return json.dumps({
         "model": model,

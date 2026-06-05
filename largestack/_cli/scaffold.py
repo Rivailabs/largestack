@@ -516,7 +516,7 @@ def _workflow_graph(workflow_id: str, agents: list[tuple[str, str]]) -> str:
     for (left, _), (right, _) in zip(agents, agents[1:]):
         lines.append(f"  {left} --> {right}")
     lines.append(f"  {agents[-1][0]} --> finish([finish])")
-    lines.append(f"  classDef agent fill:#eef6ff,stroke:#2f5597,color:#111827")
+    lines.append("  classDef agent fill:#eef6ff,stroke:#2f5597,color:#111827")
     for agent_id, _ in agents:
         lines.append(f"  class {agent_id} agent")
     lines.append(f"  %% workflow: {workflow_id}")

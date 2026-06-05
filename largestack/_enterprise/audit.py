@@ -121,7 +121,7 @@ class AuditTrail:
         sql = "SELECT * FROM audit_log"
         if where:
             sql += " WHERE " + " AND ".join(where)
-        sql += f" ORDER BY timestamp DESC LIMIT ?"
+        sql += " ORDER BY timestamp DESC LIMIT ?"
         params.append(limit)
         
         self.db.row_factory = sqlite3.Row
