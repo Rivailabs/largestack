@@ -46,6 +46,11 @@ jarvis_app.zip
 jarvis_app/jarvis_data/
 .jarvis/
 
+# Enterprise Jarvis bundle: keep source (enterprise_jarvis/), ignore artifacts
+enterprise_jarvis.zip
+enterprise_jarvis/ejarvis_data/
+.ejarvis/
+
 # Tooling
 .mypy_cache/
 .ruff_cache/

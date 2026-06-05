@@ -194,6 +194,8 @@ class Agent(Generic[DepsT, OutputT]):
         name: str = "agent",
         max_retries: int = 2,
         cost_budget: float = 1.0,
+        guardrails=None,
+        retries: int = 0,
     ):
         self.model = model
         self.deps_type = deps_type
@@ -202,6 +204,8 @@ class Agent(Generic[DepsT, OutputT]):
         self.name = name
         self.max_retries = max_retries
         self.cost_budget = cost_budget
+        self.guardrails = guardrails
+        self.retries = retries
         
         self._tools: dict[str, ToolDefinition] = {}
         self._output_validators: list[Callable] = []
@@ -312,6 +316,8 @@ class Agent(Generic[DepsT, OutputT]):
                 instructions=self.instructions,
                 llm=self.model,
                 cost_budget=self.cost_budget,
+                guardrails=self.guardrails,
+                retries=self.retries,
             )
             self._underlying_agent._tool_registry = registry
         return self._underlying_agent
@@ -361,8 +367,23 @@ class Agent(Generic[DepsT, OutputT]):
         try:
             for attempt in range(self.max_retries + 1):
                 try:
-                    result = await underlying.run(prompt)
-                    output = result.content
+                    from pydantic import BaseModel as _BaseModel
+                    from largestack._core.structured import build_structured_prompt, parse_structured
+                    _wants_model = isinstance(self.output_type, type) and issubclass(self.output_type, _BaseModel)
+                    _inner = build_structured_prompt(self.output_type, prompt) if _wants_model else prompt
+                    result = await underlying.run(_inner)
+                    if _wants_model:
+                        try:
+                            output = parse_structured(result.content, self.output_type)
+                        except ValueError as _pe:
+                            ctx.increment_retry()
+                            last_error = _pe
+                            if attempt < self.max_retries:
+                                prompt = f"{prompt}\n\n[Previous reply was not valid JSON for the schema: {_pe}]"
+                                continue
+                            raise
+                    else:
+                        output = result.content
                     
                     # Run output validators
                     for validator in self._output_validators:

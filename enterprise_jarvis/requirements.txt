@@ -1,0 +1,3 @@
+# Enterprise Jarvis runs on the Largestack framework.
+# >=1.1.0 required for DeepSeek cost tracking + the typed decorator output fix.
+largestack>=1.1.0
