@@ -90,7 +90,15 @@ class OpenAIProvider(BaseProvider):
             raise ProviderError(f"{self.name} request error: {e}") from e
         ms = (time.monotonic() - t0) * 1000
         if r.status_code == 401: raise ProviderAuthError(self.name)
-        if r.status_code == 429: raise ProviderRateLimitError(f"Rate limited by {self.name}")
+        if r.status_code == 429:
+            # 429 can be a transient rate limit OR a permanent quota/billing issue
+            # (insufficient_quota). Surface the provider's message so the cause is visible.
+            try:
+                _err = r.json().get("error", {}) or {}
+                _detail = _err.get("message", "") or _err.get("type", "")
+            except Exception:
+                _detail = ""
+            raise ProviderRateLimitError(f"{self.name} 429: {_detail or 'rate limited'}")
         # P0.6: wrap any HTTP error into ProviderError so fallback can catch it
         if r.status_code >= 400:
             try:
