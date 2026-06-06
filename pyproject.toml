@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "largestack"
-version = "1.1.0"
+version = "1.1.1"
 description = "Largestack AI — a Beta Python framework for typed agents, tools, RAG, guardrails, observability, and orchestration"
 readme = "README.md"
 license = "Apache-2.0"
@@ -73,6 +73,11 @@ include = ["largestack*"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# v1.1.1: bound every test so a deadlock / blocking-network test FAILS instead of
+# hanging the suite (needs pytest-timeout, which is in the [test] extra). The thread
+# method works for asyncio tests that don't respond to signals.
+timeout = 120
+timeout_method = "thread"
 
 [tool.ruff]
 line-length = 100

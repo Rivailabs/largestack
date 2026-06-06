@@ -1,6 +1,6 @@
 """Network security policies — URL/IP/port allow-deny with rate limiting."""
 from __future__ import annotations
-import re, logging, time, ipaddress
+import re, logging, time, ipaddress, socket
 from urllib.parse import urlparse
 from collections import defaultdict, deque
 from typing import Any
@@ -45,7 +45,9 @@ class NetworkPolicy:
                  allowed_methods: list[str] = None,
                  https_only: bool = False,
                  rate_limit_per_host: int = 0,  # 0 = no limit
-                 rate_window_seconds: float = 60.0):
+                 rate_window_seconds: float = 60.0,
+                 resolve_dns: bool = True):
+        self.resolve_dns = resolve_dns
         self.allow_domains = allow_domains or []
         self.deny_domains = deny_domains or []
         self.allowed_ports = allowed_ports or []
@@ -114,7 +116,34 @@ class NetworkPolicy:
                         return False, f"IP {host} not in any allowed range"
             except ValueError:
                 pass
-        
+
+        # 4b. SSRF: when deny IP ranges are set, also guard *hostnames* — the
+        # IP-literal check above is trivially bypassed by a name that resolves
+        # to an internal address (localhost, metadata.google.internal,
+        # 169.254.169.254.nip.io). Name-based blocks need no DNS; the resolved-IP
+        # check catches rebinding tricks in real deployments (fail-open on a DNS
+        # error so offline environments aren't broken).
+        if self._deny_ip_networks and host and not self._is_ip(host):
+            lowered = host.lower().rstrip(".")
+            if lowered == "localhost" or lowered.endswith((".localhost", ".local", ".internal")):
+                self._violation_count += 1
+                return False, f"Host {host} names an internal network (blocked)"
+            if self.resolve_dns:
+                try:
+                    infos = socket.getaddrinfo(host, port, proto=socket.IPPROTO_TCP)
+                    resolved = {info[4][0] for info in infos}
+                except OSError:
+                    resolved = set()  # fail-open on resolution failure
+                for addr in resolved:
+                    try:
+                        ip = ipaddress.ip_address(addr)
+                    except ValueError:
+                        continue
+                    for net in self._deny_ip_networks:
+                        if ip in net:
+                            self._violation_count += 1
+                            return False, f"Host {host} resolves to {addr} in denied range {net}"
+
         # 5. Domain check
         if self.deny_domains:
             for pattern in self.deny_domains:

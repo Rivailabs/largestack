@@ -40,8 +40,9 @@ class Agent:
                  memory: Any=None, steering: list|None=None, cost_budget: float|None=None,
                  max_turns: int|None=None, tool_permissions: dict|None=None,
                  shared_memory: Any=None, retries: int=0, fallback: Any=None,
-                 on_complete: Any=None, on_error: Any=None, **kw):
+                 on_complete: Any=None, on_error: Any=None, tool_policy: Any=None, **kw):
         self.config = get_config()
+        self.tool_policy = tool_policy  # optional ToolAccessPolicy (rate + param validation)
         self.name = name; self.instructions = instructions
         self.llm = llm or self.config.default_llm; self.tools = tools or []
         self.memory = memory if memory is not None else ConversationMemory()
@@ -82,7 +83,8 @@ class Agent:
         self._engine = AgentEngine(name=name, instructions=instructions, llm=self.llm,
             gateway=self._gw, tool_registry=self._reg, steering_engine=self._steer,
             config=self.config, tool_permissions=tool_permissions, guardrails=self._guards,
-            memory=self.memory, max_turns=self.max_turns, cost_budget=self.cost_budget)
+            memory=self.memory, max_turns=self.max_turns, cost_budget=self.cost_budget,
+            tool_policy=self.tool_policy)
 
     @property
     def _tool_registry(self):
@@ -106,7 +108,8 @@ class Agent:
             gateway=self._gw, tool_registry=self._reg, steering_engine=self._steer,
             config=self.config, tool_permissions=getattr(self, "tool_permissions", None),
             guardrails=self._guards, memory=self.memory,
-            max_turns=self.max_turns, cost_budget=self.cost_budget)
+            max_turns=self.max_turns, cost_budget=self.cost_budget,
+            tool_policy=getattr(self, "tool_policy", None))
     
 
 

@@ -488,13 +488,20 @@ class MilvusStore(VectorStore):
             "output_fields": ["metadata"],
         }
         if filter:
-            # Milvus expression syntax: 'field == "value"'
+            # Milvus expression syntax: 'field == "value"'. v1.1.1: validate keys
+            # as identifiers and escape string values to prevent expression injection.
+            import re as _re
             conds = []
             for k, v in filter.items():
-                if isinstance(v, str):
-                    conds.append(f'metadata["{k}"] == "{v}"')
-                else:
+                if not _re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", str(k)):
+                    raise ValueError(f"unsafe metadata filter key: {k!r}")
+                if isinstance(v, bool):
+                    conds.append(f'metadata["{k}"] == {"true" if v else "false"}')
+                elif isinstance(v, (int, float)):
                     conds.append(f'metadata["{k}"] == {v}')
+                else:
+                    esc = str(v).replace("\\", "\\\\").replace('"', '\\"')
+                    conds.append(f'metadata["{k}"] == "{esc}"')
             if conds:
                 kw["filter"] = " and ".join(conds)
         results = await self._client.search(**kw)
@@ -584,7 +591,16 @@ class RedisVectorStore(VectorStore):
         # KNN query syntax: '*=>[KNN k @field $V AS score]'
         filter_str = "*"
         if filter:
-            parts = [f"@{k}:{{{v}}}" for k, v in filter.items()]
+            # v1.1.1: validate keys + escape RediSearch TAG special chars to prevent
+            # query-DSL injection via filter values.
+            import re as _re
+            def _tag(val):
+                return _re.sub(r'([,.<>{}\[\]"\':;!@#$%^&*()\-+=~/ \\])', r'\\\1', str(val))
+            parts = []
+            for k, v in filter.items():
+                if not _re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", str(k)):
+                    raise ValueError(f"unsafe metadata filter key: {k!r}")
+                parts.append(f"@{k}:{{{_tag(v)}}}")
             filter_str = " ".join(parts)
         query_str = f"({filter_str})=>[KNN {top_k} @{self.vector_field} $vec AS score]"
         # Use raw FT.SEARCH command

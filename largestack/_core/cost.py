@@ -32,12 +32,23 @@ PRICING = {
 class CostTracker:
     def __init__(self):
         self._p = dict(PRICING)
-        pp = Path("pricing/models.yaml")
-        if pp.exists():
-            with open(pp) as f:
-                d = yaml.safe_load(f) or {}
-                for k, v in d.items():
-                    self._p[k] = {"in": v.get("input", 0), "out": v.get("output", 0), "cache": v.get("cache_read", 0)}
+        # v1.1.1: resolve the optional overrides file robustly — env var, then cwd
+        # (back-compat), then a package-relative path. The old cwd-only load
+        # silently skipped overrides whenever the process ran from another dir.
+        import os
+        candidates = []
+        env_path = os.environ.get("LARGESTACK_PRICING_FILE")
+        if env_path:
+            candidates.append(Path(env_path))
+        candidates.append(Path("pricing/models.yaml"))
+        candidates.append(Path(__file__).resolve().parents[2] / "pricing" / "models.yaml")
+        for pp in candidates:
+            if pp and pp.exists():
+                with open(pp) as f:
+                    d = yaml.safe_load(f) or {}
+                    for k, v in d.items():
+                        self._p[k] = {"in": v.get("input", 0), "out": v.get("output", 0), "cache": v.get("cache_read", 0)}
+                break
         self._run = 0.0; self._total = 0.0; self._agents: dict[str, float] = {}
         self._run_tokens = 0; self._total_tokens = 0
 
@@ -45,8 +56,14 @@ class CostTracker:
         mk = model.split("/")[-1].lower()
         pr = self._p.get(mk)
         if not pr:
-            for k, v in self._p.items():
-                if mk.startswith(k) or k.startswith(mk): pr = v; break
+            # v1.1.1: longest-prefix match only (mk starts with a known key).
+            # The old two-way startswith let a short key like "gpt" match an
+            # unrelated model and inherit an arbitrary (order-dependent) price.
+            best = ""
+            for k in self._p:
+                if mk.startswith(k) and len(k) > len(best):
+                    best = k
+            pr = self._p.get(best) if best else None
         if not pr: return 0.0
         return round(((inp - cached) / 1e6) * pr.get("in", 0) + (cached / 1e6) * pr.get("cache", pr.get("in", 0)) + (out / 1e6) * pr.get("out", 0), 6)
 

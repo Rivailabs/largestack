@@ -62,7 +62,11 @@ class ToolAccessPolicy:
         if tool_name not in self._param_rules: return True, ""
         for param, pattern in self._param_rules[tool_name].items():
             val = str(params.get(param, ""))
-            if not re.match(pattern, val):
+            # v1.1.1: fullmatch, not match — re.match anchors only the START, so a
+            # rule like "^(ls|cat)" accepted "ls; rm -rf ~". fullmatch requires the
+            # WHOLE value to match. (Callers must still treat tool args as untrusted
+            # and never pass them straight to a shell.)
+            if not re.fullmatch(pattern, val, re.DOTALL):
                 msg = f"Parameter validation failed: {tool_name}.{param}='{val}' doesn't match '{pattern}'"
                 log.warning(msg)
                 return False, msg

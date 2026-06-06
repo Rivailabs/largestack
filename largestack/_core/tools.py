@@ -163,9 +163,13 @@ class ToolExecutor:
     _IDEM_MAX_SIZE = 1024
     _IDEM_TTL_SECONDS = 3600
 
-    def __init__(self, registry: ToolRegistry, permissions: dict|None=None, agent_name="default"):
+    def __init__(self, registry: ToolRegistry, permissions: dict|None=None, agent_name="default",
+                 policy: Any = None):
         from collections import OrderedDict, deque
         self.registry = registry; self.perms = permissions or {}; self.agent = agent_name
+        # v1.1.1: optional ToolAccessPolicy (rate limit + param validation). When
+        # set, it is actually enforced in execute() — previously it was never called.
+        self.policy = policy
         # value = (content, inserted_at)
         self._idem: "OrderedDict[str, tuple[str, float]]" = OrderedDict()
         # v0.6.0 circuit-breaker state per tool name:
@@ -261,11 +265,65 @@ class ToolExecutor:
         while len(self._idem) > self._IDEM_MAX_SIZE:
             self._idem.popitem(last=False)  # FIFO eviction of LRU
 
+    @staticmethod
+    def _coerce_params(fn: Callable, params: dict) -> dict:
+        """Best-effort coercion of tool args to their annotated scalar types.
+
+        Models sometimes send numbers/bools as strings; without coercion an
+        ``int`` tool receiving ``"19"`` does string concatenation. Non-scalar or
+        unknown-typed args pass through unchanged; failed coercions are left as-is
+        so the tool's own error surfaces.
+        """
+        if not isinstance(params, dict) or not params:
+            return params
+        try:
+            hints = get_type_hints(fn)
+        except Exception:
+            return params
+        out = dict(params)
+        for name, val in params.items():
+            hint = hints.get(name)
+            if hint in (int, float) and isinstance(val, str):
+                try:
+                    out[name] = hint(val.strip())
+                except (ValueError, TypeError):
+                    pass
+            elif hint is int and isinstance(val, float) and float(val).is_integer():
+                out[name] = int(val)
+            elif hint is bool and isinstance(val, str):
+                low = val.strip().lower()
+                if low in ("true", "1", "yes"):
+                    out[name] = True
+                elif low in ("false", "0", "no"):
+                    out[name] = False
+        return out
+
     async def execute(self, tc: ToolCall) -> ToolResult:
         t0 = time.monotonic()
-        self._check_perms(tc.name)
+        # v1.1.1: permission denial returns a recoverable tool error instead of
+        # raising out of the whole agent run (consistent with runtime tool errors,
+        # so the model can self-correct to an allowed tool).
+        try:
+            self._check_perms(tc.name)
+        except ToolPermissionError as e:
+            return ToolResult(tool_call_id=tc.id, content="", error=str(e),
+                              duration_ms=(time.monotonic() - t0) * 1000)
+        # v1.1.1: enforce the ToolAccessPolicy (rate limit + parameter validation)
+        # if one is configured — this is the OWASP ASI02 control wired into the loop.
+        if self.policy is not None:
+            try:
+                ok, reason = await self.policy.enforce(self.agent, tc.name, tc.params)
+            except Exception as e:  # never let policy internals abort the run
+                ok, reason = False, f"policy error: {e}"
+            if not ok:
+                return ToolResult(tool_call_id=tc.id, content="", error=f"Tool policy denied: {reason}",
+                                  duration_ms=(time.monotonic() - t0) * 1000)
         fn = self.registry.get(tc.name)
         if not fn: return ToolResult(tool_call_id=tc.id, content="", error=f"Tool '{tc.name}' not found")
+        # v1.1.1: coerce args to their annotated scalar types. Models often send
+        # numbers as strings ("19"); without this, add(a:int,b:int) would do string
+        # concatenation ("19"+"23"="1923"). Best-effort; unknown/complex types pass through.
+        call_params = self._coerce_params(fn, tc.params)
         # v0.3.5: Only cache results for tools explicitly marked idempotent.
         # Default False — most tools mutate state (DB writes, API calls with side effects).
         is_idempotent = getattr(fn, "_tool_idempotent", False)
@@ -299,11 +357,11 @@ class ToolExecutor:
         for attempt in range(retries + 1):
             try:
                 if asyncio.iscoroutinefunction(fn):
-                    result = await asyncio.wait_for(fn(**tc.params), timeout=to)
+                    result = await asyncio.wait_for(fn(**call_params), timeout=to)
                 else:
                     # P1.1: sync tools also get a real timeout via thread offload
                     result = await asyncio.wait_for(
-                        asyncio.to_thread(fn, **tc.params), timeout=to
+                        asyncio.to_thread(fn, **call_params), timeout=to
                     )
                 content = str(result) if result is not None else ""
                 if is_idempotent and ik is not None:

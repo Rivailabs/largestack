@@ -1,6 +1,9 @@
 """Graph RAG — entity extraction + relationship mapping + graph traversal retrieval.
 
-LazyGraphRAG: 0.1% cost of full Microsoft GraphRAG while matching quality.
+Inspired by Microsoft GraphRAG / LazyGraphRAG. NOTE: the headline figures from those
+papers ("~0.1% cost", "+26% comprehensiveness / +57% diversity") describe the
+*Microsoft* systems, not this module — this is a lightweight regex + co-occurrence
+entity/relation extractor, not a benchmarked reproduction of those results.
 """
 from __future__ import annotations
 import re
@@ -9,9 +12,10 @@ from largestack._memory.graph import GraphMemory
 
 class GraphRAG:
     """Graph-based retrieval: extract entities → build graph → traverse for answers.
-    
-    LazyGraphRAG approach: build graph lazily at query time, not at indexing.
-    +26% comprehensiveness, +57% diversity vs vector-only.
+
+    LazyGraphRAG-style: build the graph lazily at query time, not at indexing.
+    (Lightweight regex/co-occurrence extraction; the paper benchmark numbers above
+    are not claims about this implementation.)
     """
     def __init__(self):
         self.graph = GraphMemory()

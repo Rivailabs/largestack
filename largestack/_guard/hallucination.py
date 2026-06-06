@@ -2,8 +2,10 @@
 
 Method: Decompose response into atomic claims, verify each against source context.
 
-Fast mode: keyword/entity overlap (no dependencies).
-NLI mode: DeBERTa-v3-large-MNLI (AUC 0.81 from TruthfulQA benchmark).
+Fast mode (DEFAULT): keyword/entity/number overlap heuristic (no dependencies) —
+  a cheap proxy, NOT a benchmarked detector.
+NLI mode (opt-in, LARGESTACK_ENABLE_NLI_GUARD=1 + transformers): DeBERTa-v3-large-MNLI;
+  the AUC≈0.81 figure refers to that published model, not to fast mode.
 
 Based on "SelfCheckGPT" (Manakul et al., 2023) and "FACTOID" methodology.
 """
@@ -54,7 +56,8 @@ class HallucinationGuard:
         self._violation_count = 0
         
         if mode == "nli":
-            nli_enabled = os.environ.get("LARGESTACK_ENABLE_NLI_GUARD", "").lower() in ("1", "true", "yes")
+            from largestack._guard.config import ml_guards_enabled
+            nli_enabled = ml_guards_enabled("LARGESTACK_ENABLE_NLI_GUARD")
             if not nli_enabled:
                 log.info("NLI mode requested but LARGESTACK_ENABLE_NLI_GUARD is not set; using fast mode.")
                 self.mode = "fast"

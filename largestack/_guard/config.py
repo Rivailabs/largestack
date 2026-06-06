@@ -9,6 +9,21 @@ from largestack._guard.policy import GuardrailAction, GuardrailMode
 
 log = logging.getLogger("largestack.guard.config")
 
+_TRUE = ("1", "true", "yes")
+
+
+def ml_guards_enabled(specific_env: str) -> bool:
+    """Whether an optional ML guard should load.
+
+    True if its specific flag is set OR the umbrella ``LARGESTACK_ENABLE_ML_GUARDS=1``
+    is set (one switch turns on PromptGuard 2 / ML PII / NLI together). The optional
+    deps must still be installed; otherwise each guard logs and falls back to its
+    regex/heuristic default.
+    """
+    if os.environ.get(specific_env, "").lower() in _TRUE:
+        return True
+    return os.environ.get("LARGESTACK_ENABLE_ML_GUARDS", "").lower() in _TRUE
+
 
 @dataclass(frozen=True)
 class GuardrailConfig:

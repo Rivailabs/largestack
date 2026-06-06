@@ -166,6 +166,14 @@ class PIIGuard:
         for et, pat in PATTERNS.items():
             if et in self.entities:
                 text = pat.sub(f"[{et.upper()}_REDACTED]", text)
+        # v1.1.1: context-gated separator-free SSN (e.g. "SSN: 123456789"). The
+        # main `ssn` pattern only matches the dashed form; a bare 9-digit pattern
+        # would over-match, so we require an SSN/social-security context word and
+        # redact only the digits.
+        if "ssn" in self.entities:
+            text = re.sub(
+                r"(?i)\b(ssn|social\s*security)(\s*(?:number|no\.?|#)?\s*[:#=-]?\s*)(?<!\d)\d{9}(?!\d)",
+                lambda m: f"{m.group(1)}{m.group(2)}[SSN_REDACTED]", text)
         text = self.redact_secrets(text)
         return text
 

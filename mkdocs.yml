@@ -52,6 +52,7 @@ nav:
   - Testing and Validation: testing-and-validation.md
   - Examples and Use Cases: examples-and-use-cases.md
   - Security and Governance: security-governance.md
+  - OWASP & Red-Team: owasp-coverage.md
   - Deployment: deployment.md
   - Roadmap: roadmap.md
   - Concepts:

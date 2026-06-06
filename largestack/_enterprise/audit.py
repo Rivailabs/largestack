@@ -1,6 +1,6 @@
-"""Immutable audit trail with hash chain integrity verification."""
+"""Immutable audit trail with HMAC-keyed hash-chain integrity verification."""
 from __future__ import annotations
-import hashlib, json, logging, os, sqlite3, time
+import hashlib, hmac, json, logging, os, secrets, sqlite3, time
 from typing import Any
 
 log = logging.getLogger("largestack.audit")
@@ -14,25 +14,37 @@ class AuditTrail:
       - Previous hash (chains all entries)
       - Entry hash (allows integrity verification)
     
-    Tampering detection:
-      - Any modified/deleted entry breaks the hash chain
-      - verify_integrity() walks the chain and reports mismatches
-    
+    Tampering detection (HMAC-keyed chain):
+      - Each entry hash is ``HMAC-SHA256(key, record || prev_hash)``. The key is
+        held by the process (``LARGESTACK_AUDIT_HMAC_KEY`` env, or a ``0600``
+        sidecar key file next to the DB) and is **not** stored in the DB, so an
+        attacker who can only write to the database cannot recompute a valid
+        chain — forged/edited entries fail ``verify_integrity()``.
+      - For the strongest guarantee against an attacker who also has filesystem
+        access, provide the key via ``LARGESTACK_AUDIT_HMAC_KEY`` from a secret
+        manager (not co-located with the DB) and periodically anchor the head
+        hash to an append-only external sink (WORM bucket / notarization).
+      - If no key can be established, the chain degrades to unkeyed SHA-256,
+        which detects accidental corruption but is NOT tamper-proof (a warning
+        is logged).
+
     Usage:
         audit = AuditTrail("~/.largestack/audit.db")
         audit.log("agent.run", "execute", agent_name="support", cost=0.05)
-        
+
         # Query
         recent = audit.query(agent_name="support", since=yesterday)
-        
+
         # Integrity check
         ok, broken_id = audit.verify_integrity()
     """
-    def __init__(self, db_path: str = "~/.largestack/audit.db", enable_chain: bool = True):
+    def __init__(self, db_path: str = "~/.largestack/audit.db", enable_chain: bool = True,
+                 hmac_key: str | bytes | None = None):
         self.db_path = os.path.expanduser(db_path)
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self.enable_chain = enable_chain
-        
+        self._key = self._resolve_key(hmac_key) if enable_chain else None
+
         self.db = sqlite3.connect(self.db_path, check_same_thread=False)
         self.db.execute("PRAGMA journal_mode=WAL")
         
@@ -57,11 +69,43 @@ class AuditTrail:
         self.db.execute("CREATE INDEX IF NOT EXISTS idx_audit_trace ON audit_log(trace_id)")
         self.db.commit()
     
+    def _resolve_key(self, explicit: str | bytes | None) -> bytes | None:
+        """Resolve the HMAC key. Precedence: explicit arg > env > sidecar file.
+
+        The key lives outside the audit DB so DB-only write access cannot forge
+        the chain. The sidecar file is created with 0600 perms next to the DB.
+        Returns None only if no key can be established (degrades to SHA-256).
+        """
+        if explicit:
+            return explicit.encode() if isinstance(explicit, str) else explicit
+        env = os.environ.get("LARGESTACK_AUDIT_HMAC_KEY")
+        if env:
+            return env.encode()
+        key_path = os.path.join(os.path.dirname(self.db_path), ".audit_hmac_key")
+        try:
+            if os.path.exists(key_path):
+                with open(key_path, "rb") as f:
+                    data = f.read().strip()
+                if data:
+                    return data
+            key = secrets.token_bytes(32)
+            fd = os.open(key_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "wb") as f:
+                f.write(key)
+            return key
+        except OSError as e:
+            log.warning("audit: could not establish HMAC key (%s); integrity chain "
+                        "falls back to unkeyed SHA-256 (corruption-detecting only, "
+                        "NOT tamper-proof). Set LARGESTACK_AUDIT_HMAC_KEY.", e)
+            return None
+
     def _compute_hash(self, record: dict) -> str:
-        """Compute SHA-256 of a record including prev_hash."""
+        """Compute the keyed integrity hash of a record (including prev_hash)."""
         # Serialize deterministically
-        canonical = json.dumps(record, sort_keys=True, default=str)
-        return hashlib.sha256(canonical.encode()).hexdigest()
+        canonical = json.dumps(record, sort_keys=True, default=str).encode()
+        if self._key:
+            return hmac.new(self._key, canonical, hashlib.sha256).hexdigest()
+        return hashlib.sha256(canonical).hexdigest()
     
     def _get_last_hash(self) -> str:
         row = self.db.execute(

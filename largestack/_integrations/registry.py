@@ -44,7 +44,7 @@ INTEGRATIONS: dict[str, IntegrationSpec] = {
     "slack": IntegrationSpec(
         name="slack",
         description="Read channels and send Slack messages.",
-        env_vars=("LARGESTACK_SLACK_BOT_TOKEN",),
+        env_vars=("LARGESTACK_SLACK_TOKEN",),
         risk_type="unsafe_tool",
         approval="require_approval",
         approval_actions=("send_message",),
@@ -55,7 +55,7 @@ INTEGRATIONS: dict[str, IntegrationSpec] = {
     "postgres": IntegrationSpec(
         name="postgres",
         description="Query and update Postgres databases.",
-        env_vars=("LARGESTACK_POSTGRES_DSN",),
+        env_vars=("LARGESTACK_POSTGRES_URL",),
         risk_type="financial_data",
         approval="require_approval",
         approval_actions=("db_write", "db_update", "db_delete"),
@@ -88,7 +88,7 @@ INTEGRATIONS: dict[str, IntegrationSpec] = {
     "pgvector": IntegrationSpec(
         name="pgvector",
         description="Use Postgres pgvector for SQL + vector RAG.",
-        env_vars=("LARGESTACK_POSTGRES_DSN",),
+        env_vars=("LARGESTACK_POSTGRES_URL",),
         risk_type="financial_data",
         approval="require_approval",
         approval_actions=("db_write", "vector_index_write"),
@@ -142,7 +142,7 @@ INTEGRATIONS: dict[str, IntegrationSpec] = {
     ),
     "razorpay": IntegrationSpec(
         name="razorpay",
-        description="Mock-safe Razorpay billing/payment connector metadata.",
+        description="Razorpay billing/payment connector. Makes REAL calls to api.razorpay.com (orders, refunds, payment links) — gate behind approval.",
         env_vars=("LARGESTACK_RAZORPAY_KEY_ID", "LARGESTACK_RAZORPAY_KEY_SECRET"),
         risk_type="financial_data",
         approval="require_approval",

@@ -368,13 +368,16 @@ class Agent(Generic[DepsT, OutputT]):
             for attempt in range(self.max_retries + 1):
                 try:
                     from pydantic import BaseModel as _BaseModel
-                    from largestack._core.structured import build_structured_prompt, parse_structured
                     _wants_model = isinstance(self.output_type, type) and issubclass(self.output_type, _BaseModel)
-                    _inner = build_structured_prompt(self.output_type, prompt) if _wants_model else prompt
-                    result = await underlying.run(_inner)
                     if _wants_model:
+                        # v1.1.1: route through run_structured so provider-native
+                        # structured output (OpenAI json_schema / Anthropic tool_use /
+                        # Gemini schema) engages — previously this was prompt-only and
+                        # strictly weaker than Agent.run(response_model=...).
+                        from largestack._core.structured import run_structured_with_result
                         try:
-                            output = parse_structured(result.content, self.output_type)
+                            output, result = await run_structured_with_result(
+                                underlying, prompt, self.output_type, max_retries=self.max_retries)
                         except ValueError as _pe:
                             ctx.increment_retry()
                             last_error = _pe
@@ -383,8 +386,17 @@ class Agent(Generic[DepsT, OutputT]):
                                 continue
                             raise
                     else:
+                        result = await underlying.run(prompt)
                         output = result.content
-                    
+
+                    # v1.1.1: wire real token/cost usage into RunContext (was always 0).
+                    if result is not None:
+                        ctx.add_usage(
+                            input_tokens=int(getattr(result, "input_tokens", 0) or 0),
+                            output_tokens=int(getattr(result, "total_tokens", 0) or 0),
+                            cost=float(getattr(result, "total_cost", 0.0) or 0.0),
+                        )
+
                     # Run output validators
                     for validator in self._output_validators:
                         try:

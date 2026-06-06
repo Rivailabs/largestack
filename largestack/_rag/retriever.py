@@ -45,8 +45,28 @@ class BM25:
         return sorted(scores, key=lambda x: x[1], reverse=True)[:top_k]
 
     @staticmethod
-    def _tokenize(text: str) -> list[str]:
-        return re.findall(r'\b\w+\b', text.lower())
+    def _stem(w: str) -> str:
+        """Conservative suffix stemmer so 'Refunds'/'refund', 'programming'/'program'
+        match without an external dependency. Not full Porter — handles the common
+        plural/verb endings that otherwise break BM25 keyword overlap."""
+        if len(w) > 4 and w.endswith("ies"):
+            w = w[:-3] + "y"
+        elif len(w) > 4 and w.endswith("ing"):
+            w = w[:-3]
+        elif len(w) > 4 and w.endswith("ed"):
+            w = w[:-2]
+        elif len(w) > 3 and w.endswith("es"):
+            w = w[:-2]
+        elif len(w) > 3 and w.endswith("s") and not w.endswith("ss"):
+            w = w[:-1]
+        # collapse a doubled trailing consonant left by -ing/-ed (programm -> program)
+        if len(w) > 3 and w[-1] == w[-2] and w[-1] not in "aeiou":
+            w = w[:-1]
+        return w
+
+    @classmethod
+    def _tokenize(cls, text: str) -> list[str]:
+        return [cls._stem(t) for t in re.findall(r'\b\w+\b', text.lower())]
 
 
 def rrf_fusion(results_lists: list[list[tuple[int, float]]], k: int = 60) -> list[tuple[int, float]]:

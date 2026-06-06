@@ -48,29 +48,27 @@ class UsageMeter:
     def record(self, user_id: str, input_tokens_or_cost=0, output_tokens: int = 0,
                cost: float = None, model: str = "", agent: str = "",
                tenant_id: str = None, cached_tokens: int = 0, tool_calls: int = 0,
-               duration_ms: float = None, metadata: dict = None):
+               duration_ms: float = None, metadata: dict = None,
+               input_tokens: int = None):
         """Record a single usage event.
-        
-        Supports both signatures:
-          record(user_id, input_tokens, output_tokens, cost)   (legacy positional)
-          record(user_id, cost=X, input_tokens=Y, ...)         (keyword)
+
+        Forms:
+          record(user_id, input_tokens, output_tokens, cost)          # legacy positional
+          record(user_id, input_tokens=Y, output_tokens=Z, cost=X)    # keyword
+        For a cost-only record, pass ``cost=`` explicitly: ``record(user_id, cost=0.9)``.
+
+        v1.1.1: the documented ``input_tokens=`` keyword now works (the parameter was
+        previously named ``input_tokens_or_cost`` so the keyword form raised TypeError),
+        and a provided cost is never silently dropped (the old float-heuristic branch
+        was dead and zeroed ``record(user, 0.9)``).
         """
-        # Detect legacy positional call: (user, in_toks, out_toks, cost)
-        if cost is None:
-            # 2nd arg is input_tokens
-            input_tokens = int(input_tokens_or_cost)
-            cost = 0.0
-        elif output_tokens or cost:
-            # Full 4-arg positional
-            input_tokens = int(input_tokens_or_cost)
+        # Explicit input_tokens= keyword wins; otherwise the 2nd positional arg.
+        if input_tokens is not None:
+            input_tokens = int(input_tokens)
         else:
-            # Keyword-style: 2nd arg might actually be cost
-            if isinstance(input_tokens_or_cost, float) and input_tokens_or_cost < 1000:
-                cost = input_tokens_or_cost
-                input_tokens = 0
-            else:
-                input_tokens = int(input_tokens_or_cost)
-        
+            input_tokens = int(input_tokens_or_cost or 0)
+        cost = float(cost) if cost is not None else 0.0
+
         self.db.execute(
             """INSERT INTO usage (timestamp, user_id, tenant_id, agent, model,
                input_tokens, output_tokens, cached_tokens, cost, tool_calls,

@@ -28,10 +28,14 @@ def test_tool_rate_limit():
 def test_tool_param_validation():
     from largestack._guard.tool_access import ToolAccessPolicy
     p = ToolAccessPolicy()
-    p.validate_params("shell_command", {"command": r"^(ls|cat|head)"})
+    # v1.1.1: full-match semantics — allowed verb plus safe-charset args only.
+    p.validate_params("shell_command", {"command": r"(ls|cat|head)( [\w./-]+)*"})
     ok, _ = p.check_params("shell_command", {"command": "ls -la"})
     assert ok
     ok, _ = p.check_params("shell_command", {"command": "rm -rf /"})
+    assert not ok
+    # The old unanchored re.match let injection slip through the END of the value.
+    ok, _ = p.check_params("shell_command", {"command": "ls; rm -rf ~"})
     assert not ok
 
 def test_tool_output_cap():

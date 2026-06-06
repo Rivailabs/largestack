@@ -92,19 +92,19 @@ class LiteLLMProvider(BaseProvider):
                 if isinstance(exc, ll.AuthenticationError):
                     return ProviderAuthError(self.name, str(exc))
                 if isinstance(exc, ll.RateLimitError):
-                    return ProviderRateLimitError(self.name, str(exc))
+                    return ProviderRateLimitError(f"{self.name}: {exc}")
                 if isinstance(exc, ll.Timeout):
-                    return ProviderTimeoutError(self.name, str(exc))
+                    return ProviderTimeoutError(self.name, detail=str(exc))
             except AttributeError:
                 pass
         # Fallback by message inspection
         if "auth" in msg or "api key" in msg or "401" in msg:
             return ProviderAuthError(self.name, str(exc))
         if "rate" in msg or "429" in msg or "quota" in msg:
-            return ProviderRateLimitError(self.name, str(exc))
+            return ProviderRateLimitError(f"{self.name}: {exc}")
         if "timeout" in msg or "timed out" in msg:
-            return ProviderTimeoutError(self.name, str(exc))
-        return ProviderError(self.name, str(exc))
+            return ProviderTimeoutError(self.name, detail=str(exc))
+        return ProviderError(f"{self.name}: {exc}")
 
     async def chat(
         self,

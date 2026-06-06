@@ -22,13 +22,56 @@ def register_commands(app: typer.Typer):
             if hasattr(obj, "run") and hasattr(obj, "name") and hasattr(obj, "instructions"):
                 agent = obj; break
         if not agent:
-            console.print("[red]No Agent found in {file}[/red]"); return
+            console.print(f"[red]No Agent found in {file}[/red]"); return
         console.print(f"[bold purple]Largestack AI API[/bold purple] — {agent.name} on :{port}")
         from largestack.serve import serve as do_serve
         do_serve(agent, port=port)
 
+    @app.command()
+    def owasp():
+        """Show the OWASP LLM Top-10 / Agentic coverage matrix."""
+        from largestack.owasp import owasp_coverage, owasp_coverage_summary
+        table = Table(title="OWASP Coverage — largestack")
+        table.add_column("ID", style="cyan"); table.add_column("Risk")
+        table.add_column("Status"); table.add_column("Controls", style="dim")
+        icon = {"covered": "[green]✅ covered[/green]", "partial": "[yellow]⚠️ partial[/yellow]",
+                "not_covered": "[red]❌ not covered[/red]"}
+        for c in owasp_coverage():
+            table.add_row(c["id"], c["name"], icon.get(c["status"], c["status"]),
+                          "; ".join(c["controls"])[:60])
+        console.print(table)
+        s = owasp_coverage_summary()
+        console.print(f"[bold]{s['covered']} covered · {s['partial']} partial · "
+                      f"{s['not_covered']} not-covered[/bold] of {s['total']} mapped risks")
+
+    @app.command()
+    def redteam():
+        """Run the offline guardrail red-team eval (exits non-zero if a core attack passes through)."""
+        import asyncio
+        from largestack._test.redteam import RedTeamSuite
+        report = asyncio.run(RedTeamSuite().run())
+        console.print(report.format())
+        if not report.core_passed():
+            raise typer.Exit(1)
+
+    @app.command("siem-export")
+    def siem_export(out: str = typer.Option("audit_siem.log", help="Output file"),
+                    fmt: str = typer.Option("cef", help="Format: json | cef | leef")):
+        """Export the audit trail to a SIEM-ingestible file (JSON-lines / CEF / LEEF)."""
+        from largestack._enterprise.siem import SiemExporter
+        n = SiemExporter(fmt=fmt).export_file(out)
+        console.print(f"[green]Exported {n} audit rows[/green] → {out} ({fmt})")
+
+    @app.command()
+    def sbom(fmt: str = typer.Option("cyclonedx", help="cyclonedx | spdx"),
+             out: str = typer.Option("sbom.json", help="Output path")):
+        """Generate a Software Bill of Materials (OWASP LLM03 / supply-chain)."""
+        from largestack._security.sbom import SBOMGenerator
+        SBOMGenerator().generate(fmt, output_path=out)
+        console.print(f"[green]SBOM written[/green] → {out} ({fmt})")
+
     """Register additional CLI commands."""
-    
+
     @app.command()
     def trace(limit: int = typer.Option(20, help="Number of traces")):
         """View recent traces."""

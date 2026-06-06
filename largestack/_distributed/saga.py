@@ -44,10 +44,14 @@ class SagaOrchestrator:
     Features:
       - Per-step timeouts
       - Per-step retries with exponential backoff
-      - Optional persistence (resume after crash)
-      - Idempotent steps (skip on retry if already done)
-      - Parallel steps (branches that can run concurrently)
-    
+      - Optional persistence + crash-resume: ``execute(..., resume=True)`` reloads a
+        prior run's context and skips already-completed steps
+      - Idempotent steps: when resuming, the step that was in-flight at crash time
+        is re-run; if it isn't marked ``idempotent`` a warning is logged (it may
+        double-execute)
+
+    Note: steps run sequentially (no parallel branches).
+
     Usage:
         saga = SagaOrchestrator("order-processing")
         saga.add_step(
@@ -160,19 +164,47 @@ class SagaOrchestrator:
         )
         self._db.commit()
     
-    async def execute(self, context: dict = None, saga_id: str = None) -> dict:
+    async def execute(self, context: dict = None, saga_id: str = None,
+                      resume: bool = False) -> dict:
         """Execute saga. Returns final context on success.
-        
+
         Raises SagaExecutionError on failure (after compensation).
+
+        v1.1.1: ``resume=True`` (with a persisted ``saga_id``) reloads the prior
+        run's context and completed steps and continues from the first incomplete
+        step — true crash-resume rather than always restarting at step 0.
         """
         ctx = dict(context or {})
         saga_id = saga_id or f"{self.name}-{uuid.uuid4().hex[:8]}"
         completed: list[SagaStep] = []
+        start_index = 0
         started_at = time.monotonic()
-        
-        self._save_run(saga_id, "running", 0, ctx, [])
-        
-        for i, step in enumerate(self.steps):
+
+        if resume and self._db:
+            prior = self.get_run_status(saga_id)
+            if prior and prior["status"] in ("running", "failed"):
+                done = set(prior.get("completed_steps") or [])
+                # restore prior context (caller-supplied context overrides)
+                ctx = {**(prior.get("context") or {}), **ctx}
+                for s in self.steps:
+                    if s.name in done:
+                        completed.append(s)
+                    else:
+                        break
+                start_index = len(completed)
+                if start_index < len(self.steps):
+                    nxt = self.steps[start_index]
+                    if prior["status"] == "running" and not nxt.idempotent:
+                        log.warning(
+                            f"Saga '{self.name}': resuming {saga_id} re-runs in-flight step "
+                            f"'{nxt.name}' which is NOT marked idempotent — it may double-execute."
+                        )
+                log.info(f"Saga '{self.name}': resuming {saga_id} from step {start_index+1}/{len(self.steps)}")
+
+        self._save_run(saga_id, "running", start_index, ctx, [s.name for s in completed])
+
+        for i in range(start_index, len(self.steps)):
+            step = self.steps[i]
             # Global timeout check
             if self.global_timeout:
                 elapsed = time.monotonic() - started_at

@@ -1,8 +1,10 @@
-"""PromptGuard 2 — Meta's 86M parameter injection detector.
+"""PromptGuard 2 — optional ML injection detector (Meta's 86M-param model).
 
-Model: meta-llama/Prompt-Guard-2 (DeBERTa-based)
-97.5% recall at 1% FPR on benchmarks.
-Falls back to pattern matching if model not installed.
+Model: meta-llama/Prompt-Guard-2 (DeBERTa-based). Meta reports ~97.5% recall at 1%
+FPR for THAT model on its benchmark. The ML model is loaded only when enabled via
+LARGESTACK_ENABLE_PROMPT_GUARD_ML=1 (and transformers is installed); OTHERWISE the
+default is the regex/pattern fallback (largestack._guard.injection), which does NOT
+achieve those numbers.
 """
 from __future__ import annotations
 import logging
@@ -29,7 +31,8 @@ class PromptGuard2(InjectionGuard):
         self.model_name = model_name
         self.model_revision = revision or os.environ.get("LARGESTACK_PROMPT_GUARD_MODEL_REVISION", "main")
 
-        ml_enabled = os.environ.get("LARGESTACK_ENABLE_PROMPT_GUARD_ML", "").lower() in ("1", "true", "yes")
+        from largestack._guard.config import ml_guards_enabled
+        ml_enabled = ml_guards_enabled("LARGESTACK_ENABLE_PROMPT_GUARD_ML")
         if not ml_enabled:
             log.info("PromptGuard ML model loading skipped; set LARGESTACK_ENABLE_PROMPT_GUARD_ML=1 to enable it")
             return

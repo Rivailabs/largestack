@@ -101,9 +101,14 @@ class DAGWorkflow:
                     state.update(result)
                 else:
                     state[node.name] = result
-                # Track cost from AgentResult
-                if hasattr(result, 'total_cost'):
-                    total_cost += result.total_cost
+                # v1.1.1: track cost. Agent-wrapped nodes return a dict carrying
+                # ``{node}_cost``; a raw AgentResult/object exposes ``total_cost``.
+                # The old ``hasattr(result, 'total_cost')`` was always False for the
+                # dict case, so cost_budget never engaged.
+                if isinstance(result, dict):
+                    total_cost += float(result.get(f"{node.name}_cost", 0.0) or 0.0)
+                elif hasattr(result, "total_cost"):
+                    total_cost += float(getattr(result, "total_cost", 0.0) or 0.0)
                 completed.add(node.name)
 
         state["_total_cost"] = total_cost

@@ -448,13 +448,13 @@ def test_database_fetchall_empty():
 
 def test_payment_invalid_json():
     from largestack._enterprise.payment import PaymentWebhook
-    pw = PaymentWebhook(provider="lemonsqueezy", signing_secret="", db_path=os.path.join(tempfile.mkdtemp(), "l.db"))
+    pw = PaymentWebhook(provider="lemonsqueezy", signing_secret="", allow_unsigned=True, db_path=os.path.join(tempfile.mkdtemp(), "l.db"))
     result = asyncio.run(pw.handle(b"not json", ""))
     assert result["status"] == "error"
 
 def test_payment_unknown_event():
     from largestack._enterprise.payment import PaymentWebhook
-    pw = PaymentWebhook(provider="lemonsqueezy", signing_secret="", db_path=os.path.join(tempfile.mkdtemp(), "l.db"))
+    pw = PaymentWebhook(provider="lemonsqueezy", signing_secret="", allow_unsigned=True, db_path=os.path.join(tempfile.mkdtemp(), "l.db"))
     import json
     payload = json.dumps({"meta": {"event_name": "unknown_event"}, "data": {"attributes": {}}}).encode()
     result = asyncio.run(pw.handle(payload, ""))

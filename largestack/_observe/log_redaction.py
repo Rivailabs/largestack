@@ -22,6 +22,8 @@ _SECRET_PATTERNS = [
     (re.compile(r"sk-ant-[A-Za-z0-9_-]{30,}"), "[REDACTED:anthropic_key]"),
     # OpenAI / DeepSeek / Together / Groq / Fireworks / Anyscale
     (re.compile(r"sk-[A-Za-z0-9]{20,}"), "[REDACTED:api_key]"),
+    # Google / Gemini (AIza...) — we ship a Gemini provider, so cover its key shape
+    (re.compile(r"AIza[0-9A-Za-z_\-]{35}"), "[REDACTED:google_key]"),
     # GitHub
     (re.compile(r"ghp_[A-Za-z0-9]{36,}"), "[REDACTED:github_pat]"),
     (re.compile(r"gho_[A-Za-z0-9]{36,}"), "[REDACTED:github_token]"),

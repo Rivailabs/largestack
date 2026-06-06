@@ -125,8 +125,9 @@ def create_api() -> FastAPI:
     def costs(days: int = 7):
         days = max(1, min(days, 365))
         now = time.time()
-        by_model = _q(AUDIT_DB,
-            "SELECT model, SUM(cost) as cost, COUNT(*) as calls FROM audit_log "
+        # v1.1.1: source cost-by-model from `traces` (audit_log has no model column).
+        by_model = _q(TRACE_DB,
+            "SELECT model, SUM(cost) as cost, COUNT(*) as calls FROM traces "
             "WHERE timestamp>? AND model IS NOT NULL GROUP BY model ORDER BY cost DESC",
             (now - days * 86400,))
         return {"by_model": by_model, "period_days": days}
@@ -143,8 +144,9 @@ def create_api() -> FastAPI:
 
     @app.get("/api/guards", dependencies=_build_protected_deps())
     def guards():
+        # v1.1.1: correct column is event_type (populated when LARGESTACK_AUDIT_EVENTS=1).
         rows = _q(AUDIT_DB,
-            "SELECT event, COUNT(*) as count FROM audit_log WHERE event LIKE 'guard.%' GROUP BY event")
+            "SELECT action as event, COUNT(*) as count FROM audit_log WHERE event_type LIKE 'guard.%' GROUP BY action")
         return {"events": rows}
 
     @app.get("/api/metrics", dependencies=_build_protected_deps())
@@ -169,7 +171,7 @@ def create_api() -> FastAPI:
     def alerts():
         now = time.time()
         alerts_list = []
-        errs = _q(AUDIT_DB, "SELECT COUNT(*) as n FROM audit_log WHERE event='agent.error' AND timestamp>?", (now-3600,))
+        errs = _q(AUDIT_DB, "SELECT COUNT(*) as n FROM audit_log WHERE event_type='agent.run' AND action='failed' AND timestamp>?", (now-3600,))
         if errs and errs[0]["n"] > 10:
             alerts_list.append({"level": "error", "message": f"High error rate: {errs[0]['n']} errors/hour"})
         costs = _q(AUDIT_DB, "SELECT SUM(cost) as c FROM audit_log WHERE timestamp>?", (now-3600,))

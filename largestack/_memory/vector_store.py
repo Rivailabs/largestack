@@ -345,7 +345,17 @@ class VectorMemoryStore(LongTermMemoryStore):
             tenant_id, qvec, limit=limit * 4,
         )
         if not candidates:
-            # Index might be empty (no vectors yet) — fall back to substring
+            # Index might be empty (no vectors yet, or not rebuilt after a restart
+            # when wrapping a persistent backing store) — fall back to the backing
+            # store's substring/keyword search. v1.1.1: warn so this silent
+            # degradation from cosine→substring is visible; call reindex() to
+            # repopulate the in-memory vector index over persisted entries.
+            import logging
+            logging.getLogger("largestack.memory").warning(
+                "VectorMemoryStore: vector index empty for tenant %r — falling back to "
+                "substring search (not cosine). Call reindex() to rebuild the index over "
+                "persisted entries after process start.", tenant_id,
+            )
             return await self.backing.search(
                 tenant_id=tenant_id, user_id=user_id,
                 query=query, limit=limit,

@@ -14,7 +14,7 @@ Flow:
   6. Key stored in license DB for validation
 """
 from __future__ import annotations
-import hashlib, hmac, json, logging, os, sqlite3, time, uuid
+import base64, hashlib, hmac, json, logging, os, secrets, sqlite3, time, uuid
 from typing import Any, Callable
 
 log = logging.getLogger("largestack.payment")
@@ -49,19 +49,27 @@ class PaymentWebhook:
     def __init__(self, provider: str = "lemonsqueezy",
                  signing_secret: str = None,
                  db_path: str = "~/.largestack/licenses.db",
-                 on_license_created: Callable = None):
+                 on_license_created: Callable = None,
+                 allow_unsigned: bool = False):
         if provider not in self.PROVIDERS:
             raise ValueError(f"Provider must be one of {self.PROVIDERS}")
-        
+
         self.provider = provider
         self.signing_secret = signing_secret or os.environ.get(
             "LARGESTACK_WEBHOOK_SECRET",
             os.environ.get("LEMONSQUEEZY_WEBHOOK_SECRET", "")
         )
+        # v1.1.1: fail closed. Without a signing secret, webhooks are REJECTED
+        # unless the operator explicitly opts in (dev only) — a missing secret
+        # must never silently mint real license keys for forged payloads.
+        self.allow_unsigned = allow_unsigned
         self.on_license_created = on_license_created
-        
+
         self.db_path = os.path.expanduser(db_path)
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        # v1.1.1: real Ed25519 signing key (the docstring's long-standing claim).
+        # After db_path — the sidecar key file lives next to the license DB.
+        self._signing_key = self._load_signing_key()
         self.db = sqlite3.connect(self.db_path, check_same_thread=False)
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("""CREATE TABLE IF NOT EXISTS licenses (
@@ -82,12 +90,76 @@ class PaymentWebhook:
         self.db.execute("CREATE INDEX IF NOT EXISTS idx_lic_key ON licenses(key)")
         self.db.commit()
     
-    def verify_signature(self, payload: bytes, signature: str) -> bool:
-        """Verify webhook signature."""
-        if not self.signing_secret:
-            log.warning("No signing secret configured — skipping verification")
+    def _load_signing_key(self):
+        """Load (or create) the Ed25519 license-signing private key.
+
+        Precedence: ``LARGESTACK_LICENSE_SIGNING_KEY`` (32-byte seed, hex or
+        base64) > 0600 sidecar file next to the license DB. Returns None only if
+        the cryptography backend is unavailable (→ legacy unsigned keys).
+        """
+        try:
+            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        except Exception as e:  # pragma: no cover - cryptography is a core dep
+            log.warning("cryptography unavailable (%s); license keys will be unsigned.", e)
+            return None
+        seed = None
+        env = os.environ.get("LARGESTACK_LICENSE_SIGNING_KEY")
+        if env:
+            try:
+                seed = bytes.fromhex(env) if len(env) == 64 else base64.urlsafe_b64decode(env + "==")
+            except Exception:
+                seed = None
+        if seed is None:
+            key_path = os.path.join(os.path.dirname(self.db_path), ".license_signing_key")
+            try:
+                if os.path.exists(key_path):
+                    with open(key_path, "rb") as f:
+                        seed = f.read().strip()
+                if not seed:
+                    seed = secrets.token_bytes(32)
+                    fd = os.open(key_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                    with os.fdopen(fd, "wb") as f:
+                        f.write(seed)
+            except OSError as e:
+                log.warning("could not establish license signing key (%s); unsigned.", e)
+                return None
+        try:
+            return Ed25519PrivateKey.from_private_bytes(seed[:32])
+        except Exception:
+            return None
+
+    def public_key_hex(self) -> str | None:
+        """Raw Ed25519 public key (hex) for offline license verification."""
+        if self._signing_key is None:
+            return None
+        from cryptography.hazmat.primitives import serialization
+        raw = self._signing_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+        return raw.hex()
+
+    def verify_key_signature(self, key: str) -> bool:
+        """Offline-verify a key's Ed25519 signature. Legacy unsigned keys → False."""
+        if self._signing_key is None or "." not in key:
+            return False
+        payload, _, sig_b64 = key.rpartition(".")
+        try:
+            sig = base64.urlsafe_b64decode(sig_b64 + "=" * (-len(sig_b64) % 4))
+            self._signing_key.public_key().verify(sig, payload.encode())
             return True
-        
+        except Exception:
+            return False
+
+    def verify_signature(self, payload: bytes, signature: str) -> bool:
+        """Verify webhook signature. Fails closed when no secret is configured."""
+        if not self.signing_secret:
+            if self.allow_unsigned:
+                log.warning("No signing secret configured and allow_unsigned=True — "
+                            "accepting webhook WITHOUT verification (DEV ONLY).")
+                return True
+            log.error("Payment webhook rejected: no signing secret configured. "
+                      "Set LARGESTACK_WEBHOOK_SECRET (or pass allow_unsigned=True for dev).")
+            return False
+
         if self.provider == "lemonsqueezy":
             expected = hmac.new(
                 self.signing_secret.encode(),
@@ -280,11 +352,19 @@ class PaymentWebhook:
         return {"status": "renewed", "email": info["email"], "expires_at": new_expiry}
     
     def _generate_key(self, tier: str, expires: float) -> str:
-        """Generate a license key."""
-        import secrets
+        """Generate a license key, Ed25519-signed when a signing key is available.
+
+        Format: ``nxs_{tier}_{random}_{expiry_hex}.{base64url(signature)}``. The
+        signature makes the key offline-verifiable (``verify_key_signature``);
+        if no signing key could be established, a legacy unsigned key is issued.
+        """
         random_part = secrets.token_hex(16)
         expiry_hex = hex(int(expires))[2:]
-        return f"nxs_{tier}_{random_part}_{expiry_hex}"
+        payload = f"nxs_{tier}_{random_part}_{expiry_hex}"
+        if self._signing_key is not None:
+            sig = self._signing_key.sign(payload.encode())
+            return f"{payload}.{base64.urlsafe_b64encode(sig).decode().rstrip('=')}"
+        return payload
     
     def validate_key(self, key: str) -> dict | None:
         """Validate a license key against the database."""

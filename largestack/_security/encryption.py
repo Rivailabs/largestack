@@ -27,25 +27,34 @@ class EncryptionManager:
         new_ciphertext = enc.encrypt("new data")     # Uses new key
     """
     
-    def __init__(self, key: bytes | str | None = None, kdf_iterations: int = 100_000):
+    def __init__(self, key: bytes | str | None = None, kdf_iterations: int = 600_000):
         """
         Args:
           key: Bytes key (32 bytes for AES-256), passphrase string, or None (random)
-          kdf_iterations: PBKDF2 iterations for string keys
+          kdf_iterations: PBKDF2 iterations for string keys (OWASP 2023+: 600k)
         """
         self.kdf_iterations = kdf_iterations
-        
+
         # Key derivation
         if key is None:
             key = os.environ.get("LARGESTACK_ENCRYPTION_KEY", "")
-        
+
         if isinstance(key, str):
             if not key:
                 key = secrets.token_bytes(32)
                 log.warning("EncryptionManager: no key provided, generated random (non-persistent)")
             else:
-                # Derive via PBKDF2 for passwords
-                key = self._derive_key(key.encode(), salt=b"largestack-default-salt")
+                # v1.1.1: align with vault.py — 600k PBKDF2 iterations and a
+                # domain-separated salt instead of a single global constant.
+                # The salt stays deterministic (the key must reproduce across
+                # restarts to decrypt at-rest data); set LARGESTACK_ENCRYPTION_SALT
+                # for a per-deployment salt that defeats cross-deployment key reuse.
+                salt_env = os.environ.get("LARGESTACK_ENCRYPTION_SALT")
+                if salt_env:
+                    salt = salt_env.encode("utf-8")[:32].ljust(32, b"\x00")
+                else:
+                    salt = hashlib.sha256(b"largestack-encryption-v1\x00" + key.encode()).digest()
+                key = self._derive_key(key.encode(), salt=salt)
         
         if not isinstance(key, bytes) or len(key) != 32:
             raise ValueError(f"Key must be 32 bytes (256 bits), got {type(key).__name__} of {len(key) if isinstance(key, bytes) else '?'}")

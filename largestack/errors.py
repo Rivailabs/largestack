@@ -18,13 +18,17 @@ class ProviderError(LargestackError):
 
 class ProviderTimeoutError(ProviderError):
     retryable = True; error_code = "LARGESTACK_PROVIDER_TIMEOUT"
-    def __init__(self, provider: str, timeout: float):
-        super().__init__(f"{provider} timed out after {timeout}s", "Increase timeout or add fallback provider")
+    def __init__(self, provider: str, timeout: float = 0.0, detail: str = ""):
+        msg = f"{provider} timed out after {timeout}s"
+        if detail: msg += f" ({detail})"
+        super().__init__(msg, "Increase timeout or add fallback provider")
 
 class ProviderAuthError(ProviderError):
     error_code = "LARGESTACK_PROVIDER_AUTH"
-    def __init__(self, provider: str):
-        super().__init__(f"{provider} API key invalid", f"Set: export LARGESTACK_{provider.upper()}_API_KEY=...")
+    def __init__(self, provider: str, detail: str = ""):
+        msg = f"{provider} API key invalid"
+        if detail: msg += f" ({detail})"
+        super().__init__(msg, f"Set: export LARGESTACK_{provider.upper()}_API_KEY=...")
 
 class ProviderRateLimitError(ProviderError):
     retryable = True; error_code = "LARGESTACK_RATE_LIMIT"
@@ -57,6 +61,7 @@ class LicenseRequiredError(LargestackError):
 class GuardrailBlockedError(LargestackError):
     error_code = "LARGESTACK_GUARDRAIL"
     def __init__(self, guard_type: str, details: str):
+        self.guard_type = guard_type
         super().__init__(f"Blocked by {guard_type}: {details}", "Adjust config or set action='warn'")
 
 class KillSwitchActivatedError(LargestackError):

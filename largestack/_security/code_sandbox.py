@@ -13,7 +13,7 @@ Backends:
     # {"stdout": "4\\n", "stderr": "", "exit_code": 0, "duration_ms": 12.5}
 """
 from __future__ import annotations
-import asyncio, os, signal, tempfile, time, logging, sys
+import asyncio, ast, os, signal, tempfile, time, logging, sys
 from typing import Any
 
 log = logging.getLogger("largestack.sandbox")
@@ -57,24 +57,58 @@ class CodeSandbox:
 
     def __init__(self, backend: str = "subprocess", timeout: float = 30,
                  max_memory_mb: int = 0, allowed_imports: list[str] = None,
-                 e2b_api_key: str = None):
+                 e2b_api_key: str = None, inherit_env: bool = False):
         self.backend = backend
         self.timeout = timeout
         self.max_memory_mb = max_memory_mb
         self.allowed_imports = allowed_imports
+        # v1.1.1: by default the subprocess does NOT inherit the parent env, so
+        # model-generated code can't read API keys / DB creds. Opt back in with
+        # inherit_env=True for trusted code.
+        self.inherit_env = inherit_env
         self.e2b_api_key = e2b_api_key or os.environ.get("E2B_API_KEY")
+
+    def _blocked_imports(self, code: str) -> set[str]:
+        """AST-based detection of imports not in the allowlist.
+
+        Replaces the old line-prefix scan, which missed multi-statement lines
+        (``x=1; import os``) and dynamic ``__import__("os")`` / importlib. This
+        is a guardrail, not a security boundary — statically-undecidable cases
+        (e.g. ``__import__("o"+"s")``) are flagged as ``<dynamic-import>``. For
+        untrusted code, pair with a scrubbed env (default) and backend='e2b'.
+        """
+        allowed = set(self.allowed_imports or [])
+        found: set[str] = set()
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            return set()  # malformed code fails at execution anyway
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for a in node.names:
+                    found.add(a.name.split(".")[0])
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    found.add(node.module.split(".")[0])
+            elif isinstance(node, ast.Call):
+                fn = node.func
+                name = getattr(fn, "id", None) or getattr(fn, "attr", None)
+                if name in ("__import__", "import_module"):
+                    arg0 = node.args[0] if node.args else None
+                    if isinstance(arg0, ast.Constant) and isinstance(arg0.value, str):
+                        found.add(arg0.value.split(".")[0])
+                    else:
+                        found.add("<dynamic-import>")
+        return {m for m in found if m not in allowed}
 
     async def execute(self, code: str, language: str = "python",
                       env: dict = None) -> SandboxResult:
         """Execute code and return result."""
-        # Security: block dangerous imports
-        if language == "python" and self.allowed_imports:
-            for line in code.split("\n"):
-                line = line.strip()
-                if line.startswith("import ") or line.startswith("from "):
-                    module = line.split()[1].split(".")[0].rstrip(";,")
-                    if module not in self.allowed_imports:
-                        return SandboxResult(stderr=f"Import blocked: {module}", exit_code=1)
+        # Security: block imports outside the allowlist (AST-based).
+        if language == "python" and self.allowed_imports is not None:
+            blocked = self._blocked_imports(code)
+            if blocked:
+                return SandboxResult(stderr=f"Import blocked: {', '.join(sorted(blocked))}", exit_code=1)
 
         if self.backend == "subprocess":
             log.warning("CodeSandbox: subprocess backend has NO kernel isolation. "
@@ -119,7 +153,16 @@ class CodeSandbox:
         else:
             return SandboxResult(stderr=f"Unsupported language: {language}", exit_code=1)
 
-        proc_env = {**os.environ, **(env or {})}
+        if self.inherit_env:
+            proc_env = {**os.environ, **(env or {})}
+        else:
+            # Minimal scrubbed env — never hand the parent's secrets to
+            # model-generated code. Only what an interpreter needs to start,
+            # plus caller-provided vars.
+            base = {k: os.environ[k] for k in
+                    ("PATH", "HOME", "LANG", "LC_ALL", "LC_CTYPE", "TMPDIR", "SystemRoot", "TEMP")
+                    if k in os.environ}
+            proc_env = {**base, **(env or {})}
         t0 = time.monotonic()
         try:
             proc = await asyncio.create_subprocess_exec(

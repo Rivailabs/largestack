@@ -11,9 +11,12 @@ from largestack.types import AgentResult
 log = logging.getLogger("largestack.debate")
 
 class DebateRound:
-    def __init__(self, round_num: int, responses: dict[str, str]):
+    def __init__(self, round_num: int, responses: dict[str, str],
+                 cost: float = 0.0, tokens: int = 0):
         self.round = round_num
         self.responses = responses  # agent_name → response
+        self.cost = cost            # summed per-agent cost for this round
+        self.tokens = tokens
     
     def format_for_critique(self, exclude: str = None) -> str:
         """Format responses for other agents to critique."""
@@ -67,14 +70,19 @@ class Debate:
         
         results = await asyncio.gather(*tasks, return_exceptions=True)
         responses = {}
+        round_cost = 0.0; round_tokens = 0
         for agent, result in zip(self.agents, results):
             if isinstance(result, Exception):
                 log.error(f"Debate: {agent.name} failed in round {round_num}: {result}")
                 responses[agent.name] = f"[ERROR: {result}]"
             else:
                 responses[agent.name] = result.content
-        
-        return DebateRound(round_num, responses)
+                # v1.1.1: accumulate per-agent cost/tokens — these were discarded,
+                # so a multi-agent multi-round debate reported ~0 cost.
+                round_cost += float(getattr(result, "total_cost", 0.0) or 0.0)
+                round_tokens += int(getattr(result, "total_tokens", 0) or 0)
+
+        return DebateRound(round_num, responses, cost=round_cost, tokens=round_tokens)
     
     def _check_consensus(self, round: DebateRound) -> bool:
         """Simple consensus check — look for agreement keywords."""
@@ -102,7 +110,9 @@ class Debate:
         for r in range(self.rounds):
             round = await self._run_round(r, task)
             self.history.append(round)
-            
+            total_cost += getattr(round, "cost", 0.0)
+            total_tokens += getattr(round, "tokens", 0)
+
             if self.strategy == "consensus" and self._check_consensus(round):
                 log.info(f"Debate: consensus reached at round {r}")
                 break
@@ -117,7 +127,8 @@ class Debate:
                 f"Synthesize the best answer by evaluating each view critically."
             )
             final = await self.judge.run(judge_prompt)
-            total_cost += final.total_cost
+            total_cost += float(getattr(final, "total_cost", 0.0) or 0.0)
+            total_tokens += int(getattr(final, "total_tokens", 0) or 0)
             final_content = final.content
         else:
             # Concatenate final positions

@@ -143,7 +143,13 @@ class LangfuseTracer:
         tags: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
     ):
-        """Start a Langfuse trace. Returns the langfuse trace object."""
+        """Start a Langfuse trace. Returns the langfuse trace/span object.
+
+        v1.1.1: support both Langfuse SDK v2 (``client.trace(...)``) and v3 (which
+        removed ``trace()`` in favour of ``start_span(...)``). The OTEL export path
+        (``configure_otel_export_to_langfuse``) is the recommended integration and
+        is unaffected by this.
+        """
         client = self.get_client()
         kwargs: dict[str, Any] = {"name": name}
         if user_id:
@@ -154,7 +160,14 @@ class LangfuseTracer:
             kwargs["tags"] = tags
         if metadata:
             kwargs["metadata"] = metadata
-        return client.trace(**kwargs)
+        if hasattr(client, "trace"):  # Langfuse SDK v2
+            return client.trace(**kwargs)
+        if hasattr(client, "start_span"):  # Langfuse SDK v3
+            return client.start_span(**kwargs)
+        raise RuntimeError(
+            "Unsupported Langfuse SDK: no trace()/start_span(). Use the OTEL export "
+            "path (configure_otel_export_to_langfuse) or pin a supported langfuse."
+        )
 
     def flush(self) -> None:
         if self._client is not None:

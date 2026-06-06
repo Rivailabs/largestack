@@ -56,11 +56,37 @@ MANIPULATION_PATTERNS = [
     r"developer\s+mode\s+(enabled|activated|on)",
     r"bypass\s+(your|the|all)\s+(filters|safety|restrictions|rules)",
     r"unlock\s+(your|all)\s+(capabilities|potential|restrictions)",
+    # v1.1.1: high-signal, low-FP addition — qualified so benign "unfiltered coffee",
+    # "no filter on the camera", "no limits on creativity" do NOT match. (Broader
+    # "no filters/guardrails" / "with no limits" variants were tried and dropped:
+    # they false-positived on ordinary text. The opt-in ML guard covers the rest.)
+    r"unfiltered\s+(model|ai|assistant|version|mode|chatbot|response)",
 ]
 
-ALL_PATTERNS = [re.compile(p, re.I) for p in 
-    JAILBREAK_PATTERNS + SYSTEM_PROMPT_PATTERNS + 
+ALL_PATTERNS = [re.compile(p, re.I) for p in
+    JAILBREAK_PATTERNS + SYSTEM_PROMPT_PATTERNS +
     FORMAT_INJECTION_PATTERNS + MANIPULATION_PATTERNS]
+
+# v1.1.1: high-confidence patterns — a SINGLE match here blocks in PROTECT mode
+# (default), closing the gap where common single-pattern jailbreaks were only warned.
+# IMPORTANT: this is the UNAMBIGUOUS-attack subset only. The ambiguous roleplay
+# patterns ("you are now", "pretend you are", "act as if", "from now on you") are
+# EXCLUDED because they have legitimate uses ("pretend you are a tutor", "you are now
+# connected") and single-match-blocking them caused false positives; those still need
+# >=2 patterns to block. Format tokens are also excluded (legit in code/markdown).
+# Still gated to NOT fire in rag/document/planning context.
+_STRONG_JAILBREAK = [
+    # verb + (intervening adjectives) + target within one clause: catches
+    # "ignore all prior instructions", "disregard your earlier rules", etc.
+    r"\b(ignore|disregard|forget|override)\b[\w\s,'-]{0,40}\b(instruction|instructions|prompt|prompts|rule|rules|guideline|guidelines|programming)\b",
+    r"new\s+(instructions|rules|persona|identity)\s*:",
+]
+HIGH_CONFIDENCE_PATTERNS = [re.compile(p, re.I) for p in
+    _STRONG_JAILBREAK + SYSTEM_PROMPT_PATTERNS + MANIPULATION_PATTERNS]
+
+# Strong proximity patterns must also count toward detection (is_injection), so a bare
+# "ignore all prior instructions" (no other trigger) is caught, not silently allowed.
+ALL_PATTERNS = ALL_PATTERNS + [re.compile(p, re.I) for p in _STRONG_JAILBREAK]
 
 EXTERNAL_EXFILTRATION_PATTERNS = [
     re.compile(r"\b(exfiltrat\w*|leak\w*)\b.{0,80}\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b", re.I),
@@ -195,7 +221,9 @@ class InjectionGuard:
                 metadata={"context": context, "audit": True},
             )
 
-        if cfg.mode == GuardrailMode.PROTECT and self._pattern_score(text) >= 2:
+        if cfg.mode == GuardrailMode.PROTECT and (
+            self._pattern_score(text) >= 2 or self._high_confidence(text)
+        ):
             return block(
                 "High-confidence prompt injection detected",
                 risk_type=GuardrailRiskType.PROMPT_INJECTION,
@@ -234,6 +262,11 @@ class InjectionGuard:
     @staticmethod
     def _pattern_score(text: str) -> int:
         return sum(1 for p in ALL_PATTERNS if p.search(text))
+
+    @staticmethod
+    def _high_confidence(text: str) -> bool:
+        """A single high-confidence (jailbreak/system-prompt/manipulation) match."""
+        return any(p.search(text) for p in HIGH_CONFIDENCE_PATTERNS)
 
     @staticmethod
     def _critical_risk(text: str) -> GuardrailRiskType | None:

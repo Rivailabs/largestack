@@ -62,6 +62,11 @@ def test_cancel_license():
     }).encode()
     pw.provider = "lemonsqueezy"
     pw.signing_secret = ""
+    # v1.1.1: no secret now fails closed (forged webhooks must not mint keys).
+    rejected = asyncio.run(pw.handle(cancel_payload, ""))
+    assert rejected["status"] == "error"
+    # Explicit dev opt-in still allows the unsigned path (exercises cancel flow).
+    pw.allow_unsigned = True
     result = asyncio.run(pw.handle(cancel_payload, ""))
     assert result["status"] == "cancelled"
 

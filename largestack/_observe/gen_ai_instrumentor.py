@@ -1,6 +1,10 @@
-"""Full OpenTelemetry gen_ai semantic conventions instrumentor.
+"""OpenTelemetry gen_ai semantic-conventions instrumentor (optional helper).
 
-Patches OpenAI and Anthropic SDKs to automatically add gen_ai.* attributes.
+Patches the OpenAI SDK to add gen_ai.* attributes. NOTE: the Anthropic patch is
+best-effort and currently a no-op against recent SDKs (``messages.create`` is an
+instance attribute, not patchable on the class) — for Anthropic prefer the official
+``opentelemetry-instrumentation-anthropic``. This module is a standalone helper and
+is not auto-wired into the agent run path.
 """
 from __future__ import annotations
 import functools, logging, time, json

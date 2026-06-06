@@ -1,7 +1,10 @@
-"""Semantic memory — vector-embedding based retrieval.
+"""Semantic memory — similarity-based fact/knowledge recall.
 
-Stores facts/knowledge as vectors for similarity-based recall.
-Unlike buffer memory (temporal), semantic memory retrieves by meaning.
+Stores facts as vectors and recalls by similarity. NOTE: with no ``embedder``
+supplied (the default, e.g. ``create_memory("semantic")``), it uses a 128-dim
+bag-of-words HASH vector — i.e. token-overlap similarity, NOT true semantic
+embeddings, so paraphrases won't match. Pass a real ``embedder`` (e.g. an
+OpenAI/SentenceTransformer embed fn) for genuine semantic recall.
 """
 from __future__ import annotations
 import hashlib, logging, math, time

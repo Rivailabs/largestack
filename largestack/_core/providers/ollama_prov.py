@@ -36,6 +36,12 @@ class OllamaProvider(BaseProvider):
         mn = self.get_model(model)
         body: dict[str, Any] = {"model": mn, "messages": messages, "stream": False, "options": {"temperature": temperature}}
         if max_tokens: body["options"]["num_predict"] = max_tokens
+        # v1.1.1: native structured outputs — Ollama accepts `format` as "json" or a
+        # JSON schema (constrained decoding), which makes typed output reliable even on
+        # small local models. Passed through by structured.build_native_params.
+        _fmt = kw.get("format")
+        if _fmt is not None:
+            body["format"] = _fmt
         t0 = time.monotonic()
         # P0-3a (v0.3.3): wrap all transport + HTTP failures into ProviderError so fallback works
         try:

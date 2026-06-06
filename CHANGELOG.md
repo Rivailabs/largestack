@@ -1,5 +1,114 @@
 # Changelog
 
+## v1.1.1 — 2026-06-06 — Full-codebase review remediation (correctness, security, observability, honesty)
+
+A complete review across all subsystems (providers, engine, orchestration, memory/RAG,
+guardrails/security/sandbox, observability, serving, integrations) plus live local-LLM
+verification (Ollama: chat, tools, guardrails, sandbox, structured-fallback). Fixes the
+real bugs found, implements several claimed-but-missing capabilities, and corrects
+over-claims so docs match behavior. See `REVIEW_2026-06-06.md` for the full findings.
+
+- **2638 passing** (tests/, canonical CI environment, all extras installed).
+
+**Gap-closing (the documented ⚠️/❌ items, now closed by code):**
+- **RAG BM25 stemming** — `"refund"` now matches `"Refunds"` (conservative suffix stemmer, no dep); `create_rag(dense="auto")` uses a local embedder when available. (`_rag/retriever.py`, `_rag/pipeline.py`)
+- **Structured output on small local models** — Ollama native JSON-schema **constrained decoding** (`format=schema`); verified live on qwen2.5:0.5b AND llama3.2:1b (both previously failed). (`_core/structured.py`, `providers/ollama_prov.py`, `_core/engine.py`)
+- **ML-guard ergonomics** — one umbrella switch `LARGESTACK_ENABLE_ML_GUARDS=1` turns on PromptGuard 2 / ML-PII / NLI together (regex stays the zero-dep default). (`_guard/config.py`)
+- **SIEM export (LLM03/audit seam)** — `SiemExporter` + `largestack siem-export` streams the audit trail as JSON-lines / CEF / LEEF to file / syslog / webhook. (`_enterprise/siem.py`)
+- **Supply chain (LLM03 → partial)** — `largestack sbom` (CycloneDX/SPDX) + CI SBOM artifact + red-team CI gate (bandit/pip-audit/trivy already present); releases use PyPI Trusted Publishing.
+- **Output handling (LLM05 → covered)** — public `OutputSanitizer` neutralizes XSS/script/JS-URI/SQL/shell-meta in model output. (`_guard/output_sanitizer.py`)
+- **SSO** — OIDC ID-token verification (JWKS signature, production-refuses-unsigned, claims/role mapping) is now **behaviorally tested** (RS256 round-trip). (`_enterprise/sso.py`, tests)
+- **Load-test harness** (`scripts/load_test.py`) + **Anthropic live-test** (`tests/integration/test_live_anthropic.py`, skips without a key) + pentest-prep doc. OWASP matrix now **11 covered / 6 partial / 0 not-covered**.
+- **Test-suite hardening:** per-test `timeout = 120` (pytest-timeout) in `[tool.pytest.ini_options]` — a deadlocked / blocking-network test now FAILS instead of hanging the suite. Requires Python ≥3.11 (declared); running the tests on 3.10 is unsupported.
+
+**New — OWASP coverage matrix + guardrail red-team (the wedge, validated):**
+- `largestack.owasp` — a programmatic, honest **OWASP LLM Top 10 (2025) + Agentic (ASI)
+  coverage matrix** (`owasp_coverage()` / `owasp_coverage_summary()`; 10 covered / 6 partial /
+  1 not-covered of 17 mapped risks, gaps stated plainly). Docs page `owasp-coverage.md`; CLI
+  `largestack owasp`.
+- `largestack._test.redteam` — an offline, deterministic **red-team eval** that probes the
+  guards directly (injection / jailbreak / system-prompt-leak / PII / benign false-positive
+  controls). Core attacks are a CI gate; "stretch" cases are reported. CLI `largestack redteam`
+  (exits non-zero if a core attack passes through). Complementary to NVIDIA `garak` (which
+  probes a served endpoint); NeMo Guardrails is intentionally not bundled (native guards).
+- **InjectionGuard hardened (FP-safe):** in PROTECT mode a single **unambiguous-attack**
+  pattern now blocks — explicit overrides (`ignore/disregard/forget … instructions`, proximity-
+  matched), system-prompt-leak, and manipulation (`DAN`, `no restrictions`, `bypass safety`).
+  Ambiguous roleplay phrasing (`pretend you are`, `you are now`, `act as if`) deliberately still
+  requires ≥2 patterns, so legitimate prompts ("pretend you are a tutor", "you are now connected")
+  are NOT false-positived (verified). Red-team core 11/11; jailbreak 1/2 (the `pretend`-style
+  stretch case is intentionally not single-blocked — that's the ML guard's job). Document/RAG
+  context still only warns.
+
+**New — `SecureRAGAgent` (the wedge, composed):** one safe-by-default pipeline that chains
+the existing blocks end-to-end — RBAC gate → input guardrails (PII + injection) → hybrid
+retrieval + optional rerank → trusted chunks → LLM with cost budget → output guardrails →
+groundedness evaluation → citation validation → OTel trace + audit row. Returns a structured
+`SecureRagResult` (policy decisions never raise). Public: `from largestack import SecureRAGAgent`.
+Runnable example `examples/06_secure_rag/` (live-verified on Ollama). Deliberately leaves
+SIEM export and LangSmith out (documented seams) and keeps the vector DB optional.
+
+**Correctness bugs fixed:**
+- LiteLLM error mapping no longer crashes with `TypeError` on auth/rate/timeout errors
+  and surfaces the real cause. (`_core/providers/litellm_prov.py`, `errors.py`)
+- Cost-budget double-count fixed: the engine passed the *cumulative* cost to
+  `LoopGuard.check_cost` each turn (triangular over-count), tripping `BudgetExceededError`
+  far too early on multi-turn runs. Now passes per-turn deltas. (`_core/engine.py`)
+- Loop-detection termination now threads per-run cost/tokens (was reporting 0 / shared
+  tracker). (`_core/engine.py`)
+- DAG `cost_budget` now actually engages (was a dead no-op — node-result cost was never
+  read). (`_orchestrate/dag.py`)
+- Tool-call arguments are coerced to their annotated scalar types (a model sending
+  `"19"` for an `int` no longer string-concatenates). (`_core/tools.py`)
+- A denied tool returns a recoverable tool error instead of aborting the whole run.
+  (`_core/tools.py`)
+- Cost pricing uses longest-prefix matching and a robust (env/cwd/package) overrides
+  path; unknown models price at 0 instead of inheriting an arbitrary model's price.
+  (`_core/cost.py`)
+- Debate accumulates per-round agent cost/tokens (was ~0); `Flow` registers `@listen`
+  handlers once (no duplicate event firing on re-run); `UsageMeter.record()`'s documented
+  keyword form works and never drops a provided cost. (`_orchestrate/*`, `_enterprise/billing.py`)
+
+**Security:**
+- Audit trail is now an **HMAC-keyed** hash chain (key held outside the DB) — a DB-only
+  attacker can no longer forge it. (`_enterprise/audit.py`)
+- SSRF: `NetworkPolicy.public_only()` blocks internal hosts by name (`localhost`,
+  `*.internal`, `*.local`) and validates resolved IPs against deny ranges.
+  (`_security/network.py`)
+- Default `CodeSandbox` subprocess no longer inherits the parent environment (secrets),
+  and the import allowlist is AST-based (multi-statement / `__import__` bypasses closed).
+  (`_security/code_sandbox.py`)
+- `ToolAccessPolicy` (rate limit + parameter validation) is now actually enforced by the
+  runtime when configured, and `check_params` uses `re.fullmatch` (injection through the
+  end of a value no longer slips past). (`_core/tools.py`, `_guard/tool_access.py`)
+- Payment webhook **fails closed** when no signing secret is set (was: accepted any
+  unsigned payload and minted real licenses); license keys are now genuinely
+  **Ed25519-signed** and offline-verifiable. (`_enterprise/payment.py`)
+- `EncryptionManager` KDF hardened (PBKDF2 600k + domain-separated/env salt);
+  `InterAgentAuth` no longer ships a public default HMAC secret and bounds its nonce set.
+- Separator-free SSNs (context-gated) are now redacted; trace content (task/output/error)
+  is redacted on persistence; Google `AIza…` keys added to redaction patterns.
+
+**Observability:**
+- Failed agent runs are now written to the traces table (error-rate was permanently 0%);
+  `finish_reason` reflects the real termination; OpenTelemetry runs are wrapped in a parent
+  span so child spans nest and `trace_id` correlates. (`_core/engine.py`, `_observe/*`)
+- Dashboard cost/error panels query the correct tables/columns (were silently empty); the
+  "runs by hour" chart shows real counts; opt-in `LARGESTACK_AUDIT_EVENTS=1` records
+  per-tool-call / guard-block rows to populate the Tools/Guards panels.
+
+**Implemented (was claimed but missing):**
+- RAG: `create_rag(dense=True)` / `embed_fn=` wires real hybrid BM25 + dense retrieval
+  (was BM25-only despite "hybrid" docs); optional reranking. (`_rag/*`)
+- Typed decorator API routes through native structured output and reports real usage.
+- Saga `resume=True` crash-resume (skips completed steps); `Supervisor` `one_for_all` /
+  `rest_for_one` strategies; NLI hallucination guard actually uses the loaded model.
+
+**Honesty (docs now match behavior):** `anthropic` matrix status `verified→adapter_only`
+(not live-tested); GraphRAG paper benchmark numbers attributed to the source (not this
+impl); ML-guard accuracy figures qualified as opt-in; AG-UI event count corrected; A2A
+described as experimental/not-in-public-API; integration registry env-var names fixed.
+
 ## v1.1.0 — 2026-06-05 — Typed output + cost on DeepSeek, observability accuracy, test trustworthiness
 
 Fixes three real gaps found by live testing against DeepSeek, adds a Tika

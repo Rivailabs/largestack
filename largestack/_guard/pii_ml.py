@@ -1,8 +1,10 @@
-"""Enhanced PII detection with ML models (Presidio + spaCy NER).
+"""Enhanced PII detection with optional ML models (Presidio + spaCy NER).
 
-Pass 1: Presidio regex rules (fast, 0.2ms)
-Pass 2: spaCy NER for context-dependent entities (PERSON, ORG, GPE)
-Falls back to regex-only if models not installed.
+The ML passes run only when enabled (LARGESTACK_ENABLE_ML_PII=1) and the optional
+deps are installed:
+  Pass 1: Presidio regex rules (fast, ~0.2ms)
+  Pass 2: spaCy NER for context-dependent entities (PERSON, ORG, GPE)
+Otherwise this falls back to the built-in regex PII patterns (largestack._guard.pii).
 """
 from __future__ import annotations
 import logging
@@ -26,7 +28,8 @@ class EnhancedPIIGuard(PIIGuard):
         # heavyweight model initialization. Keep the default production-safe and
         # test-friendly: regex detection is always active, ML engines are enabled
         # only by explicit constructor flag or LARGESTACK_ENABLE_ML_PII=1.
-        ml_enabled = os.environ.get("LARGESTACK_ENABLE_ML_PII", "").lower() in ("1", "true", "yes")
+        from largestack._guard.config import ml_guards_enabled
+        ml_enabled = ml_guards_enabled("LARGESTACK_ENABLE_ML_PII")
         if use_presidio is None:
             use_presidio = ml_enabled
         if use_spacy is None:

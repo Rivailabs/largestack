@@ -15,7 +15,7 @@
     # Multi-agent with error recovery
     team = Team(agents=[a1, a2, a3], on_error="skip", retries_per_agent=2)
 """
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 # v0.3.7: auto-install logging redaction filter in production. Strips
 # API keys / Bearer tokens / JWTs from log records before they're emitted.
@@ -60,6 +60,7 @@ else:
     from largestack._guard.pipeline import GuardrailPipeline as Guardrails
     from largestack._guard.pii import PIIGuard
     from largestack._guard.injection import InjectionGuard
+    from largestack._guard.output_sanitizer import OutputSanitizer
     from largestack.guardrails import create_guardrails
 
     from largestack._memory.buffer import ConversationMemory
@@ -71,6 +72,7 @@ else:
     from largestack._memory.shared import SharedMemorySpace
     from largestack.memory import create_memory
     from largestack.rag import create_rag
+    from largestack.secure_rag import SecureRAGAgent, SecureRagResult
     from largestack.observability import Monitor, FeedbackRecord
     from largestack.provider_matrix import provider_support_matrix, get_provider_capabilities, tool_capable_providers, check_connection
     from largestack.autonomous_builder import (
@@ -123,10 +125,10 @@ else:
         "MCPServer", "MCPClient",
         "AgentContext", "SessionStore", "HumanInTheLoop", "AgentRegistry", "AGUIServer", "ToolAccessPolicy", "AgentIdentityManager", "MemoryIntegrityChecker", "InterAgentAuth",
         "steer_before_tool", "steer_after_model", "proceed", "guide", "interrupt", "accept", "discard",
-        "Guardrails", "create_guardrails", "PIIGuard", "InjectionGuard",
+        "Guardrails", "create_guardrails", "PIIGuard", "InjectionGuard", "OutputSanitizer",
         "ConversationMemory", "EpisodicMemory", "ObservationalMemory",
         "ProceduralMemory", "SemanticMemory", "GraphMemory", "SharedMemorySpace",
-        "create_memory", "create_rag", "Monitor", "FeedbackRecord", "provider_support_matrix", "get_provider_capabilities", "tool_capable_providers", "check_connection",
+        "create_memory", "create_rag", "SecureRAGAgent", "SecureRagResult", "Monitor", "FeedbackRecord", "provider_support_matrix", "get_provider_capabilities", "tool_capable_providers", "check_connection",
         "AutonomousProjectBuilder", "BuilderBudget", "BuildReport", "GeneratedFile", "NoOpMemory",
         "PatchSet", "ProjectBuildPlan", "ProjectSpec", "RepairAttempt", "ValidationResult",
         "AgentResult", "ToolCall", "ToolResult", "LLMResponse", "CostEstimate",

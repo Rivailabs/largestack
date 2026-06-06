@@ -1,9 +1,9 @@
 """AG-UI (Agent-User Interaction Protocol) — streaming events to frontends.
 
-Completes the protocol trifecta: MCP (tools) + A2A (agents) + AG-UI (frontend).
-No other framework has all three.
+Part of the protocol set: MCP (tools, public) + AG-UI (frontend, public) + A2A
+(agent-to-agent, experimental, in largestack._a2a — not in the top-level public API).
 
-AG-UI streams ~16 event types over SSE:
+AG-UI streams 26 event types over SSE (see the EventType enum below):
   LIFECYCLE: run_started, run_finished, run_error
   TEXT:      text_message_start, text_message_content, text_message_end
   TOOL:     tool_call_start, tool_call_args, tool_call_end

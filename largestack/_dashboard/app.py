@@ -259,12 +259,14 @@ def create_app() -> FastAPI:
         
         # Cost over time (hourly buckets last 24h)
         cost_rows = _db_query(AUDIT_DB,
-            "SELECT CAST((timestamp - ?) / 3600 AS INTEGER) as h, SUM(cost) as c "
+            "SELECT CAST((timestamp - ?) / 3600 AS INTEGER) as h, SUM(cost) as c, COUNT(*) as n "
             "FROM audit_log WHERE timestamp > ? GROUP BY h ORDER BY h",
             (time.time()-86400, time.time()-86400))
-        
+
         labels = [f"-{23-r['h']}h" for r in cost_rows] or ["No data"]
         data = [round(r["c"] or 0, 4) for r in cost_rows] or [0]
+        # v1.1.1: real per-hour run counts (was hardcoded [1] per bucket).
+        run_data = [r["n"] or 0 for r in cost_rows] or [0]
         
         content = f"""
         <h2>Last 24 Hours</h2>
@@ -309,7 +311,7 @@ def create_app() -> FastAPI:
               labels: {json.dumps(labels)},
               datasets: [{{
                 label: 'Runs',
-                data: {json.dumps([1] * len(labels))},
+                data: {json.dumps(run_data)},
                 backgroundColor: '#7c6cf0',
               }}]
             }},
@@ -348,9 +350,11 @@ def create_app() -> FastAPI:
     @app.get("/costs", response_class=HTMLResponse, dependencies=_build_protected_deps())
     def costs(request: Request):
         nonce = getattr(request.state, "csp_nonce", "")
-        # Cost by model
-        rows = _db_query(AUDIT_DB,
-            "SELECT model, SUM(cost) as c, COUNT(*) as n FROM audit_log "
+        # Cost by model. v1.1.1: source from `traces` (has model+cost+per-run rows).
+        # The old audit_log query referenced a non-existent `model` column and
+        # silently returned nothing.
+        rows = _db_query(TRACE_DB,
+            "SELECT model, SUM(cost) as c, COUNT(*) as n FROM traces "
             "WHERE timestamp > ? AND model IS NOT NULL GROUP BY model ORDER BY c DESC",
             (time.time() - 7*86400,))
         
@@ -416,8 +420,10 @@ def create_app() -> FastAPI:
     @app.get("/tools", response_class=HTMLResponse, dependencies=_build_protected_deps())
     def tools_view(request: Request):
         nonce = getattr(request.state, "csp_nonce", "")
+        # v1.1.1: correct column is event_type (not `event`). Populated when
+        # LARGESTACK_AUDIT_EVENTS=1 records per-tool-call audit rows.
         rows = _db_query(AUDIT_DB,
-            "SELECT action as tool, COUNT(*) as n FROM audit_log WHERE event='tool.call' GROUP BY action ORDER BY n DESC LIMIT 20")
+            "SELECT action as tool, COUNT(*) as n FROM audit_log WHERE event_type='tool.call' GROUP BY action ORDER BY n DESC LIMIT 20")
         if not rows:
             content = '<div class="card"><div class="empty">No tool calls recorded.</div></div>'
         else:
@@ -446,8 +452,10 @@ def create_app() -> FastAPI:
     @app.get("/guards", response_class=HTMLResponse, dependencies=_build_protected_deps())
     def guards(request: Request):
         nonce = getattr(request.state, "csp_nonce", "")
+        # v1.1.1: correct column is event_type (not `event`). Populated when
+        # LARGESTACK_AUDIT_EVENTS=1 records guard-block audit rows.
         rows = _db_query(AUDIT_DB,
-            "SELECT event, COUNT(*) as n FROM audit_log WHERE event LIKE 'guard.%' GROUP BY event")
+            "SELECT action as event, COUNT(*) as n FROM audit_log WHERE event_type LIKE 'guard.%' GROUP BY action")
         if not rows:
             content = '<div class="card"><div class="empty">No guardrail events. All requests passed cleanly.</div></div>'
         else:
@@ -505,7 +513,9 @@ def create_app() -> FastAPI:
         nonce = getattr(request.state, "csp_nonce", "")
         alerts_list = []
         # Check circuit breaker states, recent errors
-        errs = _db_query(AUDIT_DB, "SELECT COUNT(*) as n FROM audit_log WHERE event='agent.error' AND timestamp > ?",
+        # v1.1.1: failed runs are recorded as event_type='agent.run', action='failed'
+        # (the old event='agent.error' column/value never existed).
+        errs = _db_query(AUDIT_DB, "SELECT COUNT(*) as n FROM audit_log WHERE event_type='agent.run' AND action='failed' AND timestamp > ?",
                         (time.time() - 3600,))
         err_count = errs[0]["n"] if errs else 0
         if err_count > 10:

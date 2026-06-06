@@ -23,19 +23,18 @@ class Flow:
             if event not in self._listeners:
                 self._listeners[event] = []
             self._listeners[event].append(fn)
+            # v1.1.1: register on the bus once, here at decoration time. Doing it
+            # inside run() re-registered every handler on each run(), so a reused
+            # Flow fired each listener N times (duplicate side effects).
+            self._bus.on(event, fn)
             return fn
         return decorator
-    
+
     async def run(self, initial_input: Any = None) -> Any:
         """Execute the flow starting from @start."""
         if not self._start_fn:
             raise RuntimeError("No @start function defined")
-        
-        # Register listeners
-        for event, handlers in self._listeners.items():
-            for handler in handlers:
-                self._bus.on(event, handler)
-        
+
         # Run start function
         result = self._start_fn(initial_input) if not asyncio.iscoroutinefunction(self._start_fn) \
             else await self._start_fn(initial_input)
