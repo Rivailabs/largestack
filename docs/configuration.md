@@ -7,6 +7,11 @@ Largestack AI uses a 4-level configuration hierarchy:
 3. **YAML config** — `largestack.yaml` in project root or `~/.largestack/config.yaml`
 4. **Code** — `Agent(cost_budget=10.0)` overrides everything
 
+### Provider API keys
+- A `.env` in the project (or a parent dir) **auto-loads** on `import largestack` — it never overrides an already-set variable (real shell/CI/Docker secrets win). Disable with `LARGESTACK_NO_DOTENV=1`.
+- Key resolution per provider: `LARGESTACK_<PROVIDER>_API_KEY` → the provider's conventional name (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`/`GOOGLE_API_KEY`, …) → a `*_api_key` field in `providers.yaml`.
+- `largestack setup` writes a `.env` for you (and gitignores it).
+
 ## Full Configuration Reference
 
 ```yaml

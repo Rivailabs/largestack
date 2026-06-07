@@ -26,6 +26,14 @@ You should see the version printed (e.g. `1.1.1`). Python 3.11+ is recommended.
 
 ## 2. Set your provider key
 
+**Fastest path — the setup wizard** (writes a gitignored `.env` for you):
+
+```bash
+largestack setup                 # interactive: pick provider, paste key
+# or non-interactive / CI:
+largestack setup --provider deepseek --api-key sk-... --model deepseek/deepseek-chat
+```
+
 Largestack reads provider keys from environment variables named `LARGESTACK_<PROVIDER>_API_KEY`, and the default model from `LARGESTACK_DEFAULT_LLM`. Set the variables for the provider you use:
 
 | Provider | Env var | Example model string | Status |
@@ -63,7 +71,11 @@ export LARGESTACK_ENABLE_OLLAMA=1
 export LARGESTACK_DEFAULT_LLM="ollama/llama3.2"
 ```
 
-> **`.env` is not auto-loaded.** There is no setup wizard yet. If you keep keys in a `.env` file, export them into your shell yourself (e.g. `set -a; source .env; set +a`) or use a loader like `python-dotenv` before importing largestack. The variable must be present in `os.environ` when the agent runs. See [Provider Support](provider-support.md) for the full matrix and [Local LLM](local-llm.md) for Ollama / OpenAI-compatible endpoints.
+> **`.env` auto-loads.** On `import largestack`, a `.env` in the current directory (or a parent) is loaded into the environment — it does **not** override variables already set (real shell/CI/Docker secrets always win). Disable with `LARGESTACK_NO_DOTENV=1`.
+>
+> **Existing keys work too.** If `LARGESTACK_<PROVIDER>_API_KEY` is unset, largestack falls back to the provider's conventional name — e.g. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, or `GEMINI_API_KEY`/`GOOGLE_API_KEY` — so a key you already have set is picked up automatically.
+>
+> See [Provider Support](provider-support.md) for the full matrix and [Local LLM](local-llm.md) for Ollama / OpenAI-compatible endpoints.
 
 ---
 

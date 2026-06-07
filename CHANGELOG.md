@@ -10,7 +10,16 @@ over-claims so docs match behavior. See
 [`release_evidence/RELEASE_REVIEW_2026-06-07.md`](release_evidence/RELEASE_REVIEW_2026-06-07.md)
 for the full release-gate evidence (real command outputs).
 
-- **2610 passing** (tests/, canonical CI environment, all extras installed).
+- **2622 passing** (tests/, canonical CI environment, all extras installed).
+
+**Onboarding UX (first-run, backward-compatible):**
+- **`.env` auto-loads** on `import largestack` (nearest `.env` in cwd/parents) — never
+  overrides already-set vars; opt out with `LARGESTACK_NO_DOTENV=1`. Zero new deps.
+- **Standard-key fallback:** when `LARGESTACK_<PROVIDER>_API_KEY` is unset, the provider's
+  conventional env name is used (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+  `GEMINI_API_KEY`/`GOOGLE_API_KEY`, `GROQ_API_KEY`, …) so existing keys "just work".
+- **`largestack setup`** — interactive (or `--provider/--api-key/--model` for CI) first-run
+  wizard that writes a gitignored `.env`. (`largestack/_core/env.py`, `_cli/main.py`)
 
 **Documentation cleanup:** removed ~60 internal/point-in-time/duplicate doc files
 (release-ops reports, `FINAL_*`/`*_READINESS`/archive, marketing copy, the broken India

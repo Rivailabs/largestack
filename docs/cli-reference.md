@@ -11,6 +11,7 @@ largestack --help
 | Command | What it does |
 |---|---|
 | `largestack version` | Show the installed version. |
+| `largestack setup` | First-run: pick a provider, store its key in a gitignored `.env` (interactive, or `--provider/--api-key/--model` for CI). |
 | `largestack init` | Initialize a production-shaped project in the current directory. |
 | `largestack new` | Create a new project from a template (`largestack templates` to list). |
 | `largestack templates` | List and explain the bundled project templates. |
