@@ -26,6 +26,7 @@ except ImportError:  # pragma: no cover - fallback for minimal/offline installs
 
 from largestack._core.config import LargestackConfig, get_config
 from largestack._core.cost import CostTracker
+from largestack._core.env import resolve_provider_key
 from largestack._core.events import bus
 from largestack._core.providers.base import BaseProvider
 from largestack._core.semantic_cache import SemanticCache
@@ -191,9 +192,8 @@ class LLMGateway:
             ("lepton", "lepton_api_key", "largestack._core.providers.lepton_prov.LeptonProvider"),
             ("nvidia", "nvidia_api_key", "largestack._core.providers.nvidia_prov.NVIDIAProvider"),
         ]:
-            key = getattr(c, key_field, "") or os.environ.get(
-                f"LARGESTACK_{pname.upper()}_API_KEY", ""
-            )
+            # config field → LARGESTACK_<P>_API_KEY → provider's conventional env name
+            key = getattr(c, key_field, "") or resolve_provider_key(pname)
             if key:
                 import importlib
 

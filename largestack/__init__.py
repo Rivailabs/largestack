@@ -23,6 +23,16 @@ __version__ = "1.1.1"
 # Disable via LARGESTACK_DISABLE_LOG_REDACTION=1 (not recommended).
 import os as _os
 
+# v1.1.1: load a project .env into the environment on import (first-run convenience).
+# Does NOT override already-set vars (shell/CI/Docker secrets always win). Opt out
+# with LARGESTACK_NO_DOTENV=1. Zero-dependency minimal parser.
+try:
+    from largestack._core.env import load_dotenv as _load_dotenv
+
+    _load_dotenv()
+except Exception:
+    pass  # never let .env loading break package import
+
 if _os.environ.get("LARGESTACK_DISABLE_LOG_REDACTION", "").lower() not in ("1", "true", "yes"):
     try:
         from largestack._observe.log_redaction import install_redaction_filter

@@ -112,6 +112,116 @@ def init(
     )
 
 
+# provider -> (LARGESTACK key env var, suggested default model, needs a key?)
+_SETUP_PROVIDERS: dict[str, tuple[str, str, bool]] = {
+    "openai": ("LARGESTACK_OPENAI_API_KEY", "openai/gpt-4o-mini", True),
+    "deepseek": ("LARGESTACK_DEEPSEEK_API_KEY", "deepseek/deepseek-chat", True),
+    "anthropic": ("LARGESTACK_ANTHROPIC_API_KEY", "anthropic/claude-sonnet-4-6", True),
+    "google": ("LARGESTACK_GOOGLE_API_KEY", "google/gemini-2.5-flash", True),
+    "groq": ("LARGESTACK_GROQ_API_KEY", "groq/llama-3.3-70b-versatile", True),
+    "mistral": ("LARGESTACK_MISTRAL_API_KEY", "mistral/mistral-large-latest", True),
+    "xai": ("LARGESTACK_XAI_API_KEY", "xai/grok-2", True),
+    "cerebras": ("LARGESTACK_CEREBRAS_API_KEY", "cerebras/llama-3.3-70b", True),
+    "openrouter": ("LARGESTACK_OPENROUTER_API_KEY", "openrouter/auto", True),
+    "nvidia": ("LARGESTACK_NVIDIA_API_KEY", "nvidia/meta/llama-3.1-70b-instruct", True),
+    "ollama": ("", "ollama/llama3.2", False),
+}
+
+
+def _env_set(lines: list[str], key: str, value: str) -> list[str]:
+    """Update KEY=… in place, or append it. Preserves all other lines."""
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith(f"{key}="):
+            lines[i] = f"{key}={value}"
+            return lines
+    lines.append(f"{key}={value}")
+    return lines
+
+
+@app.command()
+def setup(
+    provider: str = typer.Option(
+        None, "--provider", "-p", help="openai|deepseek|anthropic|google|groq|mistral|xai|cerebras|openrouter|nvidia|ollama"
+    ),
+    api_key: str = typer.Option(None, "--api-key", help="API key (prompted, hidden, if omitted)"),
+    model: str = typer.Option(None, "--model", "-m", help="Default model string"),
+    path: str = typer.Option(".", "--path", help="Project directory to write .env into"),
+    verify: bool = typer.Option(False, "--verify/--no-verify", help="Test the key with one live call"),
+):
+    """First-run setup: pick a provider and store its key in a local .env (gitignored).
+
+    Interactive by default; pass --provider/--api-key/--model for non-interactive/CI use.
+    """
+    interactive = provider is None
+    if interactive:
+        console.print("[bold]largestack setup[/bold] — configure a provider (writes .env)")
+        for i, name in enumerate(_SETUP_PROVIDERS, 1):
+            console.print(f"  {i}. {name}")
+        choice = typer.prompt("Choose a provider (name or number)", default="openai").strip()
+        names = list(_SETUP_PROVIDERS)
+        provider = (
+            names[int(choice) - 1]
+            if choice.isdigit() and 1 <= int(choice) <= len(names)
+            else choice.lower()
+        )
+    provider = (provider or "").lower()
+    if provider not in _SETUP_PROVIDERS:
+        console.print(f"[red]Unknown provider '{provider}'. Options: {', '.join(_SETUP_PROVIDERS)}[/red]")
+        raise typer.Exit(1)
+    env_var, default_model, needs_key = _SETUP_PROVIDERS[provider]
+    model = model or default_model
+    if needs_key and not api_key:
+        if interactive:
+            api_key = typer.prompt(f"Paste your {provider} API key", hide_input=True).strip()
+        else:
+            console.print("[red]--api-key is required for non-interactive setup[/red]")
+            raise typer.Exit(1)
+
+    proj = Path(path)
+    proj.mkdir(parents=True, exist_ok=True)
+    env_path = proj / ".env"
+    lines = env_path.read_text().splitlines() if env_path.exists() else []
+    if needs_key:
+        lines = _env_set(lines, env_var, api_key)
+    lines = _env_set(lines, "LARGESTACK_DEFAULT_MODEL", model)
+    if provider == "ollama":
+        lines = _env_set(lines, "LARGESTACK_ENABLE_OLLAMA", "1")
+    env_path.write_text("\n".join(lines) + "\n")
+
+    # never let .env be committed
+    gi = proj / ".gitignore"
+    existing = gi.read_text() if gi.exists() else ""
+    if ".env" not in existing.split():
+        sep = "" if (existing == "" or existing.endswith("\n")) else "\n"
+        gi.write_text(existing + sep + ".env\n")
+
+    console.print(
+        Panel.fit(
+            f"Wrote [green]{env_path}[/green]\n"
+            f"  provider: {provider}\n"
+            f"  default model: {model}\n"
+            + (f"  key var: {env_var} (set)\n" if needs_key else "  (local Ollama — no key)\n")
+            + "\n.env auto-loads on `import largestack` (set LARGESTACK_NO_DOTENV=1 to disable).\n"
+            "Next:  largestack doctor",
+            title="setup complete",
+        )
+    )
+    if verify and needs_key:
+        console.print("Verifying with one live call…")
+        try:
+            import asyncio
+
+            from largestack import check_connection
+
+            res = check_connection(model)
+            if asyncio.iscoroutine(res):
+                res = asyncio.run(res)
+            ok = res.get("ok") if isinstance(res, dict) else getattr(res, "ok", None)
+            console.print(f"  check_connection: {'OK ✓' if ok else 'FAILED'} — {res}")
+        except Exception as exc:
+            console.print(f"  [yellow]verify skipped: {exc}[/yellow]")
+
+
 @app.command()
 def doctor():
     """Diagnose Largestack AI setup and the current project scaffold."""
