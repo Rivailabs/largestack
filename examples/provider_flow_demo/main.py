@@ -18,6 +18,7 @@ Examples:
     LARGESTACK_DEFAULT_MODEL=anthropic/claude-sonnet-4-6 \
     python examples/provider_flow_demo/main.py
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -98,9 +99,21 @@ async def run_demo() -> None:
             result = await workflow.run({"task": task})
         else:
             with (
-                intake.override(model=TestModel(custom_output_text="Goal: support AI with ticket classification, RAG, drafting, and escalation.")),
-                planner.override(model=TestModel(custom_output_text="Plan: intake ticket -> classify -> retrieve docs -> draft answer -> escalate if risky.")),
-                responder.override(model=TestModel(custom_output_text="Final: build the flow as a guarded DAG with RAG and human escalation for risky tickets.")),
+                intake.override(
+                    model=TestModel(
+                        custom_output_text="Goal: support AI with ticket classification, RAG, drafting, and escalation."
+                    )
+                ),
+                planner.override(
+                    model=TestModel(
+                        custom_output_text="Plan: intake ticket -> classify -> retrieve docs -> draft answer -> escalate if risky."
+                    )
+                ),
+                responder.override(
+                    model=TestModel(
+                        custom_output_text="Final: build the flow as a guarded DAG with RAG and human escalation for risky tickets."
+                    )
+                ),
             ):
                 result = await workflow.run({"task": task})
 

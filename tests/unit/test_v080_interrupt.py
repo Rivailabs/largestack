@@ -1,4 +1,5 @@
 """v0.8.0: Human-in-the-loop interrupt tests."""
+
 from __future__ import annotations
 
 import asyncio
@@ -17,6 +18,7 @@ from largestack._workflow import (
 
 
 # -------------------- interrupt() primitive --------------------
+
 
 def test_interrupt_raises_exception():
     with pytest.raises(InterruptException):
@@ -60,9 +62,11 @@ def test_resume_with_helper():
 
 # -------------------- HumanInTheLoop callback path --------------------
 
+
 @pytest.mark.asyncio
 async def test_hitl_with_async_callback():
     """Async callback is awaited and its return value used as answer."""
+
     async def fake_ui(prompt: str) -> str:
         return f"answer to: {prompt}"
 
@@ -76,8 +80,10 @@ async def test_hitl_with_async_callback():
 @pytest.mark.asyncio
 async def test_hitl_with_sync_callback():
     """Sync callback is called and its return value used."""
+
     def fake_ui(prompt: str) -> str:
         return "yes"
+
     hitl = HumanInTheLoop(callback=fake_ui)
     result = await hitl.ask("OK?")
     assert result == "yes"
@@ -93,8 +99,10 @@ async def test_hitl_validates_prompt():
 @pytest.mark.asyncio
 async def test_hitl_callback_failure_uses_default():
     """If callback raises, return default and record the error."""
+
     async def broken_ui(prompt: str):
         raise RuntimeError("UI disconnected")
+
     hitl = HumanInTheLoop(callback=broken_ui)
     result = await hitl.ask("Q?", default="fallback")
     assert result == "fallback"
@@ -105,6 +113,7 @@ async def test_hitl_callback_failure_uses_default():
 @pytest.mark.asyncio
 async def test_hitl_timeout_uses_default():
     """If async callback times out, return default."""
+
     async def slow_ui(prompt: str):
         await asyncio.sleep(10)  # never returns in time
         return "late"
@@ -119,6 +128,7 @@ async def test_hitl_timeout_uses_default():
 async def test_hitl_validates_choices_re_asks_once():
     """Invalid answer → reask once. If still invalid → default."""
     answers = iter(["maybe", "yes"])
+
     async def fake_ui(prompt: str):
         return next(answers)
 
@@ -133,8 +143,10 @@ async def test_hitl_validates_choices_re_asks_once():
 @pytest.mark.asyncio
 async def test_hitl_invalid_twice_returns_default():
     answers = iter(["bad1", "bad2"])
+
     async def fake_ui(prompt: str):
         return next(answers)
+
     hitl = HumanInTheLoop(callback=fake_ui)
     result = await hitl.ask("OK?", choices=["yes", "no"], default="no")
     assert result == "no"
@@ -148,9 +160,11 @@ def test_hitl_rejects_non_callable():
 
 # -------------------- Integration with Graph workflow --------------------
 
+
 @pytest.mark.asyncio
 async def test_graph_node_can_use_hitl():
     """A graph node can call hitl.ask and proceed normally."""
+
     async def callback(prompt: str) -> str:
         return "approve"
 
@@ -172,6 +186,7 @@ async def test_graph_node_can_use_hitl():
 @pytest.mark.asyncio
 async def test_interrupt_exception_propagates_through_graph():
     """If a node calls interrupt(), the exception propagates out of run()."""
+
     def review_node(state):
         if state["amount"] > 100_000:
             interrupt("Approve large amount?", interrupt_id="big_x", default="deny")

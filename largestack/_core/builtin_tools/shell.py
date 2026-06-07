@@ -18,17 +18,31 @@ This is still NOT a security boundary against a determined attacker. It is
 a "least-privilege" guard for a tool that LLMs may invoke with their own
 generated arguments. For untrusted inputs, run this in a sandbox container.
 """
+
 from __future__ import annotations
 import shlex
 from largestack._core.tools import tool
 
 ALLOWED_COMMANDS = {
-    "ls", "cat", "head", "tail", "wc", "grep", "find",
-    "echo", "date", "pwd", "whoami", "uname", "df", "du", "env",
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "wc",
+    "grep",
+    "find",
+    "echo",
+    "date",
+    "pwd",
+    "whoami",
+    "uname",
+    "df",
+    "du",
+    "env",
 }
 
 # Shell metacharacters that enable command chaining, redirection, expansion.
-_FORBIDDEN_CHARS = set(";&|<>`$\n\r\\\"")
+_FORBIDDEN_CHARS = set(';&|<>`$\n\r\\"')
 _FORBIDDEN_SUBSTRINGS = ("&&", "||", ">>", "<<", "$(", "${")
 
 
@@ -94,10 +108,7 @@ async def shell_command(command: str) -> str:
 
     cmd_name = tokens[0]
     if cmd_name not in ALLOWED_COMMANDS:
-        return (
-            f"Command '{cmd_name}' not allowed. "
-            f"Allowed: {', '.join(sorted(ALLOWED_COMMANDS))}"
-        )
+        return f"Command '{cmd_name}' not allowed. Allowed: {', '.join(sorted(ALLOWED_COMMANDS))}"
 
     # Step 3 — exec, no shell.
     try:
@@ -117,6 +128,5 @@ async def shell_command(command: str) -> str:
         await _terminate_process_safely(proc)
         return "Command timed out after 10s"
 
-    out = (stdout.decode("utf-8", errors="replace")
-           + stderr.decode("utf-8", errors="replace"))
+    out = stdout.decode("utf-8", errors="replace") + stderr.decode("utf-8", errors="replace")
     return out.strip()[:3000] or "(no output)"

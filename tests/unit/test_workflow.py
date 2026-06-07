@@ -1,6 +1,8 @@
 """Tests for Workflow public API."""
+
 import asyncio
 from largestack.workflow import Workflow
+
 
 def test_dag_workflow():
     wf = Workflow("test", mode="dag")
@@ -8,6 +10,7 @@ def test_dag_workflow():
     wf.add_node("b", lambda s: {**s, "result": s["step"] * 10}, deps=["a"])
     r = asyncio.run(wf.run({}))
     assert r["result"] == 10
+
 
 def test_state_machine_workflow():
     wf = Workflow("test", mode="state_machine")

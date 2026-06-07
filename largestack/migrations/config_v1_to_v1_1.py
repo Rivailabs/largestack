@@ -1,4 +1,5 @@
 """Migrate v1 YAML config files to the v1.1-compatible shape."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -46,4 +47,9 @@ def migrate_config(path: str | Path, *, write: bool = False) -> dict[str, Any]:
 def check_config(path: str | Path) -> dict[str, Any]:
     data = migrate_config(path, write=False)
     missing = [k for k in DEFAULTS if k not in data]
-    return {"path": str(path), "ok": not missing, "missing": missing, "schema_version": data.get("schema_version")}
+    return {
+        "path": str(path),
+        "ok": not missing,
+        "missing": missing,
+        "schema_version": data.get("schema_version"),
+    }

@@ -4,6 +4,7 @@ This module is intentionally small and stdlib-first: it gives Largestack a
 first-class capability for generating project workspaces, validating them, and
 repairing them with bounded, auditable patches.
 """
+
 from __future__ import annotations
 
 import json
@@ -270,7 +271,9 @@ def _python_executable() -> str:
 def run_pytest(path: Path) -> dict[str, Any]:
     if not (path / "tests").exists():
         return {"returncode": 1, "stdout": "missing tests directory"}
-    return run_cmd([_python_executable(), "-m", "pytest", "tests", "-q", "--tb=short"], path, timeout=90)
+    return run_cmd(
+        [_python_executable(), "-m", "pytest", "tests", "-q", "--tb=short"], path, timeout=90
+    )
 
 
 def run_acceptance(path: Path, code: str) -> dict[str, Any]:
@@ -302,7 +305,9 @@ def validate_project(project_path: Path, acceptance_code: str) -> ValidationResu
     )
 
 
-def classify_failure(validation: ValidationResult, json_valid: bool = True, files: list[str] | None = None) -> str:
+def classify_failure(
+    validation: ValidationResult, json_valid: bool = True, files: list[str] | None = None
+) -> str:
     bits: list[str] = []
     if not json_valid:
         bits.append("invalid_json")
@@ -312,7 +317,9 @@ def classify_failure(validation: ValidationResult, json_valid: bool = True, file
     return ",".join(bits) if bits else "none"
 
 
-def build_failure_feedback(validation: ValidationResult, *, json_valid: bool, files: list[str]) -> str:
+def build_failure_feedback(
+    validation: ValidationResult, *, json_valid: bool, files: list[str]
+) -> str:
     messages: list[str] = []
     if not json_valid:
         messages.append("The previous response was not valid JSON for the requested schema.")
@@ -470,7 +477,10 @@ class AutonomousProjectBuilder:
         )
 
     def _budget_exceeded(self, started: float, tokens: int) -> bool:
-        return tokens > self.budget.max_tokens or (time.monotonic() - started) > self.budget.max_seconds
+        return (
+            tokens > self.budget.max_tokens
+            or (time.monotonic() - started) > self.budget.max_seconds
+        )
 
     def _attempt(
         self,
@@ -626,7 +636,9 @@ def make_static_agent(responses: list[str]) -> Any:
         async def run(self, prompt: str, **kw: Any) -> ModelRunResult:
             self.calls += 1
             content = self.items.pop(0) if self.items else "{}"
-            return ModelRunResult(content=content, trace_id=build_trace_id("test"), total_tokens=len(prompt) // 4)
+            return ModelRunResult(
+                content=content, trace_id=build_trace_id("test"), total_tokens=len(prompt) // 4
+            )
 
     return _StaticAgent(responses)
 

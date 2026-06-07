@@ -1,4 +1,5 @@
 """Hello World using the configured provider."""
+
 from pathlib import Path
 import sys
 
@@ -8,7 +9,13 @@ from largestack import Agent
 
 
 async def main():
-    agent = Agent(name="hello", instructions="Keep responses brief.", llm=select_model(), guardrails=False, cost_budget=0.10)
+    agent = Agent(
+        name="hello",
+        instructions="Keep responses brief.",
+        llm=select_model(),
+        guardrails=False,
+        cost_budget=0.10,
+    )
     try:
         result = await agent.run("What is the meaning of life? One sentence.", timeout=90)
         print(f"Agent: {result.content}\nCost: ${result.total_cost:.4f}")

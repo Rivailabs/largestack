@@ -10,9 +10,7 @@ from typing import Any
 from largestack._core.tools import tool
 
 
-SAFE_NAMES: dict[str, Any] = {
-    k: v for k, v in math.__dict__.items() if not k.startswith("_")
-}
+SAFE_NAMES: dict[str, Any] = {k: v for k, v in math.__dict__.items() if not k.startswith("_")}
 SAFE_NAMES.update(
     {
         "abs": abs,

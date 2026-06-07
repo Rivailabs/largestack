@@ -21,6 +21,7 @@ Architecture::
 This is a separate module from the legacy ``code_agent`` to avoid
 breaking existing imports. Use ``CodeAgentV11`` for new code.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -55,6 +56,7 @@ Rules:
 @dataclass
 class CodeStep:
     """One step of CodeAgent execution."""
+
     step_number: int
     thought: str = ""
     code: str = ""
@@ -67,6 +69,7 @@ class CodeStep:
 @dataclass
 class CodeAgentResult:
     """Full result of CodeAgentV11.run."""
+
     final_answer: str = ""
     steps: list[CodeStep] = field(default_factory=list)
     total_llm_calls: int = 0
@@ -79,17 +82,20 @@ class CodeAgentResult:
 
 
 THOUGHT_RE = re.compile(
-    r"<thought>(.*?)</thought>", re.DOTALL | re.IGNORECASE,
+    r"<thought>(.*?)</thought>",
+    re.DOTALL | re.IGNORECASE,
 )
 CODE_RE = re.compile(
     r"<code>\s*```(?:python)?\s*\n?(.*?)```\s*</code>",
     re.DOTALL | re.IGNORECASE,
 )
 CODE_FALLBACK_RE = re.compile(
-    r"```(?:python)?\s*\n(.*?)```", re.DOTALL,
+    r"```(?:python)?\s*\n(.*?)```",
+    re.DOTALL,
 )
 FINAL_RE = re.compile(
-    r"<final>(.*?)</final>", re.DOTALL | re.IGNORECASE,
+    r"<final>(.*?)</final>",
+    re.DOTALL | re.IGNORECASE,
 )
 
 
@@ -149,13 +155,20 @@ class CodeAgentV11:
         self.tools = list(tools or [])
         self.tool_map: dict[str, Callable] = {
             (getattr(t, "_tool_schema", {}) or {}).get(
-                "name", getattr(t, "__name__", f"tool{i}"),
+                "name",
+                getattr(t, "__name__", f"tool{i}"),
             ): t
             for i, t in enumerate(self.tools)
         }
         self.allowed_modules = allowed_modules or [
-            "math", "json", "re", "datetime", "collections", "itertools",
-            "functools", "statistics",
+            "math",
+            "json",
+            "re",
+            "datetime",
+            "collections",
+            "itertools",
+            "functools",
+            "statistics",
         ]
         self.sandbox = sandbox or CodeInterpreter(
             timeout_seconds=15,

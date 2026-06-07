@@ -23,7 +23,9 @@ Optional dependencies (loaders gracefully report when missing):
 - python-docx for DOCX
 - beautifulsoup4 + httpx for HTML
 - pyyaml for YAML
+- tika for the explicit Apache Tika Python backend
 """
+
 from __future__ import annotations
 import asyncio
 import csv
@@ -40,6 +42,7 @@ log = logging.getLogger("largestack.loaders")
 
 # -------------------- Plain text --------------------
 
+
 async def load_text(path: str, encoding: str = "utf-8") -> list[dict]:
     """Load a plain-text file as a single document.
 
@@ -52,6 +55,7 @@ async def load_text(path: str, encoding: str = "utf-8") -> list[dict]:
         ``[{"content": str, "metadata": {...}}]``
     """
     try:
+
         async def _read():
             try:
                 with open(path, "r", encoding=encoding) as f:
@@ -59,6 +63,7 @@ async def load_text(path: str, encoding: str = "utf-8") -> list[dict]:
             except UnicodeDecodeError:
                 with open(path, "r", encoding="latin-1") as f:
                     return f.read()
+
         text = await asyncio.to_thread(lambda: _read_sync(path, encoding))
     except FileNotFoundError:
         return [{"content": "", "metadata": {"error": f"file not found: {path}"}}]
@@ -98,9 +103,10 @@ async def load_markdown(path: str) -> list[dict]:
     m = _FRONTMATTER_RE.match(text)
     if m:
         fm_raw = m.group(1)
-        body = text[m.end():]
+        body = text[m.end() :]
         try:
             import yaml  # type: ignore
+
             fm = yaml.safe_load(fm_raw)
             if isinstance(fm, dict):
                 metadata.update(fm)
@@ -115,6 +121,7 @@ async def load_markdown(path: str) -> list[dict]:
 
 # -------------------- PDF --------------------
 
+
 async def load_pdf(path: str) -> list[dict]:
     """Load a PDF, one document per page.
 
@@ -123,10 +130,12 @@ async def load_pdf(path: str) -> list[dict]:
     try:
         from pypdf import PdfReader
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "PDF loader needs: pip install pypdf"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "PDF loader needs: pip install pypdf"},
+            }
+        ]
 
     def _extract():
         reader = PdfReader(path)
@@ -150,6 +159,7 @@ async def load_pdf(path: str) -> list[dict]:
 
 # -------------------- DOCX --------------------
 
+
 async def load_docx(path: str) -> list[dict]:
     """Load a .docx file as a single document (paragraphs joined by newline).
 
@@ -158,10 +168,12 @@ async def load_docx(path: str) -> list[dict]:
     try:
         import docx  # type: ignore  (python-docx)
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "DOCX loader needs: pip install python-docx"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "DOCX loader needs: pip install python-docx"},
+            }
+        ]
 
     def _read():
         d = docx.Document(path)
@@ -179,6 +191,7 @@ async def load_docx(path: str) -> list[dict]:
 
 # -------------------- HTML --------------------
 
+
 async def load_html(path_or_url: str, *, fetch_remote: bool = True) -> list[dict]:
     """Load an HTML file or URL. Strips tags, returns clean text.
 
@@ -191,22 +204,27 @@ async def load_html(path_or_url: str, *, fetch_remote: bool = True) -> list[dict
     try:
         from bs4 import BeautifulSoup  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "HTML loader needs: pip install beautifulsoup4"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "HTML loader needs: pip install beautifulsoup4"},
+            }
+        ]
 
     is_url = path_or_url.startswith(("http://", "https://"))
     if is_url and fetch_remote:
         try:
             import httpx
+
             async with httpx.AsyncClient(timeout=15) as c:
                 r = await c.get(path_or_url, follow_redirects=True)
                 if r.status_code >= 400:
-                    return [{
-                        "content": "",
-                        "metadata": {"error": f"HTTP {r.status_code} fetching {path_or_url}"},
-                    }]
+                    return [
+                        {
+                            "content": "",
+                            "metadata": {"error": f"HTTP {r.status_code} fetching {path_or_url}"},
+                        }
+                    ]
                 raw = r.text
         except Exception as e:
             return [{"content": "", "metadata": {"error": f"HTTP fetch failed: {e}"}}]
@@ -233,18 +251,21 @@ async def load_html(path_or_url: str, *, fetch_remote: bool = True) -> list[dict
     except Exception as e:
         return [{"content": "", "metadata": {"error": f"HTML parse failed: {e}"}}]
 
-    return [{
-        "content": text,
-        "metadata": {
-            "source": path_or_url,
-            "format": "html",
-            "title": title,
-            "is_url": is_url,
-        },
-    }]
+    return [
+        {
+            "content": text,
+            "metadata": {
+                "source": path_or_url,
+                "format": "html",
+                "title": title,
+                "is_url": is_url,
+            },
+        }
+    ]
 
 
 # -------------------- CSV --------------------
+
 
 async def load_csv(path: str, *, has_header: bool = True) -> list[dict]:
     """Load a CSV file, one document per row.
@@ -252,6 +273,7 @@ async def load_csv(path: str, *, has_header: bool = True) -> list[dict]:
     Each row's content is its dict-like representation; metadata
     includes the row index and source path.
     """
+
     def _read():
         rows = []
         with open(path, "r", encoding="utf-8", newline="") as f:
@@ -290,6 +312,7 @@ async def load_csv(path: str, *, has_header: bool = True) -> list[dict]:
 
 # -------------------- JSON --------------------
 
+
 async def load_json(path: str) -> list[dict]:
     """Load a JSON file. Top-level object → 1 doc. Top-level array → N docs.
 
@@ -313,10 +336,12 @@ async def load_json(path: str) -> list[dict]:
             }
             for i, item in enumerate(data)
         ]
-    return [{
-        "content": json.dumps(data, indent=2),
-        "metadata": {"source": path, "format": "json"},
-    }]
+    return [
+        {
+            "content": json.dumps(data, indent=2),
+            "metadata": {"source": path, "format": "json"},
+        }
+    ]
 
 
 async def load_jsonl(path: str) -> list[dict]:
@@ -333,16 +358,19 @@ async def load_jsonl(path: str) -> list[dict]:
             continue
         try:
             obj = json.loads(line)
-            docs.append({
-                "content": json.dumps(obj, indent=2),
-                "metadata": {"source": path, "format": "jsonl", "line": i},
-            })
+            docs.append(
+                {
+                    "content": json.dumps(obj, indent=2),
+                    "metadata": {"source": path, "format": "jsonl", "line": i},
+                }
+            )
         except json.JSONDecodeError:
             continue
     return docs
 
 
 # -------------------- YAML --------------------
+
 
 async def load_yaml(path: str) -> list[dict]:
     """Load a YAML file as a single document.
@@ -352,10 +380,12 @@ async def load_yaml(path: str) -> list[dict]:
     try:
         import yaml  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "YAML loader needs: pip install pyyaml"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "YAML loader needs: pip install pyyaml"},
+            }
+        ]
 
     try:
         text = await asyncio.to_thread(_read_sync, path, "utf-8")
@@ -367,13 +397,16 @@ async def load_yaml(path: str) -> list[dict]:
     except Exception as e:
         return [{"content": "", "metadata": {"error": f"YAML parse error: {e}"}}]
 
-    return [{
-        "content": yaml.safe_dump(data, default_flow_style=False),
-        "metadata": {"source": path, "format": "yaml"},
-    }]
+    return [
+        {
+            "content": yaml.safe_dump(data, default_flow_style=False),
+            "metadata": {"source": path, "format": "yaml"},
+        }
+    ]
 
 
 # -------------------- XML --------------------
+
 
 async def load_xml(path: str) -> list[dict]:
     """Load an XML file. Returns the text content with tags preserved."""
@@ -385,60 +418,84 @@ async def load_xml(path: str) -> list[dict]:
     # Validate XML; extract text-only version
     try:
         root = ET.fromstring(text)
-        text_only = "\n".join(
-            (e.text or "").strip() for e in root.iter() if (e.text or "").strip()
-        )
-        return [{
-            "content": text,  # full XML
-            "metadata": {
-                "source": path,
-                "format": "xml",
-                "root_tag": root.tag,
-                "text_only": text_only,
-            },
-        }]
+        text_only = "\n".join((e.text or "").strip() for e in root.iter() if (e.text or "").strip())
+        return [
+            {
+                "content": text,  # full XML
+                "metadata": {
+                    "source": path,
+                    "format": "xml",
+                    "root_tag": root.tag,
+                    "text_only": text_only,
+                },
+            }
+        ]
     except (ET.ParseError, DefusedXmlException) as e:
         return [{"content": "", "metadata": {"error": f"XML parse error: {e}"}}]
 
 
 # -------------------- Dispatcher --------------------
 
-async def load(path: str) -> list[dict]:
+
+async def load(
+    path: str,
+    *,
+    parser: str | None = None,
+    **parser_options: Any,
+) -> list[dict]:
     """Auto-detect format from extension and load.
 
     Args:
         path: file path or URL.
+        parser: optional explicit parser. Use ``"tika"`` for Apache Tika.
+        **parser_options: options passed to the explicit parser.
 
     Returns:
         Same dict-list shape as the underlying loader.
 
     Falls back to ``load_text`` for unknown extensions.
     """
+    if parser is not None:
+        normalized_parser = parser.lower().strip()
+        if normalized_parser == "tika":
+            from largestack._loaders.tika import load_with_tika
+
+            return await load_with_tika(path, **parser_options)
+        raise ValueError(f"unknown loader parser: {parser}")
+
     if path.startswith(("http://", "https://")):
         return await load_html(path)
 
     ext = os.path.splitext(path)[1].lower().lstrip(".")
     dispatch = {
-        "txt": load_text, "text": load_text, "log": load_text,
-        "md": load_markdown, "markdown": load_markdown,
+        "txt": load_text,
+        "text": load_text,
+        "log": load_text,
+        "md": load_markdown,
+        "markdown": load_markdown,
         "pdf": load_pdf,
         "docx": load_docx,
-        "html": load_html, "htm": load_html,
+        "html": load_html,
+        "htm": load_html,
         "csv": load_csv,
         "json": load_json,
-        "jsonl": load_jsonl, "ndjson": load_jsonl,
-        "yaml": load_yaml, "yml": load_yaml,
+        "jsonl": load_jsonl,
+        "ndjson": load_jsonl,
+        "yaml": load_yaml,
+        "yml": load_yaml,
         "xml": load_xml,
         # v0.8.0 additions
         "pptx": load_pptx,
         "epub": load_epub,
-        "xlsx": load_excel, "xls": load_excel,
+        "xlsx": load_excel,
+        "xls": load_excel,
     }
     fn = dispatch.get(ext, load_text)
     return await fn(path)
 
 
 # -------------------- v0.8.0 New Loaders --------------------
+
 
 async def load_pptx(path: str) -> list[dict]:
     """Load .pptx file. One document per slide.
@@ -448,10 +505,12 @@ async def load_pptx(path: str) -> list[dict]:
     try:
         from pptx import Presentation  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "PPTX loader needs: pip install python-pptx"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "PPTX loader needs: pip install python-pptx"},
+            }
+        ]
 
     def _read():
         prs = Presentation(path)
@@ -478,8 +537,10 @@ async def load_pptx(path: str) -> list[dict]:
         {
             "content": text,
             "metadata": {
-                "source": path, "format": "pptx",
-                "slide": i, "total_slides": len(slides),
+                "source": path,
+                "format": "pptx",
+                "slide": i,
+                "total_slides": len(slides),
             },
         }
         for i, text in slides
@@ -495,10 +556,12 @@ async def load_epub(path: str) -> list[dict]:
         from ebooklib import epub, ITEM_DOCUMENT  # type: ignore
         from bs4 import BeautifulSoup  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "EPUB loader needs: pip install ebooklib beautifulsoup4"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "EPUB loader needs: pip install ebooklib beautifulsoup4"},
+            }
+        ]
 
     def _read():
         book = epub.read_epub(path)
@@ -526,8 +589,11 @@ async def load_epub(path: str) -> list[dict]:
         {
             "content": text,
             "metadata": {
-                "source": path, "format": "epub",
-                "book_title": title, "chapter": i, "chapter_name": name,
+                "source": path,
+                "format": "epub",
+                "book_title": title,
+                "chapter": i,
+                "chapter_name": name,
             },
         }
         for i, text, name in chapters
@@ -543,10 +609,12 @@ async def load_excel(path: str, sheet_name: str | None = None) -> list[dict]:
     try:
         from openpyxl import load_workbook  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "Excel loader needs: pip install openpyxl"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "Excel loader needs: pip install openpyxl"},
+            }
+        ]
 
     def _read():
         wb = load_workbook(path, data_only=True, read_only=True)
@@ -558,9 +626,7 @@ async def load_excel(path: str, sheet_name: str | None = None) -> list[dict]:
             ws = wb[sname]
             rows = []
             for row in ws.iter_rows(values_only=True):
-                rows.append("\t".join(
-                    str(c) if c is not None else "" for c in row
-                ))
+                rows.append("\t".join(str(c) if c is not None else "" for c in row))
             result.append((sname, "\n".join(rows), ws.max_row, ws.max_column))
         wb.close()
         return result
@@ -576,8 +642,11 @@ async def load_excel(path: str, sheet_name: str | None = None) -> list[dict]:
         {
             "content": text,
             "metadata": {
-                "source": path, "format": "xlsx",
-                "sheet": sname, "rows": rows, "cols": cols,
+                "source": path,
+                "format": "xlsx",
+                "sheet": sname,
+                "rows": rows,
+                "cols": cols,
             },
         }
         for sname, text, rows, cols in sheets
@@ -598,10 +667,12 @@ async def load_s3(bucket: str, key: str, *, region: str | None = None) -> list[d
     try:
         import boto3  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "S3 loader needs: pip install boto3"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "S3 loader needs: pip install boto3"},
+            }
+        ]
 
     def _read():
         client_kw = {"region_name": region} if region else {}
@@ -616,6 +687,7 @@ async def load_s3(bucket: str, key: str, *, region: str | None = None) -> list[d
 
     # Save to temp file and dispatch by extension
     import tempfile
+
     ext = os.path.splitext(key)[1] or ".txt"
     with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
         tmp.write(data)
@@ -643,10 +715,12 @@ async def load_gcs(bucket: str, blob_name: str) -> list[dict]:
     try:
         from google.cloud import storage  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "GCS loader needs: pip install google-cloud-storage"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "GCS loader needs: pip install google-cloud-storage"},
+            }
+        ]
 
     def _read():
         client = storage.Client()
@@ -660,6 +734,7 @@ async def load_gcs(bucket: str, blob_name: str) -> list[dict]:
         return [{"content": "", "metadata": {"error": f"GCS fetch failed: {e}"}}]
 
     import tempfile
+
     ext = os.path.splitext(blob_name)[1] or ".txt"
     with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
         tmp.write(data)
@@ -679,8 +754,11 @@ async def load_gcs(bucket: str, blob_name: str) -> list[dict]:
 
 
 async def load_azure_blob(
-    account_url: str, container: str, blob_name: str,
-    *, credential: str | None = None,
+    account_url: str,
+    container: str,
+    blob_name: str,
+    *,
+    credential: str | None = None,
 ) -> list[dict]:
     """Load a single blob from Azure Blob Storage.
 
@@ -695,15 +773,15 @@ async def load_azure_blob(
     try:
         from azure.storage.blob.aio import BlobServiceClient  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "Azure loader needs: pip install azure-storage-blob"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "Azure loader needs: pip install azure-storage-blob"},
+            }
+        ]
 
     try:
-        async with BlobServiceClient(
-            account_url=account_url, credential=credential
-        ) as svc:
+        async with BlobServiceClient(account_url=account_url, credential=credential) as svc:
             blob = svc.get_blob_client(container=container, blob=blob_name)
             stream = await blob.download_blob()
             data = await stream.readall()
@@ -711,6 +789,7 @@ async def load_azure_blob(
         return [{"content": "", "metadata": {"error": f"Azure fetch failed: {e}"}}]
 
     import tempfile
+
     ext = os.path.splitext(blob_name)[1] or ".txt"
     with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
         tmp.write(data)
@@ -730,7 +809,9 @@ async def load_azure_blob(
 
 
 async def load_youtube_transcript(
-    video_id_or_url: str, *, languages: list[str] | None = None,
+    video_id_or_url: str,
+    *,
+    languages: list[str] | None = None,
 ) -> list[dict]:
     """Load transcript of a YouTube video.
 
@@ -743,10 +824,12 @@ async def load_youtube_transcript(
     try:
         from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore
     except ImportError:
-        return [{
-            "content": "",
-            "metadata": {"error": "YouTube loader needs: pip install youtube-transcript-api"},
-        }]
+        return [
+            {
+                "content": "",
+                "metadata": {"error": "YouTube loader needs: pip install youtube-transcript-api"},
+            }
+        ]
 
     # Extract video ID from URL if needed
     vid = video_id_or_url
@@ -766,15 +849,17 @@ async def load_youtube_transcript(
         return [{"content": "", "metadata": {"error": f"YouTube fetch failed: {e}"}}]
 
     text = "\n".join(item.get("text", "") for item in items)
-    return [{
-        "content": text,
-        "metadata": {
-            "source": f"https://www.youtube.com/watch?v={vid}",
-            "format": "youtube_transcript",
-            "video_id": vid,
-            "n_segments": len(items),
-        },
-    }]
+    return [
+        {
+            "content": text,
+            "metadata": {
+                "source": f"https://www.youtube.com/watch?v={vid}",
+                "format": "youtube_transcript",
+                "video_id": vid,
+                "n_segments": len(items),
+            },
+        }
+    ]
 
 
 async def load_wikipedia(query: str, *, lang: str = "en", sentences: int = 0) -> list[dict]:
@@ -786,6 +871,7 @@ async def load_wikipedia(query: str, *, lang: str = "en", sentences: int = 0) ->
     feature).
     """
     import urllib.parse
+
     base = f"https://{lang}.wikipedia.org/w/api.php"
     params: dict = {
         "action": "query",
@@ -800,6 +886,7 @@ async def load_wikipedia(query: str, *, lang: str = "en", sentences: int = 0) ->
 
     try:
         import httpx
+
         async with httpx.AsyncClient(timeout=20) as c:
             r = await c.get(base, params=params)
             r.raise_for_status()
@@ -816,15 +903,17 @@ async def load_wikipedia(query: str, *, lang: str = "en", sentences: int = 0) ->
         return [{"content": "", "metadata": {"error": f"no Wikipedia article for {query!r}"}}]
     extract = page.get("extract", "")
     title = page.get("title", query)
-    return [{
-        "content": extract,
-        "metadata": {
-            "source": f"https://{lang}.wikipedia.org/wiki/{urllib.parse.quote(title)}",
-            "format": "wikipedia",
-            "title": title,
-            "language": lang,
-        },
-    }]
+    return [
+        {
+            "content": extract,
+            "metadata": {
+                "source": f"https://{lang}.wikipedia.org/wiki/{urllib.parse.quote(title)}",
+                "format": "wikipedia",
+                "title": title,
+                "language": lang,
+            },
+        }
+    ]
 
 
 async def load_arxiv(query: str, *, max_results: int = 5) -> list[dict]:
@@ -835,6 +924,7 @@ async def load_arxiv(query: str, *, max_results: int = 5) -> list[dict]:
     ``metadata`` = title, authors, arxiv_id, pdf_url, published date.
     """
     import urllib.parse
+
     base = "http://export.arxiv.org/api/query"
     params = {
         "search_query": query,
@@ -844,6 +934,7 @@ async def load_arxiv(query: str, *, max_results: int = 5) -> list[dict]:
     }
     try:
         import httpx
+
         async with httpx.AsyncClient(timeout=20) as c:
             r = await c.get(base, params=params)
             r.raise_for_status()
@@ -874,17 +965,19 @@ async def load_arxiv(query: str, *, max_results: int = 5) -> list[dict]:
             if a.find("atom:name", ns) is not None
         ]
         pdf_url = arxiv_id.replace("/abs/", "/pdf/") if "/abs/" in arxiv_id else ""
-        docs.append({
-            "content": summary,
-            "metadata": {
-                "source": arxiv_id,
-                "format": "arxiv",
-                "title": title,
-                "authors": authors,
-                "published": published,
-                "pdf_url": pdf_url,
-            },
-        })
+        docs.append(
+            {
+                "content": summary,
+                "metadata": {
+                    "source": arxiv_id,
+                    "format": "arxiv",
+                    "title": title,
+                    "authors": authors,
+                    "published": published,
+                    "pdf_url": pdf_url,
+                },
+            }
+        )
     if not docs:
         return [{"content": "", "metadata": {"error": "no ArXiv results"}}]
     return docs
@@ -900,6 +993,7 @@ async def load_pubmed(query: str, *, max_results: int = 5) -> list[dict]:
     base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     try:
         import httpx
+
         async with httpx.AsyncClient(timeout=30) as c:
             # 1. Get IDs
             r = await c.get(
@@ -935,22 +1029,22 @@ async def load_pubmed(query: str, *, max_results: int = 5) -> list[dict]:
         pmid_el = art.find(".//PMID")
         title_el = art.find(".//ArticleTitle")
         abstract_parts = [
-            (a.text or "")
-            for a in art.findall(".//AbstractText")
-            if (a.text or "").strip()
+            (a.text or "") for a in art.findall(".//AbstractText") if (a.text or "").strip()
         ]
         pmid = pmid_el.text if pmid_el is not None else ""
         title = title_el.text if title_el is not None else ""
         abstract = "\n".join(abstract_parts)
-        docs.append({
-            "content": abstract,
-            "metadata": {
-                "source": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
-                "format": "pubmed",
-                "pmid": pmid,
-                "title": title,
-            },
-        })
+        docs.append(
+            {
+                "content": abstract,
+                "metadata": {
+                    "source": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
+                    "format": "pubmed",
+                    "pmid": pmid,
+                    "title": title,
+                },
+            }
+        )
     if not docs:
         return [{"content": "", "metadata": {"error": "PubMed: no parseable articles"}}]
     return docs
@@ -967,4 +1061,10 @@ from largestack._loaders.loaders_v09 import (
     load_gmail,
     load_web_scrape,
     load_ocr,
+)
+
+from largestack._loaders.tika import (
+    TikaLoaderError,
+    load_with_tika,
+    load_with_tika_sync,
 )

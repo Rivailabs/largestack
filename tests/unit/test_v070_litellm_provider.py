@@ -3,6 +3,7 @@
 Verifies provider construction, model name stripping, exception
 mapping, and the lazy-import behavior (no penalty when LiteLLM unused).
 """
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -13,6 +14,7 @@ import pytest
 def test_litellm_provider_construction():
     """Provider creates without LiteLLM installed (lazy)."""
     from largestack._core.providers.litellm_prov import LiteLLMProvider
+
     p = LiteLLMProvider()
     assert p.name == "litellm"
     assert p._litellm is None  # lazy
@@ -21,9 +23,12 @@ def test_litellm_provider_construction():
 def test_litellm_strips_only_outer_prefix():
     """``litellm/bedrock/anthropic.claude`` -> ``bedrock/anthropic.claude``"""
     from largestack._core.providers.litellm_prov import LiteLLMProvider
+
     p = LiteLLMProvider()
-    assert p.get_model("litellm/bedrock/anthropic.claude-3-sonnet") == \
-        "bedrock/anthropic.claude-3-sonnet"
+    assert (
+        p.get_model("litellm/bedrock/anthropic.claude-3-sonnet")
+        == "bedrock/anthropic.claude-3-sonnet"
+    )
     assert p.get_model("litellm/cohere/command-r-plus") == "cohere/command-r-plus"
     assert p.get_model("litellm/vertex_ai/gemini-1.5-pro") == "vertex_ai/gemini-1.5-pro"
 
@@ -31,6 +36,7 @@ def test_litellm_strips_only_outer_prefix():
 def test_litellm_raises_clear_error_when_not_installed():
     """If litellm package missing, lazy import raises informative error."""
     from largestack._core.providers.litellm_prov import LiteLLMProvider
+
     p = LiteLLMProvider()
     with patch.dict("sys.modules", {"litellm": None}):
         with pytest.raises(ImportError, match="pip install litellm"):
@@ -122,6 +128,7 @@ async def test_litellm_chat_handles_tool_calls():
 def test_litellm_count_tokens_falls_back_on_error():
     """If LiteLLM token_counter fails, fall back to chars/4 estimate."""
     from largestack._core.providers.litellm_prov import LiteLLMProvider
+
     p = LiteLLMProvider()
 
     fake_litellm = MagicMock()
@@ -135,6 +142,7 @@ def test_litellm_count_tokens_falls_back_on_error():
 
 def test_litellm_count_tokens_uses_litellm_when_available():
     from largestack._core.providers.litellm_prov import LiteLLMProvider
+
     p = LiteLLMProvider()
     fake_litellm = MagicMock()
     fake_litellm.token_counter = MagicMock(return_value=42)
@@ -147,6 +155,7 @@ def test_litellm_count_tokens_uses_litellm_when_available():
 def test_litellm_in_provider_map():
     """Gateway must know about ``litellm`` provider."""
     from largestack._core.gateway import PROVIDER_MAP
+
     assert "litellm" in PROVIDER_MAP
 
 

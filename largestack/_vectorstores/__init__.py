@@ -23,6 +23,7 @@ Or use as async context manager:
 Each adapter gracefully reports if its underlying client SDK isn't
 installed — no errors during LARGESTACK startup if you don't use them.
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -49,6 +50,7 @@ def _validate_vector_dim(dim: int) -> int:
 
 
 # -------------------- Common interface --------------------
+
 
 class VectorStore:
     """Abstract interface — concrete impls below."""
@@ -80,6 +82,7 @@ class VectorStore:
 
 # -------------------- Pinecone --------------------
 
+
 class PineconeStore(VectorStore):
     """Pinecone vector store using PineconeAsyncio (pinecone v8+ asyncio).
 
@@ -110,13 +113,9 @@ class PineconeStore(VectorStore):
         try:
             from pinecone import PineconeAsyncio
         except ImportError as e:
-            raise ImportError(
-                "PineconeStore needs: pip install 'pinecone[asyncio]'"
-            ) from e
+            raise ImportError("PineconeStore needs: pip install 'pinecone[asyncio]'") from e
         if not self.api_key:
-            raise ValueError(
-                "PineconeStore: api_key arg or PINECONE_API_KEY env var required"
-            )
+            raise ValueError("PineconeStore: api_key arg or PINECONE_API_KEY env var required")
         self._pc = PineconeAsyncio(api_key=self.api_key)
         # Resolve host if not provided
         if self.host is None:
@@ -188,6 +187,7 @@ class PineconeStore(VectorStore):
 
 # -------------------- Weaviate --------------------
 
+
 class WeaviateStore(VectorStore):
     """Weaviate vector store using WeaviateAsyncClient (v4+).
 
@@ -228,9 +228,7 @@ class WeaviateStore(VectorStore):
             import weaviate
             from weaviate.classes.init import Auth
         except ImportError as e:
-            raise ImportError(
-                "WeaviateStore needs: pip install 'weaviate-client>=4.7'"
-            ) from e
+            raise ImportError("WeaviateStore needs: pip install 'weaviate-client>=4.7'") from e
 
         if self.url:
             # Cloud connection
@@ -242,7 +240,9 @@ class WeaviateStore(VectorStore):
         else:
             # Local
             self._client = weaviate.use_async_with_local(
-                host=self.host, port=self.port, grpc_port=self.grpc_port,
+                host=self.host,
+                port=self.port,
+                grpc_port=self.grpc_port,
             )
         await self._client.connect()
         self._collection = self._client.collections.use(self.collection_name)
@@ -266,12 +266,15 @@ class WeaviateStore(VectorStore):
         if filter:
             try:
                 from weaviate.classes.query import Filter
+
                 # Translate {"field": "value"} → Filter.by_property("field").equal("value")
                 clauses = []
                 for k, v in filter.items():
                     clauses.append(Filter.by_property(k).equal(v))
-                wvc_filter = clauses[0] if len(clauses) == 1 else (
-                    Filter.all_of(clauses) if hasattr(Filter, "all_of") else clauses[0]
+                wvc_filter = (
+                    clauses[0]
+                    if len(clauses) == 1
+                    else (Filter.all_of(clauses) if hasattr(Filter, "all_of") else clauses[0])
                 )
             except Exception as e:
                 log.debug(f"weaviate filter build failed: {e}")
@@ -309,6 +312,7 @@ class WeaviateStore(VectorStore):
 
 # -------------------- pgvector --------------------
 
+
 class PgVectorStore(VectorStore):
     """Postgres + pgvector vector store using asyncpg.
 
@@ -341,6 +345,7 @@ class PgVectorStore(VectorStore):
     def _validate_table(name: str) -> str:
         # Defense against SQL injection — table name must be safe identifier
         import re
+
         if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", name):
             raise ValueError(f"invalid table name: {name!r}")
         return name
@@ -357,6 +362,7 @@ class PgVectorStore(VectorStore):
     async def upsert(self, vectors: list[dict]) -> None:
         await self._connect()
         import json as _json
+
         sql = (
             f"INSERT INTO {self.table} (id, embedding, metadata) "  # nosec B608
             f"VALUES ($1, $2::vector, $3::jsonb) "
@@ -399,11 +405,13 @@ class PgVectorStore(VectorStore):
         async with self._pool.acquire() as conn:
             rows = await conn.fetch(sql, *params)
         import json as _json
+
         return [
             {
                 "id": r["id"],
                 "score": float(r["score"]),
-                "metadata": _json.loads(r["metadata"]) if isinstance(r["metadata"], str)
+                "metadata": _json.loads(r["metadata"])
+                if isinstance(r["metadata"], str)
                 else dict(r["metadata"] or {}),
             }
             for r in rows
@@ -422,6 +430,7 @@ class PgVectorStore(VectorStore):
 
 
 # -------------------- Milvus (v0.8.0) --------------------
+
 
 class MilvusStore(VectorStore):
     """Milvus vector store using pymilvus async API.
@@ -457,9 +466,7 @@ class MilvusStore(VectorStore):
         try:
             from pymilvus import AsyncMilvusClient
         except ImportError as e:
-            raise ImportError(
-                "MilvusStore needs: pip install 'pymilvus>=2.4'"
-            ) from e
+            raise ImportError("MilvusStore needs: pip install 'pymilvus>=2.4'") from e
         kw: dict = {"uri": self.uri}
         if self.token:
             kw["token"] = self.token
@@ -488,13 +495,21 @@ class MilvusStore(VectorStore):
             "output_fields": ["metadata"],
         }
         if filter:
-            # Milvus expression syntax: 'field == "value"'
+            # Milvus expression syntax: 'field == "value"'. v1.1.1: validate keys
+            # as identifiers and escape string values to prevent expression injection.
+            import re as _re
+
             conds = []
             for k, v in filter.items():
-                if isinstance(v, str):
-                    conds.append(f'metadata["{k}"] == "{v}"')
-                else:
+                if not _re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", str(k)):
+                    raise ValueError(f"unsafe metadata filter key: {k!r}")
+                if isinstance(v, bool):
+                    conds.append(f'metadata["{k}"] == {"true" if v else "false"}')
+                elif isinstance(v, (int, float)):
                     conds.append(f'metadata["{k}"] == {v}')
+                else:
+                    esc = str(v).replace("\\", "\\\\").replace('"', '\\"')
+                    conds.append(f'metadata["{k}"] == "{esc}"')
             if conds:
                 kw["filter"] = " and ".join(conds)
         results = await self._client.search(**kw)
@@ -504,7 +519,9 @@ class MilvusStore(VectorStore):
             {
                 "id": str(r.get("id", r.get("pk", ""))),
                 "score": float(r.get("distance", 0.0)),
-                "metadata": dict(r.get("entity", {}).get("metadata") or r.get("metadata", {}) or {}),
+                "metadata": dict(
+                    r.get("entity", {}).get("metadata") or r.get("metadata", {}) or {}
+                ),
             }
             for r in first
         ]
@@ -526,6 +543,7 @@ class MilvusStore(VectorStore):
 
 
 # -------------------- Redis Vector (v0.8.0) --------------------
+
 
 class RedisVectorStore(VectorStore):
     """Redis Stack vector store using redis-py async (4.5+).
@@ -566,6 +584,7 @@ class RedisVectorStore(VectorStore):
     async def upsert(self, vectors: list[dict]) -> None:
         await self._connect()
         import struct
+
         for v in vectors:
             key = f"{self.key_prefix}{v['id']}"
             vec_bytes = struct.pack(f"{len(v['vector'])}f", *v["vector"])
@@ -580,21 +599,43 @@ class RedisVectorStore(VectorStore):
     ) -> list[dict]:
         await self._connect()
         import struct
+
         vec_bytes = struct.pack(f"{len(vector)}f", *vector)
         # KNN query syntax: '*=>[KNN k @field $V AS score]'
         filter_str = "*"
         if filter:
-            parts = [f"@{k}:{{{v}}}" for k, v in filter.items()]
+            # v1.1.1: validate keys + escape RediSearch TAG special chars to prevent
+            # query-DSL injection via filter values.
+            import re as _re
+
+            def _tag(val):
+                return _re.sub(r'([,.<>{}\[\]"\':;!@#$%^&*()\-+=~/ \\])', r"\\\1", str(val))
+
+            parts = []
+            for k, v in filter.items():
+                if not _re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", str(k)):
+                    raise ValueError(f"unsafe metadata filter key: {k!r}")
+                parts.append(f"@{k}:{{{_tag(v)}}}")
             filter_str = " ".join(parts)
         query_str = f"({filter_str})=>[KNN {top_k} @{self.vector_field} $vec AS score]"
         # Use raw FT.SEARCH command
         try:
             raw = await self._client.execute_command(
-                "FT.SEARCH", self.index_name, query_str,
-                "PARAMS", "2", "vec", vec_bytes,
-                "DIALECT", "2",
-                "SORTBY", "score", "ASC",
-                "LIMIT", "0", str(top_k),
+                "FT.SEARCH",
+                self.index_name,
+                query_str,
+                "PARAMS",
+                "2",
+                "vec",
+                vec_bytes,
+                "DIALECT",
+                "2",
+                "SORTBY",
+                "score",
+                "ASC",
+                "LIMIT",
+                "0",
+                str(top_k),
             )
         except Exception as e:
             log.debug(f"Redis FT.SEARCH failed: {e}")
@@ -607,7 +648,7 @@ class RedisVectorStore(VectorStore):
             if i + 1 >= len(raw):
                 break
             key = raw[i].decode() if isinstance(raw[i], bytes) else raw[i]
-            doc_id = key[len(self.key_prefix):] if key.startswith(self.key_prefix) else key
+            doc_id = key[len(self.key_prefix) :] if key.startswith(self.key_prefix) else key
             fields_arr = raw[i + 1] or []
             fields: dict = {}
             for j in range(0, len(fields_arr), 2):
@@ -642,6 +683,7 @@ class RedisVectorStore(VectorStore):
 
 
 # -------------------- Elasticsearch (v0.8.0) --------------------
+
 
 class ElasticsearchStore(VectorStore):
     """Elasticsearch vector store using elasticsearch-py async (8+).
@@ -707,13 +749,11 @@ class ElasticsearchStore(VectorStore):
             "num_candidates": max(top_k * 4, 100),
         }
         if filter:
-            knn_query["filter"] = {
-                "bool": {
-                    "must": [{"term": {k: v}} for k, v in filter.items()]
-                }
-            }
+            knn_query["filter"] = {"bool": {"must": [{"term": {k: v}} for k, v in filter.items()]}}
         resp = await self._client.search(
-            index=self.index, knn=knn_query, size=top_k,
+            index=self.index,
+            knn=knn_query,
+            size=top_k,
         )
         hits = (resp.get("hits") or {}).get("hits") or []
         return [
@@ -721,8 +761,7 @@ class ElasticsearchStore(VectorStore):
                 "id": str(h.get("_id", "")),
                 "score": float(h.get("_score", 0.0)),
                 "metadata": {
-                    k: v for k, v in (h.get("_source") or {}).items()
-                    if k != self.vector_field
+                    k: v for k, v in (h.get("_source") or {}).items() if k != self.vector_field
                 },
             }
             for h in hits
@@ -746,6 +785,7 @@ class ElasticsearchStore(VectorStore):
 
 
 # -------------------- OpenSearch (v0.8.0) --------------------
+
 
 class OpenSearchStore(VectorStore):
     """OpenSearch vector store using opensearch-py async.
@@ -783,9 +823,7 @@ class OpenSearchStore(VectorStore):
         try:
             from opensearchpy import AsyncOpenSearch
         except ImportError as e:
-            raise ImportError(
-                "OpenSearchStore needs: pip install 'opensearch-py>=2.4'"
-            ) from e
+            raise ImportError("OpenSearchStore needs: pip install 'opensearch-py>=2.4'") from e
         kw: dict = {"hosts": self.hosts, "use_ssl": self.use_ssl}
         if self.http_auth:
             kw["http_auth"] = self.http_auth
@@ -805,20 +843,14 @@ class OpenSearchStore(VectorStore):
         await self._connect()
         knn = {
             "size": top_k,
-            "query": {
-                "knn": {
-                    self.vector_field: {"vector": vector, "k": top_k}
-                }
-            },
+            "query": {"knn": {self.vector_field: {"vector": vector, "k": top_k}}},
         }
         if filter:
             knn = {
                 "size": top_k,
                 "query": {
                     "bool": {
-                        "must": [
-                            {"knn": {self.vector_field: {"vector": vector, "k": top_k}}}
-                        ],
+                        "must": [{"knn": {self.vector_field: {"vector": vector, "k": top_k}}}],
                         "filter": [{"term": {k: v}} for k, v in filter.items()],
                     }
                 },
@@ -830,8 +862,7 @@ class OpenSearchStore(VectorStore):
                 "id": str(h.get("_id", "")),
                 "score": float(h.get("_score", 0.0)),
                 "metadata": {
-                    k: v for k, v in (h.get("_source") or {}).items()
-                    if k != self.vector_field
+                    k: v for k, v in (h.get("_source") or {}).items() if k != self.vector_field
                 },
             }
             for h in hits
@@ -855,6 +886,7 @@ class OpenSearchStore(VectorStore):
 
 
 # -------------------- MongoDB Atlas Vector (v0.8.0) --------------------
+
 
 class MongoDBAtlasStore(VectorStore):
     """MongoDB Atlas Vector Search using motor (async pymongo).
@@ -933,11 +965,13 @@ class MongoDBAtlasStore(VectorStore):
 
         results = []
         async for doc in self._coll.aggregate(pipeline):
-            results.append({
-                "id": str(doc.pop("_id", "")),
-                "score": float(doc.pop("score", 0.0)),
-                "metadata": doc,  # whatever's left
-            })
+            results.append(
+                {
+                    "id": str(doc.pop("_id", "")),
+                    "score": float(doc.pop("score", 0.0)),
+                    "metadata": doc,  # whatever's left
+                }
+            )
         return results
 
     async def delete(self, ids: list[str]) -> None:
@@ -952,6 +986,7 @@ class MongoDBAtlasStore(VectorStore):
 
 
 # -------------------- Chroma (v0.9.0) --------------------
+
 
 class ChromaStore(VectorStore):
     """Chroma vector store using chromadb async API.
@@ -1009,7 +1044,10 @@ class ChromaStore(VectorStore):
         documents = [str(v.get("metadata", {}).get("content", "")) for v in vectors]
         try:
             res = self._coll.upsert(
-                ids=ids, embeddings=embeddings, metadatas=metadatas, documents=documents,
+                ids=ids,
+                embeddings=embeddings,
+                metadatas=metadatas,
+                documents=documents,
             )
             if hasattr(res, "__await__"):
                 await res
@@ -1058,6 +1096,7 @@ class ChromaStore(VectorStore):
 
 # -------------------- LanceDB (v0.9.0) --------------------
 
+
 class LanceDBStore(VectorStore):
     """LanceDB embedded vector store using lancedb async client.
 
@@ -1089,16 +1128,20 @@ class LanceDBStore(VectorStore):
         except Exception:
             # Create empty table with schema
             import pyarrow as pa
-            schema = pa.schema([
-                pa.field("id", pa.string()),
-                pa.field("vector", pa.list_(pa.float32(), self.dim)),
-                pa.field("metadata", pa.string()),
-            ])
+
+            schema = pa.schema(
+                [
+                    pa.field("id", pa.string()),
+                    pa.field("vector", pa.list_(pa.float32(), self.dim)),
+                    pa.field("metadata", pa.string()),
+                ]
+            )
             self._table = await self._db.create_table(self.table_name, schema=schema)
 
     async def upsert(self, vectors: list[dict]) -> None:
         await self._connect()
         import json as _json
+
         records = [
             {
                 "id": str(v["id"]),
@@ -1120,13 +1163,12 @@ class LanceDBStore(VectorStore):
     ) -> list[dict]:
         await self._connect()
         import json as _json
+
         try:
             q = self._table.search(vector).limit(top_k)
             if filter:
                 # LanceDB SQL-like where clause
-                conds = " AND ".join(
-                    f"metadata LIKE '%\"{k}\":\"{v}\"%'" for k, v in filter.items()
-                )
+                conds = " AND ".join(f'metadata LIKE \'%"{k}":"{v}"%\'' for k, v in filter.items())
                 q = q.where(conds)
             results = await q.to_list()
         except Exception as e:
@@ -1138,11 +1180,13 @@ class LanceDBStore(VectorStore):
                 meta = _json.loads(r.get("metadata", "{}"))
             except Exception:
                 meta = {}
-            out.append({
-                "id": str(r.get("id", "")),
-                "score": 1.0 - float(r.get("_distance", 0.0)),
-                "metadata": meta,
-            })
+            out.append(
+                {
+                    "id": str(r.get("id", "")),
+                    "score": 1.0 - float(r.get("_distance", 0.0)),
+                    "metadata": meta,
+                }
+            )
         return out
 
     async def delete(self, ids: list[str]) -> None:
@@ -1158,6 +1202,7 @@ class LanceDBStore(VectorStore):
 
 
 # -------------------- Azure Cognitive Search (v0.9.0) --------------------
+
 
 class AzureCognitiveSearchStore(VectorStore):
     """Azure AI Search (formerly Cognitive Search) vector store.
@@ -1225,7 +1270,9 @@ class AzureCognitiveSearchStore(VectorStore):
         except ImportError:
             return [{"error": "azure-search-documents needs upgrade"}]
         vq = VectorizedQuery(
-            vector=vector, k_nearest_neighbors=top_k, fields=self.vector_field,
+            vector=vector,
+            k_nearest_neighbors=top_k,
+            fields=self.vector_field,
         )
         kw: dict = {"vector_queries": [vq], "top": top_k}
         if filter:
@@ -1236,18 +1283,18 @@ class AzureCognitiveSearchStore(VectorStore):
             row = dict(r)
             score = float(row.pop("@search.score", 0.0))
             row.pop(self.vector_field, None)
-            results.append({
-                "id": str(row.pop("id", "")),
-                "score": score,
-                "metadata": row,
-            })
+            results.append(
+                {
+                    "id": str(row.pop("id", "")),
+                    "score": score,
+                    "metadata": row,
+                }
+            )
         return results
 
     async def delete(self, ids: list[str]) -> None:
         await self._connect()
-        await self._client.delete_documents(
-            documents=[{"id": str(i)} for i in ids]
-        )
+        await self._client.delete_documents(documents=[{"id": str(i)} for i in ids])
 
     async def close(self) -> None:
         if self._client is not None:
@@ -1259,6 +1306,7 @@ class AzureCognitiveSearchStore(VectorStore):
 
 
 # -------------------- Supabase Vector (v0.9.0) --------------------
+
 
 class SupabaseVectorStore(PgVectorStore):
     """Supabase Vector — convenience wrapper over pgvector.
@@ -1288,6 +1336,7 @@ class SupabaseVectorStore(PgVectorStore):
         host = host_override
         if host is None:
             from urllib.parse import urlparse
+
             parsed = urlparse(supabase_url)
             host_part = parsed.hostname or ""
             project_ref = host_part.split(".")[0]
@@ -1300,6 +1349,7 @@ class SupabaseVectorStore(PgVectorStore):
 
 
 # -------------------- FAISS Persistent (v0.9.0) --------------------
+
 
 class FaissPersistentStore(VectorStore):
     """FAISS vector store with disk persistence.
@@ -1341,6 +1391,7 @@ class FaissPersistentStore(VectorStore):
         except ImportError as e:
             raise ImportError("FaissPersistentStore needs: pip install faiss-cpu") from e
         import json as _json
+
         if os.path.exists(self.index_path):
             self._index = faiss.read_index(self.index_path)
         else:
@@ -1360,13 +1411,17 @@ class FaissPersistentStore(VectorStore):
     def _save(self):
         import faiss
         import json as _json
+
         faiss.write_index(self._index, self.index_path)
         with open(self.meta_path, "w", encoding="utf-8") as f:
-            _json.dump({
-                "meta": self._meta,
-                "id_to_idx": self._id_to_idx,
-                "next_idx": self._next_idx,
-            }, f)
+            _json.dump(
+                {
+                    "meta": self._meta,
+                    "id_to_idx": self._id_to_idx,
+                    "next_idx": self._next_idx,
+                },
+                f,
+            )
 
     async def upsert(self, vectors: list[dict]) -> None:
         await asyncio.to_thread(self._upsert_sync, vectors)
@@ -1374,6 +1429,7 @@ class FaissPersistentStore(VectorStore):
     def _upsert_sync(self, vectors: list[dict]) -> None:
         self._load_or_create()
         import numpy as np
+
         for v in vectors:
             doc_id = str(v["id"])
             arr = np.asarray(v["vector"], dtype=np.float32).reshape(1, -1)
@@ -1400,11 +1456,10 @@ class FaissPersistentStore(VectorStore):
     ) -> list[dict]:
         return await asyncio.to_thread(self._query_sync, vector, top_k, filter)
 
-    def _query_sync(
-        self, vector: list[float], top_k: int, filter: dict | None
-    ) -> list[dict]:
+    def _query_sync(self, vector: list[float], top_k: int, filter: dict | None) -> list[dict]:
         self._load_or_create()
         import numpy as np
+
         if self._index.ntotal == 0:
             return []
         arr = np.asarray(vector, dtype=np.float32).reshape(1, -1)
@@ -1424,11 +1479,13 @@ class FaissPersistentStore(VectorStore):
             if filter:
                 if not all(md.get(k) == v for k, v in filter.items()):
                     continue
-            out.append({
-                "id": entry.get("id", str(i)),
-                "score": float(d),
-                "metadata": md,
-            })
+            out.append(
+                {
+                    "id": entry.get("id", str(i)),
+                    "score": float(d),
+                    "metadata": md,
+                }
+            )
             if len(out) >= top_k:
                 break
         return out
@@ -1439,6 +1496,7 @@ class FaissPersistentStore(VectorStore):
     def _delete_sync(self, ids: list[str]) -> None:
         self._load_or_create()
         import numpy as np
+
         idxs = []
         for doc_id in ids:
             idx = self._id_to_idx.pop(str(doc_id), None)
@@ -1456,6 +1514,7 @@ class FaissPersistentStore(VectorStore):
 
 
 # -------------------- DuckDB Vector (v0.9.0) --------------------
+
 
 class DuckDBVectorStore(VectorStore):
     """DuckDB vector store using the vss extension.
@@ -1480,6 +1539,7 @@ class DuckDBVectorStore(VectorStore):
     @staticmethod
     def _validate_table(name: str) -> str:
         import re
+
         if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", name):
             raise ValueError(f"invalid table name: {name!r}")
         return name
@@ -1515,6 +1575,7 @@ class DuckDBVectorStore(VectorStore):
     def _upsert_sync(self, vectors: list[dict]):
         self._connect_sync()
         import json as _json
+
         for v in vectors:
             self._conn.execute(
                 f"INSERT OR REPLACE INTO {self.table_name} (id, embedding, metadata) "  # nosec B608
@@ -1527,11 +1588,10 @@ class DuckDBVectorStore(VectorStore):
     ) -> list[dict]:
         return await asyncio.to_thread(self._query_sync, vector, top_k, filter)
 
-    def _query_sync(
-        self, vector: list[float], top_k: int, filter: dict | None
-    ) -> list[dict]:
+    def _query_sync(self, vector: list[float], top_k: int, filter: dict | None) -> list[dict]:
         self._connect_sync()
         import json as _json
+
         where = ""
         params: list = [vector, vector]
         if filter:
@@ -1584,6 +1644,7 @@ class DuckDBVectorStore(VectorStore):
 
 # -------------------- Aurora Postgres pgvector (v0.9.0) --------------------
 
+
 class AuroraPgVectorStore(PgVectorStore):
     """AWS Aurora Postgres with pgvector — convenience wrapper.
 
@@ -1623,6 +1684,7 @@ class AuroraPgVectorStore(PgVectorStore):
 
 
 # -------------------- MongoDB Atlas Vector Search (v0.10.0) --------------------
+
 
 class MongoAtlasVectorStore(VectorStore):
     """MongoDB Atlas Vector Search — Mongo's native vector index.
@@ -1670,15 +1732,14 @@ class MongoAtlasVectorStore(VectorStore):
         try:
             import motor.motor_asyncio
         except ImportError as e:
-            raise ImportError(
-                "MongoAtlasVectorStore needs: pip install 'motor>=3.0'"
-            ) from e
+            raise ImportError("MongoAtlasVectorStore needs: pip install 'motor>=3.0'") from e
         self._client = motor.motor_asyncio.AsyncIOMotorClient(self.uri)
         self._coll = self._client[self.database_name][self.collection_name]
 
     async def upsert(self, vectors: list[dict]) -> None:
         await self._connect()
         from pymongo import UpdateOne
+
         ops = []
         for v in vectors:
             doc = {
@@ -1691,7 +1752,10 @@ class MongoAtlasVectorStore(VectorStore):
             await self._coll.bulk_write(ops)
 
     async def query(
-        self, vector: list[float], top_k: int = 5, filter: dict | None = None,
+        self,
+        vector: list[float],
+        top_k: int = 5,
+        filter: dict | None = None,
     ) -> list[dict]:
         await self._connect()
         # $vectorSearch aggregation stage (Atlas-native)
@@ -1711,20 +1775,25 @@ class MongoAtlasVectorStore(VectorStore):
 
         pipeline = [
             stage,
-            {"$project": {
-                "_id": 1, "metadata": 1,
-                "score": {"$meta": "vectorSearchScore"},
-            }},
+            {
+                "$project": {
+                    "_id": 1,
+                    "metadata": 1,
+                    "score": {"$meta": "vectorSearchScore"},
+                }
+            },
         ]
         try:
             cursor = self._coll.aggregate(pipeline)
             results = []
             async for doc in cursor:
-                results.append({
-                    "id": str(doc.get("_id", "")),
-                    "score": float(doc.get("score", 0.0)),
-                    "metadata": doc.get("metadata", {}),
-                })
+                results.append(
+                    {
+                        "id": str(doc.get("_id", "")),
+                        "score": float(doc.get("score", 0.0)),
+                        "metadata": doc.get("metadata", {}),
+                    }
+                )
             return results
         except Exception as e:
             log.debug(f"MongoAtlas $vectorSearch failed: {e}")
@@ -1744,6 +1813,7 @@ class MongoAtlasVectorStore(VectorStore):
 
 
 # -------------------- Elasticsearch dense_vector (v0.10.0) --------------------
+
 
 class ElasticsearchDenseVectorStore(VectorStore):
     """Elasticsearch dense_vector field with kNN search.
@@ -1790,8 +1860,7 @@ class ElasticsearchDenseVectorStore(VectorStore):
             from elasticsearch import AsyncElasticsearch
         except ImportError as e:
             raise ImportError(
-                "ElasticsearchDenseVectorStore needs: "
-                "pip install 'elasticsearch[async]>=8.0'"
+                "ElasticsearchDenseVectorStore needs: pip install 'elasticsearch[async]>=8.0'"
             ) from e
         kwargs: dict = {"hosts": self.hosts}
         if self.api_key:
@@ -1819,7 +1888,10 @@ class ElasticsearchDenseVectorStore(VectorStore):
                 log.debug(f"ES bulk upsert failed: {e}")
 
     async def query(
-        self, vector: list[float], top_k: int = 5, filter: dict | None = None,
+        self,
+        vector: list[float],
+        top_k: int = 5,
+        filter: dict | None = None,
     ) -> list[dict]:
         await self._connect()
         knn: dict = {
@@ -1831,12 +1903,7 @@ class ElasticsearchDenseVectorStore(VectorStore):
         if filter:
             # Pre-filter via term clauses on metadata.*
             knn["filter"] = {
-                "bool": {
-                    "must": [
-                        {"term": {f"metadata.{k}": v}}
-                        for k, v in filter.items()
-                    ]
-                }
+                "bool": {"must": [{"term": {f"metadata.{k}": v}} for k, v in filter.items()]}
             }
         try:
             resp = await self._client.search(
@@ -1865,7 +1932,9 @@ class ElasticsearchDenseVectorStore(VectorStore):
         try:
             for doc_id in ids:
                 await self._client.delete(
-                    index=self.index_name, id=str(doc_id), ignore=[404],
+                    index=self.index_name,
+                    id=str(doc_id),
+                    ignore=[404],
                 )
         except Exception as e:
             log.debug(f"ES delete failed: {e}")
@@ -1880,6 +1949,7 @@ class ElasticsearchDenseVectorStore(VectorStore):
 
 
 # -------------------- Qdrant --------------------
+
 
 class QdrantStore(VectorStore):
     """Qdrant vector store using qdrant-client AsyncQdrantClient.
@@ -1940,6 +2010,7 @@ class QdrantStore(VectorStore):
     async def upsert(self, vectors: list[dict]) -> None:
         await self._connect()
         from qdrant_client.http import models as qmodels
+
         points = [
             qmodels.PointStruct(
                 id=v["id"],
@@ -1950,11 +2021,14 @@ class QdrantStore(VectorStore):
         ]
         await self._client.upsert(collection_name=self.collection, points=points)
 
-    async def query(self, vector: list[float], top_k: int = 5, filter: dict | None = None) -> list[dict]:
+    async def query(
+        self, vector: list[float], top_k: int = 5, filter: dict | None = None
+    ) -> list[dict]:
         await self._connect()
         q_filter = None
         if filter:
             from qdrant_client.http import models as qmodels
+
             q_filter = qmodels.Filter(
                 must=[
                     qmodels.FieldCondition(key=k, match=qmodels.MatchValue(value=v))
@@ -1986,6 +2060,7 @@ class QdrantStore(VectorStore):
     async def delete(self, ids: list[str]) -> None:
         await self._connect()
         from qdrant_client.http import models as qmodels
+
         await self._client.delete(
             collection_name=self.collection,
             points_selector=qmodels.PointIdsList(points=list(ids)),

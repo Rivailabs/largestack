@@ -2,7 +2,9 @@
 
 A LARGESTACK template for Indian fintech (NBFCs, payment platforms, lending apps).
 
-Built-in compliance: DPDP Act 2023, RBI PA-PG Master Directions 2024, PMLA.
+Compliance scaffolding (markers + aggregator toolkits) for DPDP Act 2023, RBI PA-PG
+Master Directions 2024, and PMLA. These support compliance work but are **not**
+certification — legal/compliance review is required before production use.
 
 ## Setup
 ```bash

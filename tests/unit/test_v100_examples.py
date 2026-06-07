@@ -1,4 +1,5 @@
 """v0.10.0: Tests for the v0.10 examples directory additions."""
+
 from __future__ import annotations
 
 import ast
@@ -11,16 +12,16 @@ EXAMPLES_DIR = Path(__file__).parent.parent.parent / "examples"
 
 # Just the v0.10 examples we added (don't validate legacy 01_hello/etc.)
 V10_EXAMPLE_NAMES = {
-    "rag_basic", "fintech_kyc", "multi_agent_research",
-    "observability", "resilient_llm",
+    "rag_basic",
+    "fintech_kyc",
+    "multi_agent_research",
+    "observability",
+    "resilient_llm",
 }
 
 
 def _v10_example_dirs():
-    return [
-        d for d in EXAMPLES_DIR.iterdir()
-        if d.is_dir() and d.name in V10_EXAMPLE_NAMES
-    ]
+    return [d for d in EXAMPLES_DIR.iterdir() if d.is_dir() and d.name in V10_EXAMPLE_NAMES]
 
 
 def test_examples_dir_has_readme():
@@ -62,10 +63,7 @@ def test_v10_examples_handle_missing_credentials():
         for py in d.glob("*.py"):
             content = py.read_text()
             if "os.environ" in content:
-                if any(
-                    pattern in content
-                    for pattern in ["if not os.environ", "os.environ.get"]
-                ):
+                if any(pattern in content for pattern in ["if not os.environ", "os.environ.get"]):
                     examples_with_creds_check += 1
                     break
     assert examples_with_creds_check >= 2, (
@@ -76,9 +74,7 @@ def test_v10_examples_handle_missing_credentials():
 def test_expected_v10_examples_present():
     """Five core v0.10 examples must ship."""
     actual = {d.name for d in _v10_example_dirs()}
-    assert V10_EXAMPLE_NAMES.issubset(actual), (
-        f"Missing: {V10_EXAMPLE_NAMES - actual}"
-    )
+    assert V10_EXAMPLE_NAMES.issubset(actual), f"Missing: {V10_EXAMPLE_NAMES - actual}"
 
 
 def test_v10_examples_have_run_instructions_in_docstring():
@@ -86,7 +82,6 @@ def test_v10_examples_have_run_instructions_in_docstring():
     for d in _v10_example_dirs():
         for py in d.glob("*.py"):
             doc = ast.get_docstring(ast.parse(py.read_text())) or ""
-            assert any(
-                p in doc.lower()
-                for p in ["run::", "python ", "pip install"]
-            ), f"{py.name} docstring needs run instructions"
+            assert any(p in doc.lower() for p in ["run::", "python ", "pip install"]), (
+                f"{py.name} docstring needs run instructions"
+            )

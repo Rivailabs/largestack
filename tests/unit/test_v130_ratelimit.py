@@ -1,4 +1,5 @@
 """v0.13.0: Tests for per-tenant rate limiter."""
+
 from __future__ import annotations
 
 import asyncio
@@ -10,11 +11,15 @@ import pytest
 
 # -------------------- Module + types --------------------
 
+
 def test_module_imports():
     from largestack._ratelimit import (
-        InMemoryRateLimiter, RedisRateLimiter, TenantQuota,
+        InMemoryRateLimiter,
+        RedisRateLimiter,
+        TenantQuota,
         RateLimitExceeded,
     )
+
     assert InMemoryRateLimiter is not None
     assert RedisRateLimiter is not None
     assert issubclass(RateLimitExceeded, Exception)
@@ -22,6 +27,7 @@ def test_module_imports():
 
 def test_quota_validates_positive_rate():
     from largestack._ratelimit import TenantQuota
+
     with pytest.raises(ValueError, match="rate_per_sec"):
         TenantQuota(rate_per_sec=0, burst=10)
     with pytest.raises(ValueError, match="rate_per_sec"):
@@ -30,18 +36,21 @@ def test_quota_validates_positive_rate():
 
 def test_quota_validates_positive_burst():
     from largestack._ratelimit import TenantQuota
+
     with pytest.raises(ValueError, match="burst"):
         TenantQuota(rate_per_sec=1, burst=0)
 
 
 def test_rate_limit_exceeded_carries_tenant():
     from largestack._ratelimit import RateLimitExceeded
+
     e = RateLimitExceeded("alice", retry_after=2.5)
     assert e.tenant_id == "alice"
     assert e.retry_after == 2.5
 
 
 # -------------------- InMemoryRateLimiter --------------------
+
 
 @pytest.mark.asyncio
 async def test_in_memory_basic_acquire():
@@ -65,7 +74,7 @@ async def test_in_memory_isolates_tenants():
 
     rl = InMemoryRateLimiter()
     rl.set_quota("alice", rate_per_sec=1.0, burst=2.0)
-    rl.set_quota("bob",   rate_per_sec=1.0, burst=2.0)
+    rl.set_quota("bob", rate_per_sec=1.0, burst=2.0)
 
     # Drain alice
     assert await rl.try_acquire("alice")
@@ -205,6 +214,7 @@ async def test_in_memory_reset_clears_buckets():
 
 
 # -------------------- RedisRateLimiter --------------------
+
 
 @pytest.mark.asyncio
 async def test_redis_limiter_invokes_lua_script():

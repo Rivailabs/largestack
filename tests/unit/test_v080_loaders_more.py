@@ -1,4 +1,5 @@
 """v0.8.0: Tests for new document loaders."""
+
 from __future__ import annotations
 
 import json
@@ -11,13 +12,16 @@ respx = pytest.importorskip("respx")
 
 # -------------------- PPTX --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_pptx_when_python_pptx_missing(tmp_path, monkeypatch):
     p = tmp_path / "x.pptx"
     p.write_bytes(b"fake")
 
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
-    
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if name == "pptx":
             raise ImportError("Mocked")
@@ -25,6 +29,7 @@ async def test_load_pptx_when_python_pptx_missing(tmp_path, monkeypatch):
 
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_pptx
+
     docs = await load_pptx(str(p))
     assert "python-pptx" in docs[0]["metadata"]["error"]
 
@@ -57,22 +62,29 @@ async def test_load_pptx_returns_doc_per_slide():
 
 # -------------------- EPUB --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_epub_when_ebooklib_missing(tmp_path, monkeypatch):
     p = tmp_path / "x.epub"
     p.write_bytes(b"fake")
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if name == "ebooklib":
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_epub
+
     docs = await load_epub(str(p))
     assert "ebooklib" in docs[0]["metadata"]["error"]
 
 
 # -------------------- Excel --------------------
+
 
 @pytest.mark.asyncio
 async def test_load_excel_returns_doc_per_sheet():
@@ -126,28 +138,39 @@ async def test_load_excel_specific_sheet_only():
 async def test_load_excel_when_openpyxl_missing(monkeypatch, tmp_path):
     p = tmp_path / "x.xlsx"
     p.write_bytes(b"fake")
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if name == "openpyxl":
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_excel
+
     docs = await load_excel(str(p))
     assert "openpyxl" in docs[0]["metadata"]["error"]
 
 
 # -------------------- S3 --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_s3_when_boto3_missing(monkeypatch):
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if name == "boto3":
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_s3
+
     docs = await load_s3("bucket", "key.txt")
     assert "boto3" in docs[0]["metadata"]["error"]
 
@@ -166,6 +189,7 @@ async def test_load_s3_fetches_and_dispatches():
 
     with patch.dict("sys.modules", {"boto3": fake_boto3}):
         from largestack._loaders import load_s3
+
         docs = await load_s3("my-bucket", "data.txt")
 
     fake_boto3.client.assert_called_with("s3")
@@ -175,6 +199,7 @@ async def test_load_s3_fetches_and_dispatches():
 
 
 # -------------------- GCS --------------------
+
 
 @pytest.mark.asyncio
 async def test_load_gcs_fetches_and_dispatches():
@@ -192,12 +217,16 @@ async def test_load_gcs_fetches_and_dispatches():
     fake_pkg.cloud = MagicMock()
     fake_pkg.cloud.storage = fake_gcs_module
 
-    with patch.dict("sys.modules", {
-        "google": fake_pkg,
-        "google.cloud": fake_pkg.cloud,
-        "google.cloud.storage": fake_gcs_module,
-    }):
+    with patch.dict(
+        "sys.modules",
+        {
+            "google": fake_pkg,
+            "google.cloud": fake_pkg.cloud,
+            "google.cloud.storage": fake_gcs_module,
+        },
+    ):
         from largestack._loaders import load_gcs
+
         docs = await load_gcs("my-bucket", "test.json")
 
     assert docs[0]["metadata"]["source"] == "gs://my-bucket/test.json"
@@ -206,19 +235,23 @@ async def test_load_gcs_fetches_and_dispatches():
 
 # -------------------- YouTube --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_youtube_extracts_video_id_from_url():
     fake_transcript = MagicMock()
-    fake_transcript.get_transcript = MagicMock(return_value=[
-        {"text": "Hello", "start": 0.0, "duration": 1.0},
-        {"text": "world", "start": 1.0, "duration": 1.0},
-    ])
+    fake_transcript.get_transcript = MagicMock(
+        return_value=[
+            {"text": "Hello", "start": 0.0, "duration": 1.0},
+            {"text": "world", "start": 1.0, "duration": 1.0},
+        ]
+    )
 
     fake_yta = MagicMock()
     fake_yta.YouTubeTranscriptApi = fake_transcript
 
     with patch.dict("sys.modules", {"youtube_transcript_api": fake_yta}):
         from largestack._loaders import load_youtube_transcript
+
         docs = await load_youtube_transcript("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
     assert "Hello" in docs[0]["content"]
@@ -228,22 +261,29 @@ async def test_load_youtube_extracts_video_id_from_url():
 
 @pytest.mark.asyncio
 async def test_load_youtube_handles_missing_dep(monkeypatch):
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if name == "youtube_transcript_api":
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_youtube_transcript
+
     docs = await load_youtube_transcript("video123")
     assert "youtube-transcript-api" in docs[0]["metadata"]["error"]
 
 
 # -------------------- Wikipedia --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_wikipedia_returns_extract():
     from largestack._loaders import load_wikipedia
+
     fake_response = {
         "query": {
             "pages": {
@@ -264,6 +304,7 @@ async def test_load_wikipedia_returns_extract():
 @pytest.mark.asyncio
 async def test_load_wikipedia_no_match():
     from largestack._loaders import load_wikipedia
+
     fake_response = {"query": {"pages": {"-1": {"title": "X", "missing": ""}}}}
     with respx.mock() as mock:
         mock.get("https://en.wikipedia.org/w/api.php").respond(200, json=fake_response)
@@ -272,6 +313,7 @@ async def test_load_wikipedia_no_match():
 
 
 # -------------------- ArXiv --------------------
+
 
 @pytest.mark.asyncio
 async def test_load_arxiv_parses_atom_response():
@@ -302,6 +344,7 @@ async def test_load_arxiv_parses_atom_response():
 @pytest.mark.asyncio
 async def test_load_arxiv_no_results():
     from largestack._loaders import load_arxiv
+
     with respx.mock() as mock:
         mock.get("http://export.arxiv.org/api/query").respond(
             200,
@@ -312,6 +355,7 @@ async def test_load_arxiv_no_results():
 
 
 # -------------------- PubMed --------------------
+
 
 @pytest.mark.asyncio
 async def test_load_pubmed_two_step_fetch():
@@ -352,6 +396,7 @@ async def test_load_pubmed_two_step_fetch():
 @pytest.mark.asyncio
 async def test_load_pubmed_no_results():
     from largestack._loaders import load_pubmed
+
     with respx.mock() as mock:
         mock.get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi").respond(
             200, json={"esearchresult": {"idlist": []}}
@@ -362,23 +407,27 @@ async def test_load_pubmed_no_results():
 
 # -------------------- Dispatcher routes new formats --------------------
 
+
 @pytest.mark.asyncio
 async def test_dispatcher_routes_pptx_xlsx_epub(tmp_path):
     """The ``load()`` dispatcher routes PPTX, XLSX, EPUB to right loader."""
     from largestack._loaders import load
-    
+
     # PPTX: file exists but pptx may not be installed
-    p = tmp_path / "x.pptx"; p.write_bytes(b"fake")
+    p = tmp_path / "x.pptx"
+    p.write_bytes(b"fake")
     docs = await load(str(p))
     # Either succeeds (lib installed) or returns error doc — but routes correctly
     assert isinstance(docs, list)
-    
+
     # XLSX
-    p = tmp_path / "x.xlsx"; p.write_bytes(b"fake")
+    p = tmp_path / "x.xlsx"
+    p.write_bytes(b"fake")
     docs = await load(str(p))
     assert isinstance(docs, list)
-    
+
     # EPUB
-    p = tmp_path / "x.epub"; p.write_bytes(b"fake")
+    p = tmp_path / "x.epub"
+    p.write_bytes(b"fake")
     docs = await load(str(p))
     assert isinstance(docs, list)

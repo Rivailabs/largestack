@@ -12,12 +12,17 @@ Run::
 
     python resilient_llm.py
 """
+
 from __future__ import annotations
 import asyncio
 import random
 
 from largestack._core.resilience import (
-    retry, CircuitBreaker, resilient, RetryError, CircuitOpenError,
+    retry,
+    CircuitBreaker,
+    resilient,
+    RetryError,
+    CircuitOpenError,
 )
 
 
@@ -26,6 +31,7 @@ from largestack._core.resilience import (
 # ============================================================
 
 call_count = 0
+
 
 @retry(
     max_attempts=5,
@@ -70,7 +76,9 @@ async def call_provider(prompt: str) -> str:
 # ============================================================
 
 bedrock_breaker = CircuitBreaker(
-    name="bedrock", failure_threshold=5, recovery_timeout=10.0,
+    name="bedrock",
+    failure_threshold=5,
+    recovery_timeout=10.0,
 )
 
 
@@ -89,6 +97,7 @@ async def bedrock_invoke(prompt: str) -> str:
 # ============================================================
 # Demo
 # ============================================================
+
 
 async def demo_retry():
     print("=" * 50)

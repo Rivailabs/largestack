@@ -5,6 +5,7 @@ browser hitting `http://169.254.169.254/...` is just as dangerous as a
 direct HTTP request — perhaps more so, because it can execute JS that
 exfiltrates contents to a remote host.
 """
+
 from largestack._core.tools import tool
 from largestack._core.builtin_tools._url_validator import validate_url
 

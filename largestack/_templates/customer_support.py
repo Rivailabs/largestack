@@ -1,4 +1,5 @@
 """Largestack AI Template: Customer Support Bot with routing."""
+
 TEMPLATE_FILES = {
     "agent.py": '''import asyncio
 from largestack import Agent, tool, SessionStore

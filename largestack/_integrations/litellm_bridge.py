@@ -31,6 +31,7 @@ Usage::
         {"role": "user", "content": "Hello"},
     ])
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -42,24 +43,31 @@ log = logging.getLogger("largestack.integrations.litellm")
 
 # Providers that violate India data residency (China-hosted)
 CHINA_HOSTED_PROVIDERS = {
-    "deepseek", "moonshot", "qwen", "yi", "01ai", "baichuan",
-    "minimax", "doubao",
+    "deepseek",
+    "moonshot",
+    "qwen",
+    "yi",
+    "01ai",
+    "baichuan",
+    "minimax",
+    "doubao",
 }
 
 # Providers that are India-residency safe (when configured correctly)
 INDIA_RESIDENT_PROVIDERS = {
-    "bedrock",          # via ap-south-1
-    "azure",            # via India Central / South
-    "vertex_ai",        # via asia-south1 / asia-south2
-    "ollama",           # local
-    "vllm",             # local
-    "openai_proxy",     # if proxy is in India
+    "bedrock",  # via ap-south-1
+    "azure",  # via India Central / South
+    "vertex_ai",  # via asia-south1 / asia-south2
+    "ollama",  # local
+    "vllm",  # local
+    "openai_proxy",  # if proxy is in India
 }
 
 
 def _have_litellm() -> bool:
     try:
         import litellm  # noqa
+
         return True
     except ImportError:
         return False
@@ -68,6 +76,7 @@ def _have_litellm() -> bool:
 @dataclass
 class LiteLLMResponse:
     """Normalised response from LiteLLM."""
+
     content: str
     model: str
     finish_reason: str = ""
@@ -116,8 +125,7 @@ class LiteLLMProvider:
         provider = self._provider_prefix()
         if provider in CHINA_HOSTED_PROVIDERS:
             raise ValueError(
-                f"provider '{provider}' is China-hosted "
-                f"and violates India data residency"
+                f"provider '{provider}' is China-hosted and violates India data residency"
             )
         if provider not in INDIA_RESIDENT_PROVIDERS:
             log.warning(
@@ -128,8 +136,7 @@ class LiteLLMProvider:
         if provider == "bedrock":
             if self.region not in ("ap-south-1", "ap-south-2"):
                 raise ValueError(
-                    "Bedrock with India residency requires "
-                    "region='ap-south-1' or 'ap-south-2'"
+                    "Bedrock with India residency requires region='ap-south-1' or 'ap-south-2'"
                 )
 
     def _provider_prefix(self) -> str:
@@ -161,8 +168,7 @@ class LiteLLMProvider:
         """Async chat completion."""
         if not _have_litellm():
             raise ImportError(
-                "litellm required for LiteLLMProvider. "
-                "Install with: pip install litellm"
+                "litellm required for LiteLLMProvider. Install with: pip install litellm"
             )
         import litellm
 
@@ -188,7 +194,9 @@ class LiteLLMProvider:
             usage = {
                 "prompt_tokens": getattr(resp.usage, "prompt_tokens", 0),
                 "completion_tokens": getattr(
-                    resp.usage, "completion_tokens", 0,
+                    resp.usage,
+                    "completion_tokens",
+                    0,
                 ),
                 "total_tokens": getattr(resp.usage, "total_tokens", 0),
             }
@@ -208,10 +216,7 @@ class LiteLLMProvider:
     ) -> AsyncIterator[str]:
         """Streaming token-by-token generation."""
         if not _have_litellm():
-            raise ImportError(
-                "litellm required for streaming. "
-                "Install with: pip install litellm"
-            )
+            raise ImportError("litellm required for streaming. Install with: pip install litellm")
         import litellm
 
         call_kwargs = self._build_kwargs(messages)
@@ -234,9 +239,11 @@ class LiteLLMProvider:
 
 # -------------------- Multi-provider router (fallback chain) --------------------
 
+
 @dataclass
 class ProviderRoute:
     """One entry in a fallback chain."""
+
     provider: LiteLLMProvider
     label: str = ""
 
@@ -281,13 +288,9 @@ class FallbackRouter:
                     except Exception:
                         log.exception("on_failure callback raised")
                 log.warning(
-                    f"provider '{route.label or route.provider.model}' "
-                    f"failed: {e}; trying next"
+                    f"provider '{route.label or route.provider.model}' failed: {e}; trying next"
                 )
-        raise RuntimeError(
-            f"all {len(self.routes)} providers failed; "
-            f"last error: {last_exc}"
-        )
+        raise RuntimeError(f"all {len(self.routes)} providers failed; last error: {last_exc}")
 
 
 __all__ = [

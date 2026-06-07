@@ -33,6 +33,7 @@ Storage backends:
 
 Both are zero-dep (stdlib only).
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -96,6 +97,7 @@ class LongTermMemoryEntry:
 @dataclass
 class LongTermMemoryStats:
     """Counts of entries per tier + scope."""
+
     total: int = 0
     by_tier: dict[str, int] = field(default_factory=dict)
     by_scope: dict[str, int] = field(default_factory=dict)
@@ -103,6 +105,7 @@ class LongTermMemoryStats:
 
 
 # -------------------- Storage backends --------------------
+
 
 class LongTermMemoryStore:
     """Abstract storage backend."""
@@ -130,7 +133,9 @@ class LongTermMemoryStore:
         limit: int = 10,
     ) -> list[LongTermMemoryEntry]: ...
     async def purge_expired(
-        self, *, tenant_id: str | None = None,
+        self,
+        *,
+        tenant_id: str | None = None,
     ) -> int: ...
     async def clear(self, *, tenant_id: str | None = None) -> int: ...
 
@@ -235,9 +240,9 @@ class InMemoryLongTermStore(LongTermMemoryStore):
         async with self._lock:
             now = time.time()
             to_delete = [
-                k for k, v in self._entries.items()
-                if (tenant_id is None or v.tenant_id == tenant_id)
-                and v.is_expired(now)
+                k
+                for k, v in self._entries.items()
+                if (tenant_id is None or v.tenant_id == tenant_id) and v.is_expired(now)
             ]
             for k in to_delete:
                 del self._entries[k]
@@ -249,10 +254,7 @@ class InMemoryLongTermStore(LongTermMemoryStore):
                 count = len(self._entries)
                 self._entries.clear()
                 return count
-            to_delete = [
-                k for k, v in self._entries.items()
-                if v.tenant_id == tenant_id
-            ]
+            to_delete = [k for k, v in self._entries.items() if v.tenant_id == tenant_id]
             for k in to_delete:
                 del self._entries[k]
             return len(to_delete)
@@ -296,7 +298,8 @@ class SQLiteLongTermStore(LongTermMemoryStore):
     def _get_conn(self) -> sqlite3.Connection:
         if self._conn is None:
             self._conn = sqlite3.connect(
-                self.db_path, check_same_thread=False,
+                self.db_path,
+                check_same_thread=False,
                 isolation_level=None,
             )
             self._conn.row_factory = sqlite3.Row
@@ -332,10 +335,19 @@ class SQLiteLongTermStore(LongTermMemoryStore):
                     ttl_seconds, lawful_basis, metadata)
                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
-                    entry.id, entry.tenant_id, entry.user_id, entry.tier,
-                    entry.scope, entry.content, entry.created_at,
-                    entry.last_accessed_at, entry.tag, entry.source,
-                    entry.purpose, entry.ttl_seconds, entry.lawful_basis,
+                    entry.id,
+                    entry.tenant_id,
+                    entry.user_id,
+                    entry.tier,
+                    entry.scope,
+                    entry.content,
+                    entry.created_at,
+                    entry.last_accessed_at,
+                    entry.tag,
+                    entry.source,
+                    entry.purpose,
+                    entry.ttl_seconds,
+                    entry.lawful_basis,
                     json.dumps(entry.metadata),
                 ),
             )
@@ -344,7 +356,8 @@ class SQLiteLongTermStore(LongTermMemoryStore):
         async with self._lock:
             conn = self._get_conn()
             cur = conn.execute(
-                "SELECT * FROM lt_memory_entries WHERE id = ?", (entry_id,),
+                "SELECT * FROM lt_memory_entries WHERE id = ?",
+                (entry_id,),
             )
             row = cur.fetchone()
             if not row:
@@ -352,8 +365,8 @@ class SQLiteLongTermStore(LongTermMemoryStore):
             entry = self._row_to_entry(row)
             now = time.time()
             conn.execute(
-                "UPDATE lt_memory_entries SET last_accessed_at = ? "
-                "WHERE id = ?", (now, entry_id),
+                "UPDATE lt_memory_entries SET last_accessed_at = ? WHERE id = ?",
+                (now, entry_id),
             )
             entry.last_accessed_at = now
             return entry
@@ -368,10 +381,17 @@ class SQLiteLongTermStore(LongTermMemoryStore):
                     lawful_basis=?, metadata=?
                    WHERE id=?""",
                 (
-                    entry.tier, entry.scope, entry.content,
-                    entry.last_accessed_at, entry.tag, entry.source,
-                    entry.purpose, entry.ttl_seconds, entry.lawful_basis,
-                    json.dumps(entry.metadata), entry.id,
+                    entry.tier,
+                    entry.scope,
+                    entry.content,
+                    entry.last_accessed_at,
+                    entry.tag,
+                    entry.source,
+                    entry.purpose,
+                    entry.ttl_seconds,
+                    entry.lawful_basis,
+                    json.dumps(entry.metadata),
+                    entry.id,
                 ),
             )
 
@@ -379,7 +399,8 @@ class SQLiteLongTermStore(LongTermMemoryStore):
         async with self._lock:
             conn = self._get_conn()
             cur = conn.execute(
-                "DELETE FROM lt_memory_entries WHERE id = ?", (entry_id,),
+                "DELETE FROM lt_memory_entries WHERE id = ?",
+                (entry_id,),
             )
             return cur.rowcount > 0
 
@@ -425,10 +446,7 @@ class SQLiteLongTermStore(LongTermMemoryStore):
     ) -> list[LongTermMemoryEntry]:
         async with self._lock:
             conn = self._get_conn()
-            sql = (
-                "SELECT * FROM lt_memory_entries "
-                "WHERE tenant_id = ? AND content LIKE ?"
-            )
+            sql = "SELECT * FROM lt_memory_entries WHERE tenant_id = ? AND content LIKE ?"
             params: list[Any] = [tenant_id, f"%{query}%"]
             if user_id is not None:
                 sql += " AND user_id = ?"
@@ -444,8 +462,7 @@ class SQLiteLongTermStore(LongTermMemoryStore):
                 results.append(entry)
             if results:
                 conn.executemany(
-                    "UPDATE lt_memory_entries SET last_accessed_at = ? "
-                    "WHERE id = ?",
+                    "UPDATE lt_memory_entries SET last_accessed_at = ? WHERE id = ?",
                     [(now, r.id) for r in results],
                 )
             return results
@@ -485,6 +502,7 @@ class SQLiteLongTermStore(LongTermMemoryStore):
 
 
 # -------------------- Manager --------------------
+
 
 class LongTermMemoryManager:
     """High-level hierarchical memory manager.
@@ -615,10 +633,7 @@ class LongTermMemoryManager:
         for e in entries:
             if e.is_expired():
                 continue
-            line = (
-                f"- [{e.tag}] {e.content}".strip() if e.tag
-                else f"- {e.content}".strip()
-            )
+            line = f"- [{e.tag}] {e.content}".strip() if e.tag else f"- {e.content}".strip()
             if used + len(line) + 1 > self.core_block_chars:
                 break
             out.append(line)
@@ -626,7 +641,10 @@ class LongTermMemoryManager:
         return "\n".join(out)
 
     async def search_recall(
-        self, query: str, *, limit: int | None = None,
+        self,
+        query: str,
+        *,
+        limit: int | None = None,
     ) -> list[LongTermMemoryEntry]:
         results = await self.store.search(
             tenant_id=self.tenant_id,
@@ -634,12 +652,13 @@ class LongTermMemoryManager:
             query=query,
             limit=(limit or self.recall_top_k) * 2,
         )
-        return [e for e in results if e.tier == "recall"][
-            : (limit or self.recall_top_k)
-        ]
+        return [e for e in results if e.tier == "recall"][: (limit or self.recall_top_k)]
 
     async def search_archival(
-        self, query: str, *, limit: int = 10,
+        self,
+        query: str,
+        *,
+        limit: int = 10,
     ) -> list[LongTermMemoryEntry]:
         results = await self.store.search(
             tenant_id=self.tenant_id,
@@ -699,7 +718,8 @@ class LongTermMemoryManager:
     async def forget_user(self) -> int:
         """DPDP right-to-erasure: delete ALL memory for this user."""
         entries = await self.store.list(
-            tenant_id=self.tenant_id, user_id=self.user_id,
+            tenant_id=self.tenant_id,
+            user_id=self.user_id,
         )
         count = 0
         for e in entries:
@@ -720,13 +740,8 @@ class LongTermMemoryManager:
         recall = await self.search_recall(query)
         if recall:
             now = time.time()
-            lines = [
-                f"- {_format_ago(now - e.created_at)}: {e.content}"
-                for e in recall
-            ]
-            sections.append(
-                "## Recent Relevant Memories\n" + "\n".join(lines)
-            )
+            lines = [f"- {_format_ago(now - e.created_at)}: {e.content}" for e in recall]
+            sections.append("## Recent Relevant Memories\n" + "\n".join(lines))
 
         archival = await self.search_archival(query)
         if archival:
@@ -737,6 +752,7 @@ class LongTermMemoryManager:
 
 
 # -------------------- Helpers --------------------
+
 
 def _format_ago(seconds: float) -> str:
     if seconds < 60:
@@ -787,6 +803,7 @@ async def extract_facts(
 
     if "```" in content:
         import re
+
         m = re.search(r"```(?:json)?\s*(\[.*?\])\s*```", content, re.DOTALL)
         if m:
             content = m.group(1)
@@ -828,25 +845,36 @@ async def extract_and_store(
 ) -> list[LongTermMemoryEntry]:
     """Extract facts from a turn and store them in the given tier."""
     facts = await extract_facts(
-        judge_runner, turn=turn, max_facts=max_facts,
+        judge_runner,
+        turn=turn,
+        max_facts=max_facts,
     )
     stored = []
     for f in facts:
         if tier == "core":
             entry = await manager.add_core(
-                f["content"], scope=f["scope"], tag=f["tag"],
-                purpose=purpose, lawful_basis=lawful_basis,
+                f["content"],
+                scope=f["scope"],
+                tag=f["tag"],
+                purpose=purpose,
+                lawful_basis=lawful_basis,
             )
         elif tier == "recall":
             entry = await manager.add_recall(
-                f["content"], scope=f["scope"], tag=f["tag"],
-                source="extracted", purpose=purpose,
+                f["content"],
+                scope=f["scope"],
+                tag=f["tag"],
+                source="extracted",
+                purpose=purpose,
                 lawful_basis=lawful_basis,
             )
         else:
             entry = await manager.add_archival(
-                f["content"], scope=f["scope"], tag=f["tag"],
-                source="extracted", purpose=purpose,
+                f["content"],
+                scope=f["scope"],
+                tag=f["tag"],
+                source="extracted",
+                purpose=purpose,
                 lawful_basis=lawful_basis,
             )
         stored.append(entry)

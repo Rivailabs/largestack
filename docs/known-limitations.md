@@ -1,6 +1,6 @@
 # Known Limitations
 
-LARGESTACK is a **production-grade candidate** Python framework. This document lists verified limitations, optional-backend constraints, and launch gates so production claims stay evidence-based.
+LARGESTACK is a **Beta** Python framework (single-developer). This document lists verified limitations, optional-backend constraints, and launch gates so claims stay evidence-based.
 
 ## Runtime
 

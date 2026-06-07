@@ -1,4 +1,5 @@
 """NVIDIA NIM provider — enterprise-grade model catalog."""
+
 from largestack._core.providers.openai_prov import OpenAIProvider
 
 MODELS = {
@@ -12,11 +13,14 @@ MODELS = {
     "google/gemma-2-27b-it": {"context": 8192},
 }
 
+
 class NVIDIAProvider(OpenAIProvider):
     name = "nvidia"
     default_model = "meta/llama-3.3-70b-instruct"
     supported_models = list(MODELS.keys())
+
     def __init__(self, api_key: str):
         super().__init__(api_key=api_key, base_url="https://integrate.api.nvidia.com/v1")
+
     def get_capabilities(self, model: str) -> dict:
         return MODELS.get(model, {"context": 4096})

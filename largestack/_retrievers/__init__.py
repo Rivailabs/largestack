@@ -54,6 +54,7 @@ Usage:
         keyword_results,
     ], k=10)
 """
+
 from __future__ import annotations
 import logging
 from typing import Awaitable, Callable
@@ -111,9 +112,7 @@ async def multi_query_retrieve(
         text = ""
 
     variants = [
-        line.strip().lstrip("0123456789.- ").strip()
-        for line in text.splitlines()
-        if line.strip()
+        line.strip().lstrip("0123456789.- ").strip() for line in text.splitlines() if line.strip()
     ]
     variants = [v for v in variants if v and v != query][:n_variants]
 
@@ -206,6 +205,7 @@ async def hyde_retrieve(
 
 # -------------------- Reciprocal Rank Fusion --------------------
 
+
 def rrf_fuse(
     result_lists: list[list[dict]],
     k: int = 10,
@@ -255,9 +255,7 @@ def rrf_fuse(
             else:
                 scores[doc_id] = {"score": inc, "doc": dict(doc)}
 
-    ordered = sorted(
-        scores.values(), key=lambda x: x["score"], reverse=True
-    )
+    ordered = sorted(scores.values(), key=lambda x: x["score"], reverse=True)
 
     out = []
     for entry in ordered[:k]:
@@ -270,6 +268,7 @@ def rrf_fuse(
 # -------------------- v0.8.0 New Retrievers --------------------
 
 # ----- Sentence-Window -----
+
 
 def sentence_window_expand(
     results: list[dict],
@@ -323,6 +322,7 @@ def sentence_window_expand(
 
 # ----- Parent Document Retriever -----
 
+
 async def parent_document_retrieve(
     query: str,
     *,
@@ -374,6 +374,7 @@ async def parent_document_retrieve(
 
 
 # ----- Auto-merging Retriever -----
+
 
 async def auto_merging_retrieve(
     query: str,
@@ -450,6 +451,7 @@ async def auto_merging_retrieve(
 
 
 # ----- Recursive Retriever -----
+
 
 async def recursive_retrieve(
     query: str,
@@ -567,6 +569,7 @@ def time_weighted_rerank(
 
 # ----- Document Summary Retriever -----
 
+
 async def document_summary_retrieve(
     query: str,
     *,
@@ -612,6 +615,7 @@ async def document_summary_retrieve(
 
 
 # -------------------- v0.9.0: 3 more retrievers --------------------
+
 
 async def compression_retrieve(
     query: str,
@@ -699,9 +703,7 @@ async def self_query_retrieve(
             E.g., ``{"year": "publication year (int)", "category": "doc category"}``.
         k: top-k from retriever.
     """
-    field_descriptions = "\n".join(
-        f"- {name}: {desc}" for name, desc in metadata_fields.items()
-    )
+    field_descriptions = "\n".join(f"- {name}: {desc}" for name, desc in metadata_fields.items())
     prompt = (
         f"Parse this query into (1) the semantic search text and "
         f"(2) any metadata filters. Available filter fields:\n"
@@ -718,6 +720,7 @@ async def self_query_retrieve(
             content = content.replace(f, "")
         content = content.strip()
         import json as _json
+
         parsed = _json.loads(content)
         search_text = parsed.get("search_text", query)
         filters = parsed.get("filters", {}) or {}
@@ -771,9 +774,7 @@ async def ensemble_v2_retrieve(
             log.debug(f"retriever failed: {e}")
             return [], weight
 
-    pairs = await _asyncio.gather(
-        *[_run_one(r, w) for r, w in retrievers]
-    )
+    pairs = await _asyncio.gather(*[_run_one(r, w) for r, w in retrievers])
 
     if fusion == "rrf":
         # Weighted RRF: each rank counts as weight / (60 + rank)

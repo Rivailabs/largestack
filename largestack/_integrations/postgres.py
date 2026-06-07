@@ -6,6 +6,7 @@ should also be created with read-only grants for defense in depth.
 
 Uses asyncpg if available, falls back to psycopg if not.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -80,9 +81,7 @@ async def _query_via_psycopg(url: str, query: str, limit: int) -> str:
     try:
         import psycopg
     except ImportError:
-        return (
-            "Error: needs `pip install asyncpg` (preferred) or `pip install psycopg`"
-        )
+        return "Error: needs `pip install asyncpg` (preferred) or `pip install psycopg`"
 
     try:
         with psycopg.connect(url, connect_timeout=10) as conn:

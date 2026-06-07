@@ -10,6 +10,7 @@ Patterns:
 - ``PlanAndExecute`` — planner produces a plan, executor runs each step
 - ``Reflexion`` — agent attempts → critic critiques → agent revises (loop)
 """
+
 from __future__ import annotations
 import logging
 import re
@@ -93,6 +94,7 @@ Question: {question}"""
 @dataclass
 class SelfAskResult:
     """Result of a Self-Ask run."""
+
     sub_questions: list[str] = field(default_factory=list)
     sub_answers: list[str] = field(default_factory=list)
     final_answer: str = ""
@@ -133,8 +135,8 @@ class SelfAsk:
             return ""
         e_idx = text.find(end, s_idx + len(start))
         if e_idx < 0:
-            return text[s_idx + len(start):]
-        return text[s_idx + len(start): e_idx]
+            return text[s_idx + len(start) :]
+        return text[s_idx + len(start) : e_idx]
 
     @staticmethod
     def _parse_bullets(section: str) -> list[str]:
@@ -175,6 +177,7 @@ you're doing — just produce the deliverable for this step."""
 @dataclass
 class PlanStep:
     """One step in a plan with its execution result."""
+
     number: int
     description: str
     result: str = ""
@@ -183,6 +186,7 @@ class PlanStep:
 @dataclass
 class PlanAndExecuteResult:
     """Result of a Plan-and-Execute run."""
+
     plan: list[str] = field(default_factory=list)
     steps: list[PlanStep] = field(default_factory=list)
     final_answer: str = ""
@@ -204,27 +208,24 @@ class PlanAndExecute:
 
     async def run(self, goal: str, **kw) -> PlanAndExecuteResult:
         # 1. Generate plan
-        plan_result = await self.planner.run(
-            PLANNER_PROMPT.format(goal=goal), **kw
-        )
+        plan_result = await self.planner.run(PLANNER_PROMPT.format(goal=goal), **kw)
         plan_text = getattr(plan_result, "content", "") or ""
         steps_raw = self._parse_plan(plan_text)[: self.max_steps]
         if not steps_raw:
             return PlanAndExecuteResult(
-                plan=[], steps=[],
+                plan=[],
+                steps=[],
                 final_answer="planner produced no usable steps",
             )
 
         # 2. Execute each step sequentially, threading outputs forward
         executed: list[PlanStep] = []
         for i, step_desc in enumerate(steps_raw, 1):
-            prior = "\n".join(
-                f"Step {s.number} ({s.description}): {s.result[:300]}"
-                for s in executed
-            ) or "(no prior steps)"
-            plan_context = "\n".join(
-                f"{j+1}. {s}" for j, s in enumerate(steps_raw)
+            prior = (
+                "\n".join(f"Step {s.number} ({s.description}): {s.result[:300]}" for s in executed)
+                or "(no prior steps)"
             )
+            plan_context = "\n".join(f"{j + 1}. {s}" for j, s in enumerate(steps_raw))
             exec_prompt = EXECUTOR_PROMPT.format(
                 step_num=i,
                 plan_context=plan_context,
@@ -241,7 +242,9 @@ class PlanAndExecute:
 
         final = executed[-1].result if executed else ""
         return PlanAndExecuteResult(
-            plan=steps_raw, steps=executed, final_answer=final,
+            plan=steps_raw,
+            steps=executed,
+            final_answer=final,
         )
 
     @staticmethod
@@ -294,6 +297,7 @@ Revised answer:"""
 @dataclass
 class ReflexionResult:
     """Result of a Reflexion loop."""
+
     iterations: int = 0
     final_answer: str = ""
     history: list[dict] = field(default_factory=list)
@@ -325,9 +329,7 @@ class Reflexion:
         for iteration in range(1, self.max_iterations + 1):
             # Critic
             critique_result = await self.critic.run(
-                REFLEXION_CRITIC_PROMPT.format(
-                    question=question, answer=answer
-                ),
+                REFLEXION_CRITIC_PROMPT.format(question=question, answer=answer),
                 **kw,
             )
             critique = getattr(critique_result, "content", "") or ""
@@ -352,7 +354,7 @@ class Reflexion:
             history.append({"role": "answer", "iteration": iteration, "content": answer})
 
         return ReflexionResult(
-            iterations=iteration if 'iteration' in dir() else 0,
+            iterations=iteration if "iteration" in dir() else 0,
             final_answer=answer,
             history=history,
         )

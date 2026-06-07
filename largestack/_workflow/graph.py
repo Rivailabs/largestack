@@ -52,6 +52,7 @@ Subgraphs:
     main.add_edge("preprocess", "sub")
     main.add_edge("sub", END)
 """
+
 from __future__ import annotations
 import asyncio
 import inspect
@@ -69,6 +70,7 @@ END = "__end__"
 @dataclass
 class GraphRunResult:
     """Result of a graph execution."""
+
     state: dict
     path: list[str] = field(default_factory=list)
     iterations: int = 0
@@ -138,8 +140,7 @@ class Graph:
             raise ValueError(f"target node {target!r} not found")
         if source in self._conditional_edges:
             raise ValueError(
-                f"node {source!r} already has conditional edges; "
-                f"can't have both kinds"
+                f"node {source!r} already has conditional edges; can't have both kinds"
             )
         if source in self._edges:
             raise ValueError(f"node {source!r} already has an edge")
@@ -164,8 +165,7 @@ class Graph:
             raise ValueError(f"source node {source!r} not found")
         if source in self._edges:
             raise ValueError(
-                f"node {source!r} already has an edge; "
-                f"can't add conditional edges too"
+                f"node {source!r} already has an edge; can't add conditional edges too"
             )
         if not callable(router):
             raise TypeError("router must be callable")
@@ -218,9 +218,7 @@ class Graph:
         while current != END:
             iterations += 1
             if iterations > self.max_iterations:
-                log.warning(
-                    f"graph: hit max_iterations ({self.max_iterations}); truncating"
-                )
+                log.warning(f"graph: hit max_iterations ({self.max_iterations}); truncating")
                 truncated = True
                 break
 
@@ -237,15 +235,17 @@ class Graph:
                 state.update(update)
             else:
                 raise TypeError(
-                    f"node {current!r} returned {type(update).__name__}; "
-                    f"must return dict or None"
+                    f"node {current!r} returned {type(update).__name__}; must return dict or None"
                 )
 
             # Decide next node
             current = await self._next(current, state)
 
         return GraphRunResult(
-            state=state, path=path, iterations=iterations, truncated=truncated,
+            state=state,
+            path=path,
+            iterations=iterations,
+            truncated=truncated,
         )
 
     async def _next(self, current: str, state: dict) -> str:

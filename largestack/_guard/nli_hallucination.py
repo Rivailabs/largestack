@@ -1,8 +1,10 @@
-"""NLI-based hallucination detection using DeBERTa-v3-large-MNLI.
+"""NLI-based hallucination detection using DeBERTa-v3-large-MNLI (opt-in).
 
-AUC 0.81 — best non-LLM method for hallucination detection.
-Decomposes response into claims, checks each against context via NLI.
+The AUC≈0.81 figure refers to the published DeBERTa-v3-large-MNLI model. The model
+loads only when transformers is installed (else keyword fallback). Decomposes a
+response into claims and checks each against context via NLI entailment.
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -11,9 +13,10 @@ from largestack.errors import GuardrailBlockedError
 
 log = logging.getLogger("largestack.nli")
 
+
 class NLIHallucinationGuard(HallucinationGuard):
     """DeBERTa NLI-based hallucination detection."""
-    
+
     def __init__(
         self,
         threshold: float = 0.5,
@@ -26,7 +29,9 @@ class NLIHallucinationGuard(HallucinationGuard):
         self.model_name = model_name
         self.model_revision = revision or os.environ.get("LARGESTACK_NLI_MODEL_REVISION", "main")
 
-        nli_enabled = os.environ.get("LARGESTACK_ENABLE_NLI_GUARD", "").lower() in ("1", "true", "yes")
+        from largestack._guard.config import ml_guards_enabled
+
+        nli_enabled = ml_guards_enabled("LARGESTACK_ENABLE_NLI_GUARD")
         if not nli_enabled:
             log.info("NLI model loading skipped; set LARGESTACK_ENABLE_NLI_GUARD=1 to enable it")
             return
@@ -48,18 +53,34 @@ class NLIHallucinationGuard(HallucinationGuard):
         except Exception as e:
             log.debug(f"NLI model not available ({e}), using keyword fallback")
 
+    def _nli_score(self, claim: str, context: str) -> float:
+        """Override the base guard's enforcement-path NLI scorer.
+
+        v1.1.1: the base ``_nli_score`` calls ``self._nli_model("premise </s> hyp")``
+        with a raw STRING, but here ``_nli_model`` is an ``AutoModelForSequenceClassification``
+        that needs tokenized tensors — so it always raised and silently fell back to
+        keyword mode even when DeBERTa was loaded. Route through the tokenizing
+        ``check_nli`` so the loaded model is actually used.
+        """
+        result = self.check_nli(premise=context[:2000], hypothesis=claim)
+        if result.get("contradiction", 0.0) > result.get("entailment", 0.0):
+            return 0.0
+        return float(result.get("entailment", 0.5))
+
     def check_nli(self, premise: str, hypothesis: str) -> dict:
         """Check if hypothesis is entailed by premise.
-        
+
         Returns: {entailment, neutral, contradiction} probabilities
         """
         if not self._nli_model:
             return self._keyword_nli(premise, hypothesis)
-        
+
         try:
             import torch
-            inputs = self._nli_tokenizer(premise, hypothesis, return_tensors="pt",
-                                          truncation=True, max_length=512)
+
+            inputs = self._nli_tokenizer(
+                premise, hypothesis, return_tensors="pt", truncation=True, max_length=512
+            )
             with torch.no_grad():
                 outputs = self._nli_model(**inputs)
                 probs = torch.softmax(outputs.logits, dim=-1)[0]
@@ -71,7 +92,7 @@ class NLIHallucinationGuard(HallucinationGuard):
                 }
         except Exception:
             return self._keyword_nli(premise, hypothesis)
-    
+
     def _keyword_nli(self, premise: str, hypothesis: str) -> dict:
         """Fallback: keyword overlap as proxy for entailment."""
         p_words = set(premise.lower().split())
@@ -82,17 +103,17 @@ class NLIHallucinationGuard(HallucinationGuard):
             "neutral": (1 - overlap) * 0.5,
             "contradiction": (1 - overlap) * 0.5,
         }
-    
+
     def check_faithfulness_nli(self, response: str, context: str) -> float:
         """Score faithfulness using NLI on decomposed claims."""
         claims = self._decompose_claims(response)
         if not claims:
             return 1.0
-        
+
         entailed = 0
         for claim in claims:
             result = self.check_nli(premise=context, hypothesis=claim)
             if result["entailment"] > 0.5:
                 entailed += 1
-        
+
         return entailed / len(claims)

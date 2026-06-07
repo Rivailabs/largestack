@@ -4,21 +4,25 @@ States: CLOSED (normal) → OPEN (failing, reject fast) → HALF_OPEN (test one 
 Trips after `failure_threshold` consecutive failures.
 Resets after `recovery_timeout` seconds.
 """
+
 from __future__ import annotations
 import time, logging
 from enum import Enum
 
 log = logging.getLogger("largestack.circuit_breaker")
 
+
 class CircuitState(str, Enum):
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
 
+
 # HTTP status codes that should NOT trip the circuit breaker
 # 400 = bad request (user error), 401 = auth (config error), 404 = not found
 # Only 429 (rate limit), 500, 502, 503, 504 (server errors) should trip it
 TRIPPABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+
 
 class CircuitBreaker:
     def __init__(self, name: str, failure_threshold: int = 5, recovery_timeout: float = 30.0):
@@ -41,8 +45,10 @@ class CircuitBreaker:
     def allow_request(self) -> bool:
         """Check if request should be allowed through."""
         s = self.state
-        if s == CircuitState.CLOSED: return True
-        if s == CircuitState.HALF_OPEN: return True  # Allow one test request
+        if s == CircuitState.CLOSED:
+            return True
+        if s == CircuitState.HALF_OPEN:
+            return True  # Allow one test request
         return False  # OPEN — reject fast
 
     def record_success(self):
@@ -57,7 +63,7 @@ class CircuitBreaker:
         """Record failure. Only trips on server/rate-limit errors, not client errors."""
         # Check if this error should trip the breaker
         if error:
-            status = getattr(error, 'status_code', None) or getattr(error, 'code', None)
+            status = getattr(error, "status_code", None) or getattr(error, "code", None)
             if status and isinstance(status, int) and status < 429:
                 return  # Client error (400, 401, 404) — don't trip
         self._failure_count += 1

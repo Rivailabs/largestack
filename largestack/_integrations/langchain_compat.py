@@ -37,6 +37,7 @@ Requires: ``pip install langchain-core`` (or any langchain-* package
 that depends on it). Without LangChain installed, this module raises
 clear ImportError on first use.
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -51,6 +52,7 @@ def _ensure_langchain():
     """Ensure langchain-core is installed; raise ImportError if not."""
     try:
         import langchain_core  # noqa: F401
+
         return True
     except ImportError as e:
         raise ImportError(

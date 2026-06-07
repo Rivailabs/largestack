@@ -1,20 +1,26 @@
 """DAG workflow — accepts Agent objects OR functions. Auto-parallelizes independent nodes."""
+
 from __future__ import annotations
 import asyncio
 from typing import Any, Callable
 
+
 class DAGNode:
     def __init__(self, name: str, fn: Any, deps: list[str] = None):
-        self.name = name; self.fn = fn; self.deps = deps or []
+        self.name = name
+        self.fn = fn
+        self.deps = deps or []
+
 
 class DAGWorkflow:
     """Execute a directed acyclic graph with automatic parallelization.
-    
+
     Nodes can be:
     - Agent objects: auto-wrapped to run with state["task"] or last output
     - async functions: called with (state: dict) -> dict
     - sync functions: called with (state: dict) -> dict
     """
+
     def __init__(self, name: str = "workflow", cost_budget: float = 0):
         self.name = name
         self.cost_budget = cost_budget
@@ -83,13 +89,18 @@ class DAGWorkflow:
         total_cost = 0.0
 
         while len(completed) < len(self.nodes):
-            ready = [n for name, n in self.nodes.items()
-                     if name not in completed and all(d in completed for d in n.deps)]
-            if not ready: break
+            ready = [
+                n
+                for name, n in self.nodes.items()
+                if name not in completed and all(d in completed for d in n.deps)
+            ]
+            if not ready:
+                break
 
             # Cost budget check
             if self.cost_budget > 0 and total_cost >= self.cost_budget:
-                state["_budget_exceeded"] = True; break
+                state["_budget_exceeded"] = True
+                break
 
             tasks = [self._exec_node(node, state) for node in ready]
             batch_results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -101,9 +112,14 @@ class DAGWorkflow:
                     state.update(result)
                 else:
                     state[node.name] = result
-                # Track cost from AgentResult
-                if hasattr(result, 'total_cost'):
-                    total_cost += result.total_cost
+                # v1.1.1: track cost. Agent-wrapped nodes return a dict carrying
+                # ``{node}_cost``; a raw AgentResult/object exposes ``total_cost``.
+                # The old ``hasattr(result, 'total_cost')`` was always False for the
+                # dict case, so cost_budget never engaged.
+                if isinstance(result, dict):
+                    total_cost += float(result.get(f"{node.name}_cost", 0.0) or 0.0)
+                elif hasattr(result, "total_cost"):
+                    total_cost += float(getattr(result, "total_cost", 0.0) or 0.0)
                 completed.add(node.name)
 
         state["_total_cost"] = total_cost
@@ -117,8 +133,9 @@ class DAGWorkflow:
     def _wrap_if_agent(self, fn: Any, node_name: str) -> Callable:
         """Auto-wrap Agent objects into DAG-compatible handlers."""
         # Check if it's an Agent (duck typing to avoid circular import)
-        if hasattr(fn, 'run') and hasattr(fn, 'name') and hasattr(fn, 'instructions'):
+        if hasattr(fn, "run") and hasattr(fn, "name") and hasattr(fn, "instructions"):
             agent = fn
+
             async def _agent_handler(state: dict) -> dict:
                 # Build prompt from state
                 task = state.get(f"{node_name}_input") or state.get("task") or ""
@@ -126,12 +143,18 @@ class DAGWorkflow:
                 dep_outputs = []
                 for dep in self.nodes.get(node_name, DAGNode(node_name, None)).deps:
                     out = state.get(f"{dep}_output") or state.get(dep)
-                    if out: dep_outputs.append(f"[{dep}]: {out}" if isinstance(out, str) else str(out))
+                    if out:
+                        dep_outputs.append(f"[{dep}]: {out}" if isinstance(out, str) else str(out))
                 if dep_outputs:
                     task = f"{task}\n\nPrevious results:\n" + "\n".join(dep_outputs)
-                
+
                 result = await agent.run(task)
-                return {**state, f"{node_name}_output": result.content,
-                        f"{node_name}_result": result, f"{node_name}_cost": result.total_cost}
+                return {
+                    **state,
+                    f"{node_name}_output": result.content,
+                    f"{node_name}_result": result,
+                    f"{node_name}_cost": result.total_cost,
+                }
+
             return _agent_handler
         return fn

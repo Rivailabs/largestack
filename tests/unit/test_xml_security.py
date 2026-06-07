@@ -7,9 +7,7 @@ from largestack._loaders import load_xml
 
 
 def test_parse_xml_basic():
-    assert parse_xml("<root><item>hello</item></root>") == {
-        "root": {"item": "hello"}
-    }
+    assert parse_xml("<root><item>hello</item></root>") == {"root": {"item": "hello"}}
 
 
 def test_parse_xml_rejects_dtd_entity_attack():

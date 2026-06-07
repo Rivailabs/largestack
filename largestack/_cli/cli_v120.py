@@ -11,6 +11,7 @@ Adds two new ``largestack`` subcommands:
 
 These are independent of ``cli_v09.py`` and use ``argparse`` directly.
 """
+
 from __future__ import annotations
 import argparse
 import asyncio
@@ -37,10 +38,12 @@ EXIT_ERROR = 3  # runtime error (suite not found, etc.)
 
 # -------------------- eval-block command --------------------
 
+
 async def _run_eval_block(args: argparse.Namespace) -> int:
     """Run an eval suite and exit non-zero if below threshold."""
     from largestack._eval.runner import (
-        run_suite, format_console_report,
+        run_suite,
+        format_console_report,
     )
 
     suite_path = Path(args.suite)
@@ -122,11 +125,10 @@ def _build_agent_runner(args: argparse.Namespace):
     if ":" in spec:
         module_path, attr = spec.split(":", 1)
         import importlib
+
         mod = importlib.import_module(module_path)
         return getattr(mod, attr)
-    raise ValueError(
-        f"agent spec must be 'module:callable' or *.yaml: {spec}"
-    )
+    raise ValueError(f"agent spec must be 'module:callable' or *.yaml: {spec}")
 
 
 async def _echo_runner(prompt: str) -> str:
@@ -142,6 +144,7 @@ def _make_yaml_runner(yaml_path: Path):
     async def runner(prompt: str) -> str:
         if "agent" not in cache:
             from largestack._loaders.yaml_loader import load_agent_from_yaml
+
             cache["agent"] = load_agent_from_yaml(yaml_path)
         resp = await cache["agent"].run(prompt)
         return getattr(resp, "content", str(resp))
@@ -151,17 +154,22 @@ def _make_yaml_runner(yaml_path: Path):
 
 # -------------------- studio-export command --------------------
 
+
 async def _run_studio_export(args: argparse.Namespace) -> int:
     """Generate an HTML visualizer from an agent.yaml + optional audit log."""
     from largestack._studio import (
-        StudioBuilder, NodeSpec, EdgeSpec, ComplianceMarker,
+        StudioBuilder,
+        NodeSpec,
+        EdgeSpec,
+        ComplianceMarker,
         from_audit_log_records,
     )
 
     agent_yaml = Path(args.agent)
     if not agent_yaml.exists():
         print(
-            f"error: agent file not found: {agent_yaml}", file=sys.stderr,
+            f"error: agent file not found: {agent_yaml}",
+            file=sys.stderr,
         )
         return EXIT_ERROR
 
@@ -186,26 +194,35 @@ async def _run_studio_export(args: argparse.Namespace) -> int:
 
     # Build a minimal graph from agent.yaml: start → agent → end + tools
     builder.add_node(NodeSpec(id="start", label="Start", kind="start"))
-    builder.add_node(NodeSpec(
-        id="agent", label=title, kind="agent",
-        description=str(spec.get("model", "")),
-    ))
+    builder.add_node(
+        NodeSpec(
+            id="agent",
+            label=title,
+            kind="agent",
+            description=str(spec.get("model", "")),
+        )
+    )
     builder.add_edge(EdgeSpec(source="start", target="agent"))
 
     tools = spec.get("tools") or []
     if isinstance(tools, list):
         for i, tool in enumerate(tools):
-            tool_name = (
-                tool if isinstance(tool, str)
-                else tool.get("name", f"tool_{i}")
-            )
+            tool_name = tool if isinstance(tool, str) else tool.get("name", f"tool_{i}")
             tid = f"tool_{i}"
-            builder.add_node(NodeSpec(
-                id=tid, label=str(tool_name), kind="tool",
-            ))
-            builder.add_edge(EdgeSpec(
-                source="agent", target=tid, label="invoke",
-            ))
+            builder.add_node(
+                NodeSpec(
+                    id=tid,
+                    label=str(tool_name),
+                    kind="tool",
+                )
+            )
+            builder.add_edge(
+                EdgeSpec(
+                    source="agent",
+                    target=tid,
+                    label="invoke",
+                )
+            )
 
     builder.add_node(NodeSpec(id="end", label="End", kind="end"))
     builder.add_edge(EdgeSpec(source="agent", target="end"))
@@ -217,11 +234,13 @@ async def _run_studio_export(args: argparse.Namespace) -> int:
             if isinstance(c, str):
                 builder.add_compliance(ComplianceMarker(name=c))
             elif isinstance(c, dict):
-                builder.add_compliance(ComplianceMarker(
-                    name=str(c.get("name", "")),
-                    section=str(c.get("section", "")),
-                    notes=str(c.get("notes", "")),
-                ))
+                builder.add_compliance(
+                    ComplianceMarker(
+                        name=str(c.get("name", "")),
+                        section=str(c.get("section", "")),
+                        notes=str(c.get("notes", "")),
+                    )
+                )
 
     # Audit log
     if args.audit_log:
@@ -255,6 +274,7 @@ async def _run_studio_export(args: argparse.Namespace) -> int:
 
 # -------------------- Argument parser --------------------
 
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="largestack",
@@ -269,13 +289,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     eb.add_argument("suite", help="Path to eval suite YAML")
     eb.add_argument(
-        "--fail-under", type=float, default=DEFAULT_FAIL_UNDER,
+        "--fail-under",
+        type=float,
+        default=DEFAULT_FAIL_UNDER,
         help=f"Min pass rate to succeed (default: {DEFAULT_FAIL_UNDER})",
     )
     eb.add_argument(
-        "--agent", default=None,
+        "--agent",
+        default=None,
         help="Agent spec ('module:callable' or path to agent.yaml). "
-             "If omitted, uses an echo runner for smoke testing.",
+        "If omitted, uses an echo runner for smoke testing.",
     )
     eb.add_argument("--junit", default=None, help="Path for JUnit XML")
     eb.add_argument("--json-out", default=None, help="Path for JSON report")
@@ -288,10 +311,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     se.add_argument("--agent", required=True, help="Path to agent.yaml")
     se.add_argument(
-        "--output", "-o", required=True, help="Path for output HTML",
+        "--output",
+        "-o",
+        required=True,
+        help="Path for output HTML",
     )
     se.add_argument(
-        "--audit-log", default=None,
+        "--audit-log",
+        default=None,
         help="Optional path to a JSON array of audit events",
     )
     se.add_argument("--quiet", action="store_true")
@@ -301,6 +328,7 @@ def build_parser() -> argparse.ArgumentParser:
         from largestack._cli.cli_v130_compliance import (
             add_compliance_check_parser,
         )
+
         add_compliance_check_parser(sub)
     except ImportError:
         pass  # v0.13 module not present in older installs
@@ -318,6 +346,7 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_run_studio_export(args))
     if args.cmd == "compliance-check":
         from largestack._cli.cli_v130_compliance import run_from_args
+
         return run_from_args(args)
 
     parser.print_help()

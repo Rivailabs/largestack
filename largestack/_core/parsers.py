@@ -18,6 +18,7 @@ Parsers included:
 All parsers raise ``OutputParseError`` on failure, with a descriptive
 message that can be fed back to the LLM for retry.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -70,15 +71,14 @@ def parse_json(text: str) -> Any:
                 break
         if start >= 0 and end > start:
             try:
-                return json.loads(s[start:end + 1])
+                return json.loads(s[start : end + 1])
             except json.JSONDecodeError:
                 pass
-        raise OutputParseError(
-            f"invalid JSON: {e.msg} at line {e.lineno} col {e.colno}"
-        ) from e
+        raise OutputParseError(f"invalid JSON: {e.msg} at line {e.lineno} col {e.colno}") from e
 
 
 # -------------------- XML --------------------
+
 
 def parse_xml(text: str) -> dict:
     """Parse XML to a nested dict.
@@ -122,6 +122,7 @@ def _xml_to_dict(elem: ET.Element) -> Any:
 
 # -------------------- YAML --------------------
 
+
 def parse_yaml(text: str) -> Any:
     """Parse text as YAML. Strips markdown fences."""
     try:
@@ -161,6 +162,7 @@ def parse_markdown_list(text: str) -> list[str]:
 
 # -------------------- Code block --------------------
 
+
 def parse_code_block(text: str, lang: str | None = None) -> str:
     """Extract code from a fenced ``\\`\\`\\``` block.
 
@@ -179,13 +181,12 @@ def parse_code_block(text: str, lang: str | None = None) -> str:
         pattern = r"```(?:[a-zA-Z0-9_+-]*)?\s*\n(.*?)\n```"
     m = re.search(pattern, text, re.DOTALL)
     if not m:
-        raise OutputParseError(
-            f"no fenced code block found{f' (lang={lang!r})' if lang else ''}"
-        )
+        raise OutputParseError(f"no fenced code block found{f' (lang={lang!r})' if lang else ''}")
     return m.group(1)
 
 
 # -------------------- CSV line --------------------
+
 
 def parse_csv_line(text: str, separator: str = ",") -> list[str]:
     """Split a single line into fields. Trims whitespace."""
@@ -260,6 +261,7 @@ def parse_bool(text: str) -> bool:
 
 
 # -------------------- Enum --------------------
+
 
 def parse_enum(text: str, choices: list[str], *, case_sensitive: bool = False) -> str:
     """Match text to one of the allowed choices.

@@ -3,6 +3,7 @@
 Uses file-based flag (default) or Redis for distributed systems.
 Cascade: killing parent automatically kills all children.
 """
+
 from __future__ import annotations
 import os, time, logging
 
@@ -10,6 +11,7 @@ log = logging.getLogger("largestack.kill_switch")
 
 _KILL_FILE = os.path.expanduser("~/.largestack/.kill_switch")
 _killed = False
+
 
 def activate(reason: str = "manual", by: str = "operator"):
     """Activate kill switch — all agents will halt."""
@@ -20,6 +22,7 @@ def activate(reason: str = "manual", by: str = "operator"):
         f.write(f"{time.time()}|{reason}|{by}")
     log.critical(f"KILL SWITCH ACTIVATED by {by}: {reason}")
 
+
 def deactivate():
     """Deactivate kill switch — resume normal operation."""
     global _killed
@@ -28,6 +31,7 @@ def deactivate():
         os.remove(_KILL_FILE)
     log.info("Kill switch deactivated")
 
+
 def is_active() -> bool:
     """Check if kill switch is active."""
     global _killed
@@ -35,8 +39,10 @@ def is_active() -> bool:
         return True
     return os.path.exists(_KILL_FILE)
 
+
 def check():
     """Check kill switch and raise if active."""
     from largestack.errors import KillSwitchActivatedError
+
     if is_active():
         raise KillSwitchActivatedError()

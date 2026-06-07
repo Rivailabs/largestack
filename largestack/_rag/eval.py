@@ -9,6 +9,7 @@ Implements the four canonical RAG metrics:
 Each metric is implemented as an LLM-judge prompt. Pass any agent /
 LLM-callable; the metric returns a score in [0, 1].
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -77,18 +78,21 @@ Score recall from 0 to 10 (10 = all required info is present, \
 
 # -------------------- Result types --------------------
 
+
 @dataclass
 class MetricResult:
     """Single metric result."""
+
     metric: str
-    score: float        # in [0, 1] (normalized from raw 0-10)
-    raw_score: float    # the raw 0-10 score
+    score: float  # in [0, 1] (normalized from raw 0-10)
+    raw_score: float  # the raw 0-10 score
     reasoning: str = ""
 
 
 @dataclass
 class EvalResult:
     """Full evaluation across all metrics."""
+
     question: str
     answer: str
     metrics: dict[str, MetricResult] = field(default_factory=dict)
@@ -102,6 +106,7 @@ class EvalResult:
 
 
 # -------------------- Helpers --------------------
+
 
 def _parse_score(text: str) -> tuple[float, str]:
     """Extract score + reasoning from LLM judge output."""
@@ -145,23 +150,35 @@ async def _run_judge(judge_agent, prompt: str) -> tuple[float, str]:
 
 # -------------------- Metric functions --------------------
 
+
 async def faithfulness(
-    judge_agent, *, question: str, answer: str, context: str,
+    judge_agent,
+    *,
+    question: str,
+    answer: str,
+    context: str,
 ) -> MetricResult:
     """Faithfulness: does the answer come from the context?"""
     prompt = FAITHFULNESS_PROMPT.format(
-        question=question, answer=answer, context=context,
+        question=question,
+        answer=answer,
+        context=context,
     )
     raw, reasoning = await _run_judge(judge_agent, prompt)
     raw = max(0.0, min(10.0, raw))
     return MetricResult(
         metric="faithfulness",
-        score=raw / 10.0, raw_score=raw, reasoning=reasoning,
+        score=raw / 10.0,
+        raw_score=raw,
+        reasoning=reasoning,
     )
 
 
 async def answer_relevance(
-    judge_agent, *, question: str, answer: str,
+    judge_agent,
+    *,
+    question: str,
+    answer: str,
 ) -> MetricResult:
     """Answer relevance: does the answer address the question?"""
     prompt = ANSWER_RELEVANCE_PROMPT.format(question=question, answer=answer)
@@ -169,45 +186,57 @@ async def answer_relevance(
     raw = max(0.0, min(10.0, raw))
     return MetricResult(
         metric="answer_relevance",
-        score=raw / 10.0, raw_score=raw, reasoning=reasoning,
+        score=raw / 10.0,
+        raw_score=raw,
+        reasoning=reasoning,
     )
 
 
 async def context_precision(
-    judge_agent, *, question: str, retrieved_chunks: list[str],
+    judge_agent,
+    *,
+    question: str,
+    retrieved_chunks: list[str],
 ) -> MetricResult:
     """Context precision: are relevant chunks ranked at the top?"""
-    chunks_text = "\n\n".join(
-        f"[{i + 1}] {c[:500]}"
-        for i, c in enumerate(retrieved_chunks)
-    )
+    chunks_text = "\n\n".join(f"[{i + 1}] {c[:500]}" for i, c in enumerate(retrieved_chunks))
     prompt = CONTEXT_PRECISION_PROMPT.format(
-        question=question, chunks=chunks_text,
+        question=question,
+        chunks=chunks_text,
     )
     raw, reasoning = await _run_judge(judge_agent, prompt)
     raw = max(0.0, min(10.0, raw))
     return MetricResult(
         metric="context_precision",
-        score=raw / 10.0, raw_score=raw, reasoning=reasoning,
+        score=raw / 10.0,
+        raw_score=raw,
+        reasoning=reasoning,
     )
 
 
 async def context_recall(
-    judge_agent, *, ground_truth: str, context: str,
+    judge_agent,
+    *,
+    ground_truth: str,
+    context: str,
 ) -> MetricResult:
     """Context recall: does context contain all needed info?"""
     prompt = CONTEXT_RECALL_PROMPT.format(
-        ground_truth=ground_truth, context=context,
+        ground_truth=ground_truth,
+        context=context,
     )
     raw, reasoning = await _run_judge(judge_agent, prompt)
     raw = max(0.0, min(10.0, raw))
     return MetricResult(
         metric="context_recall",
-        score=raw / 10.0, raw_score=raw, reasoning=reasoning,
+        score=raw / 10.0,
+        raw_score=raw,
+        reasoning=reasoning,
     )
 
 
 # -------------------- Convenience: evaluate all --------------------
+
 
 async def evaluate(
     judge_agent,
@@ -232,20 +261,29 @@ async def evaluate(
 
     # Always-runnable
     result.metrics["faithfulness"] = await faithfulness(
-        judge_agent, question=question, answer=answer, context=context,
+        judge_agent,
+        question=question,
+        answer=answer,
+        context=context,
     )
     result.metrics["answer_relevance"] = await answer_relevance(
-        judge_agent, question=question, answer=answer,
+        judge_agent,
+        question=question,
+        answer=answer,
     )
 
     # Conditionally runnable
     if retrieved_chunks:
         result.metrics["context_precision"] = await context_precision(
-            judge_agent, question=question, retrieved_chunks=retrieved_chunks,
+            judge_agent,
+            question=question,
+            retrieved_chunks=retrieved_chunks,
         )
     if ground_truth:
         result.metrics["context_recall"] = await context_recall(
-            judge_agent, ground_truth=ground_truth, context=context,
+            judge_agent,
+            ground_truth=ground_truth,
+            context=context,
         )
 
     return result

@@ -23,6 +23,7 @@ in the agent graph"::
     html = render_comparison_html(a, b, label_a="v0.12", label_b="main")
     Path("compare.html").write_text(html)
 """
+
 from __future__ import annotations
 import html as _html
 import json
@@ -34,6 +35,7 @@ from typing import Any
 @dataclass
 class StudioDiff:
     """Computed delta between two ``StudioBuilder`` payloads."""
+
     nodes_added: list[str] = field(default_factory=list)
     nodes_removed: list[str] = field(default_factory=list)
     nodes_changed: list[dict[str, Any]] = field(default_factory=list)
@@ -61,41 +63,31 @@ class StudioDiff:
 
     @property
     def has_changes(self) -> bool:
-        return any([
-            self.nodes_added, self.nodes_removed, self.nodes_changed,
-            self.edges_added, self.edges_removed,
-            self.audit_only_a, self.audit_only_b,
-            self.compliance_added, self.compliance_removed,
-            self.memory_diff,
-        ])
+        return any(
+            [
+                self.nodes_added,
+                self.nodes_removed,
+                self.nodes_changed,
+                self.edges_added,
+                self.edges_removed,
+                self.audit_only_a,
+                self.audit_only_b,
+                self.compliance_added,
+                self.compliance_removed,
+                self.memory_diff,
+            ]
+        )
 
 
 def _builder_to_dict(builder) -> dict[str, Any]:
     """Extract a dict view of a StudioBuilder for comparison."""
     # StudioBuilder uses private attributes _nodes, _edges, _audit, _memory, _compliance
-    raw_nodes = (
-        getattr(builder, "_nodes", None)
-        or getattr(builder, "nodes", None)
-        or []
-    )
-    raw_edges = (
-        getattr(builder, "_edges", None)
-        or getattr(builder, "edges", None)
-        or []
-    )
-    raw_audit = (
-        getattr(builder, "_audit", None)
-        or getattr(builder, "audit_events", None)
-        or []
-    )
-    raw_memory = (
-        getattr(builder, "_memory", None)
-        or getattr(builder, "memory_snapshot", None)
-    )
+    raw_nodes = getattr(builder, "_nodes", None) or getattr(builder, "nodes", None) or []
+    raw_edges = getattr(builder, "_edges", None) or getattr(builder, "edges", None) or []
+    raw_audit = getattr(builder, "_audit", None) or getattr(builder, "audit_events", None) or []
+    raw_memory = getattr(builder, "_memory", None) or getattr(builder, "memory_snapshot", None)
     raw_compliance = (
-        getattr(builder, "_compliance", None)
-        or getattr(builder, "compliance", None)
-        or []
+        getattr(builder, "_compliance", None) or getattr(builder, "compliance", None) or []
     )
 
     nodes: dict[str, dict[str, Any]] = {}
@@ -120,41 +112,45 @@ def _builder_to_dict(builder) -> dict[str, Any]:
     edges: list[tuple[str, str]] = []
     for e in raw_edges:
         if isinstance(e, dict):
-            edges.append((
-                e.get("source") or e.get("from") or "",
-                e.get("target") or e.get("to") or "",
-            ))
+            edges.append(
+                (
+                    e.get("source") or e.get("from") or "",
+                    e.get("target") or e.get("to") or "",
+                )
+            )
         else:
-            edges.append((
-                getattr(e, "source", "") or getattr(e, "from_id", "") or getattr(e, "src", ""),
-                getattr(e, "target", "") or getattr(e, "to_id", "") or getattr(e, "dst", ""),
-            ))
+            edges.append(
+                (
+                    getattr(e, "source", "") or getattr(e, "from_id", "") or getattr(e, "src", ""),
+                    getattr(e, "target", "") or getattr(e, "to_id", "") or getattr(e, "dst", ""),
+                )
+            )
 
     audit = []
     for ev in raw_audit:
         if isinstance(ev, dict):
-            audit.append({
-                "event": ev.get("event") or ev.get("action", ""),
-                "agent": ev.get("agent", ""),
-                "payload": ev.get("payload") or ev.get("data", {}),
-            })
+            audit.append(
+                {
+                    "event": ev.get("event") or ev.get("action", ""),
+                    "agent": ev.get("agent", ""),
+                    "payload": ev.get("payload") or ev.get("data", {}),
+                }
+            )
         else:
-            audit.append({
-                "event": getattr(ev, "event", "") or getattr(ev, "action", ""),
-                "agent": getattr(ev, "agent", ""),
-                "payload": getattr(ev, "payload", None) or getattr(ev, "data", {}),
-            })
+            audit.append(
+                {
+                    "event": getattr(ev, "event", "") or getattr(ev, "action", ""),
+                    "agent": getattr(ev, "agent", ""),
+                    "payload": getattr(ev, "payload", None) or getattr(ev, "data", {}),
+                }
+            )
 
     compliance = []
     for c in raw_compliance:
         if isinstance(c, dict):
-            compliance.append(
-                f"{c.get('name', '?')}/{c.get('section', '')}".rstrip("/")
-            )
+            compliance.append(f"{c.get('name', '?')}/{c.get('section', '')}".rstrip("/"))
         else:
-            compliance.append(
-                f"{getattr(c, 'name', '?')}/{getattr(c, 'section', '')}".rstrip("/")
-            )
+            compliance.append(f"{getattr(c, 'name', '?')}/{getattr(c, 'section', '')}".rstrip("/"))
 
     memory_dict: dict[str, Any] = {}
     if raw_memory is not None:
@@ -162,8 +158,14 @@ def _builder_to_dict(builder) -> dict[str, Any]:
             memory_dict = raw_memory
         else:
             # MemorySnapshot dataclass
-            for k in ("tenant_id", "user_id", "core_count",
-                      "recall_count", "archival_count", "core_block_preview"):
+            for k in (
+                "tenant_id",
+                "user_id",
+                "core_count",
+                "recall_count",
+                "archival_count",
+                "core_block_preview",
+            ):
                 if hasattr(raw_memory, k):
                     memory_dict[k] = getattr(raw_memory, k)
 
@@ -194,11 +196,13 @@ def compute_diff(a, b) -> StudioDiff:
     # Changed: same id, different label/kind
     for nid in sorted(a_node_ids & b_node_ids):
         if da["nodes"][nid] != db["nodes"][nid]:
-            diff.nodes_changed.append({
-                "id": nid,
-                "before": da["nodes"][nid],
-                "after": db["nodes"][nid],
-            })
+            diff.nodes_changed.append(
+                {
+                    "id": nid,
+                    "before": da["nodes"][nid],
+                    "after": db["nodes"][nid],
+                }
+            )
 
     a_edges = set(da["edges"])
     b_edges = set(db["edges"])
@@ -211,12 +215,10 @@ def compute_diff(a, b) -> StudioDiff:
     only_a_keys = a_audit_keys - b_audit_keys
     only_b_keys = b_audit_keys - a_audit_keys
     diff.audit_only_a = [
-        e for e in da["audit_events"]
-        if json.dumps(e, sort_keys=True) in only_a_keys
+        e for e in da["audit_events"] if json.dumps(e, sort_keys=True) in only_a_keys
     ]
     diff.audit_only_b = [
-        e for e in db["audit_events"]
-        if json.dumps(e, sort_keys=True) in only_b_keys
+        e for e in db["audit_events"] if json.dumps(e, sort_keys=True) in only_b_keys
     ]
 
     a_comp = set(da["compliance"])
@@ -237,7 +239,8 @@ def compute_diff(a, b) -> StudioDiff:
 
 
 def render_comparison_html(
-    a, b,
+    a,
+    b,
     *,
     label_a: str = "A",
     label_b: str = "B",
@@ -253,8 +256,7 @@ def render_comparison_html(
         "diff": diff.to_dict(),
     }
     payload_json = (
-        json.dumps(payload, indent=2)
-        .replace("</", "<\\/")  # XSS safety inside <script>
+        json.dumps(payload, indent=2).replace("</", "<\\/")  # XSS safety inside <script>
     )
     safe_title = _html.escape(title)
 
@@ -295,11 +297,11 @@ def render_comparison_html(
 
 <div class="grid" style="margin-top:16px">
   <div class="panel">
-    <h2>{_html.escape(label_a)}: {_html.escape(payload['a']['title'] or 'untitled')}</h2>
+    <h2>{_html.escape(label_a)}: {_html.escape(payload["a"]["title"] or "untitled")}</h2>
     <div id="panel-a"></div>
   </div>
   <div class="panel">
-    <h2>{_html.escape(label_b)}: {_html.escape(payload['b']['title'] or 'untitled')}</h2>
+    <h2>{_html.escape(label_b)}: {_html.escape(payload["b"]["title"] or "untitled")}</h2>
     <div id="panel-b"></div>
   </div>
 </div>
@@ -387,7 +389,9 @@ renderDiff();
 
 
 def export_comparison(
-    a, b, output_path: str | Path,
+    a,
+    b,
+    output_path: str | Path,
     *,
     label_a: str = "A",
     label_b: str = "B",
@@ -404,6 +408,8 @@ def export_comparison(
 
 
 __all__ = [
-    "StudioDiff", "compute_diff",
-    "render_comparison_html", "export_comparison",
+    "StudioDiff",
+    "compute_diff",
+    "render_comparison_html",
+    "export_comparison",
 ]

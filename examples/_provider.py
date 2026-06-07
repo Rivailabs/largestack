@@ -4,6 +4,7 @@ Examples prefer DeepSeek when ``LARGESTACK_DEEPSEEK_API_KEY`` is set, allow
 ``LARGESTACK_DEFAULT_MODEL`` as an explicit override, and fall back to OpenAI
 only when an OpenAI key is present. No API key is printed or stored.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -31,9 +32,13 @@ def select_model() -> str:
     if override:
         provider = override.split("/", 1)[0]
         if provider == "deepseek" and not os.environ.get("LARGESTACK_DEEPSEEK_API_KEY"):
-            raise MissingProviderConfig("LARGESTACK_DEFAULT_MODEL selects DeepSeek, but LARGESTACK_DEEPSEEK_API_KEY is not set.")
+            raise MissingProviderConfig(
+                "LARGESTACK_DEFAULT_MODEL selects DeepSeek, but LARGESTACK_DEEPSEEK_API_KEY is not set."
+            )
         if provider == "openai" and not os.environ.get("LARGESTACK_OPENAI_API_KEY"):
-            raise MissingProviderConfig("LARGESTACK_DEFAULT_MODEL selects OpenAI, but LARGESTACK_OPENAI_API_KEY is not set.")
+            raise MissingProviderConfig(
+                "LARGESTACK_DEFAULT_MODEL selects OpenAI, but LARGESTACK_OPENAI_API_KEY is not set."
+            )
         return override
     if os.environ.get("LARGESTACK_DEEPSEEK_API_KEY"):
         return "deepseek/deepseek-chat"

@@ -8,6 +8,7 @@ Covers:
   - Engine threads `task` into trace row
   - Streaming docstring documents post-hoc guardrail limitation
 """
+
 from __future__ import annotations
 
 import os
@@ -20,6 +21,7 @@ import pytest
 # ---------------------------------------------------------------------------
 # db.py — read-only mode + db_path allowlist
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_db_blocks_path_outside_base(tmp_path, monkeypatch):
@@ -60,11 +62,8 @@ async def test_db_rejects_insert_via_readonly_mode(tmp_path, monkeypatch):
     conn.close()
 
     # The keyword check rejects non-SELECT first
-    out = await database_query("INSERT INTO users VALUES (2, 'mallory')",
-                               db_path=str(db))
-    assert "select" in out.lower() and (
-        "permitted" in out.lower() or "only" in out.lower()
-    )
+    out = await database_query("INSERT INTO users VALUES (2, 'mallory')", db_path=str(db))
+    assert "select" in out.lower() and ("permitted" in out.lower() or "only" in out.lower())
 
     # Even if attacker tries `WITH ... INSERT`, RO mode at SQLite layer blocks
     out2 = await database_query(
@@ -125,9 +124,11 @@ async def test_db_explicit_allowlist(tmp_path, monkeypatch):
 # web.py web_fetch — SSRF (was missing in v0.3.11)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_web_fetch_blocks_loopback():
     from largestack._core.builtin_tools.web import web_fetch
+
     out = await web_fetch("http://127.0.0.1:8080/secrets")
     assert "blocked" in out.lower() or "private" in out.lower() or "loopback" in out.lower()
 
@@ -135,6 +136,7 @@ async def test_web_fetch_blocks_loopback():
 @pytest.mark.asyncio
 async def test_web_fetch_blocks_metadata_ip():
     from largestack._core.builtin_tools.web import web_fetch
+
     out = await web_fetch("http://169.254.169.254/iam")
     assert "blocked" in out.lower() or "metadata" in out.lower() or "link-local" in out.lower()
 
@@ -142,6 +144,7 @@ async def test_web_fetch_blocks_metadata_ip():
 @pytest.mark.asyncio
 async def test_web_fetch_blocks_file_scheme():
     from largestack._core.builtin_tools.web import web_fetch
+
     out = await web_fetch("file:///etc/passwd")
     assert "blocked" in out.lower() or "scheme" in out.lower()
 
@@ -150,11 +153,13 @@ async def test_web_fetch_blocks_file_scheme():
 # browser.py — SSRF (was missing in v0.3.11)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_browser_blocks_loopback():
     """Even without playwright installed, the SSRF check fires before
     we attempt to import playwright."""
     from largestack._core.builtin_tools.browser import browser_navigate
+
     out = await browser_navigate("http://127.0.0.1:8080/admin")
     assert "blocked" in out.lower() or "private" in out.lower() or "loopback" in out.lower()
 
@@ -162,6 +167,7 @@ async def test_browser_blocks_loopback():
 @pytest.mark.asyncio
 async def test_browser_blocks_metadata():
     from largestack._core.builtin_tools.browser import browser_navigate
+
     out = await browser_navigate("http://169.254.169.254/iam")
     assert "blocked" in out.lower() or "metadata" in out.lower() or "link-local" in out.lower()
 
@@ -170,19 +176,22 @@ async def test_browser_blocks_metadata():
 # Shared validator imported by all three tools
 # ---------------------------------------------------------------------------
 
+
 def test_url_validator_module_exists_and_used_by_all_tools():
     """Belt-and-suspenders: confirm the shared validator is what each tool uses,
     so future fixes apply uniformly."""
     repo = Path(__file__).resolve().parent.parent.parent
     for name in ("http_tool.py", "web.py", "browser.py"):
         src = (repo / "largestack" / "_core" / "builtin_tools" / name).read_text()
-        assert "from largestack._core.builtin_tools._url_validator import validate_url" in src, \
+        assert "from largestack._core.builtin_tools._url_validator import validate_url" in src, (
             f"{name} doesn't use shared validator — risk of fix drift"
+        )
 
 
 # ---------------------------------------------------------------------------
 # Dockerfile uses real curl healthcheck
 # ---------------------------------------------------------------------------
+
 
 def test_dockerfile_healthcheck_uses_curl():
     """Real HTTP healthcheck, not just `python -c "import largestack"`."""
@@ -207,6 +216,7 @@ def test_dockerfile_healthcheck_uses_curl():
 # Engine threads task into trace row
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_engine_writes_task_to_trace_row(tmp_path, monkeypatch):
     """v0.3.12: trace row must include the user's task, not just the output."""
@@ -226,9 +236,7 @@ async def test_engine_writes_task_to_trace_row(tmp_path, monkeypatch):
 
     conn = sqlite3.connect(db)
     try:
-        row = conn.execute(
-            "SELECT task, output FROM traces WHERE agent='task_test'"
-        ).fetchone()
+        row = conn.execute("SELECT task, output FROM traces WHERE agent='task_test'").fetchone()
     finally:
         conn.close()
     assert row is not None
@@ -240,15 +248,17 @@ async def test_engine_writes_task_to_trace_row(tmp_path, monkeypatch):
 # Streaming guardrail limitation is documented honestly
 # ---------------------------------------------------------------------------
 
+
 def test_stream_docstring_warns_about_post_hoc_guardrails():
     """v0.3.12 documented the limitation; v0.5.0 fixed it.
-    
+
     Now the docstring must reference the v0.5.0 fix (stream_guard=True)
     AND still acknowledge that stream_guard=False has the legacy
     post-hoc behavior, so callers understand both modes.
     """
     import inspect
     from largestack._core.engine import AgentEngine
+
     src = inspect.getsource(AgentEngine.stream)
     # v0.5.0: must document the new opt-in per-chunk mode
     assert "stream_guard" in src, "stream() must document the v0.5.0 stream_guard parameter"
@@ -260,16 +270,16 @@ def test_stream_docstring_warns_about_post_hoc_guardrails():
 # All previous fixes still working
 # ---------------------------------------------------------------------------
 
+
 def test_all_v0310_v0311_regression_files_still_present():
     """Make sure no previous regression file was lost."""
     repo = Path(__file__).resolve().parent.parent.parent
     for name in (
-        "test_p0_fixes_v030.py",   # v0.3.0 baseline
+        "test_p0_fixes_v030.py",  # v0.3.0 baseline
         "test_p0_fixes_v0310.py",  # v0.3.10 fixes
         "test_p0_fixes_v0311.py",  # v0.3.11 fixes
     ):
         # Some baselines might not exist (only the new ones must)
         # The post-fix ones definitely must.
         if name in ("test_p0_fixes_v0310.py", "test_p0_fixes_v0311.py"):
-            assert (repo / "tests" / "unit" / name).exists(), \
-                f"regression file missing: {name}"
+            assert (repo / "tests" / "unit" / name).exists(), f"regression file missing: {name}"

@@ -1,4 +1,5 @@
 """v0.7.0: Output parser tests."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -21,6 +22,7 @@ from largestack._core.parsers import (
 
 # -------------------- JSON --------------------
 
+
 def test_parse_json_plain():
     assert parse_json('{"a": 1}') == {"a": 1}
 
@@ -35,7 +37,7 @@ def test_parse_json_strips_plain_fences():
 
 def test_parse_json_lenient_extraction():
     """When LLM adds preamble/postamble, extract the JSON anyway."""
-    text = "Here is the JSON:\n{\"a\": 1, \"b\": 2}\nHope that helps!"
+    text = 'Here is the JSON:\n{"a": 1, "b": 2}\nHope that helps!'
     assert parse_json(text) == {"a": 1, "b": 2}
 
 
@@ -54,6 +56,7 @@ def test_parse_json_non_string():
 
 
 # -------------------- XML --------------------
+
 
 def test_parse_xml_simple():
     result = parse_xml("<root><name>LARGESTACK</name></root>")
@@ -85,6 +88,7 @@ def test_parse_xml_invalid():
 
 # -------------------- YAML --------------------
 
+
 def test_parse_yaml_basic():
     pytest.importorskip("yaml")
     assert parse_yaml("name: LARGESTACK\nversion: 0.7") == {"name": "LARGESTACK", "version": 0.7}
@@ -102,6 +106,7 @@ def test_parse_yaml_invalid():
 
 
 # -------------------- Markdown list --------------------
+
 
 def test_parse_md_list_dashes():
     text = "- apple\n- banana\n- cherry"
@@ -129,6 +134,7 @@ def test_parse_md_list_empty_when_no_items():
 
 # -------------------- Code block --------------------
 
+
 def test_parse_code_block_any_lang():
     text = "Here:\n```python\nprint(1)\n```\nDone."
     assert parse_code_block(text) == "print(1)"
@@ -147,6 +153,7 @@ def test_parse_code_block_no_block():
 
 # -------------------- CSV line --------------------
 
+
 def test_parse_csv_line():
     assert parse_csv_line("a, b ,c") == ["a", "b", "c"]
 
@@ -156,6 +163,7 @@ def test_parse_csv_line_custom_sep():
 
 
 # -------------------- Datetime --------------------
+
 
 def test_parse_datetime_iso():
     dt = parse_datetime("2026-05-02T14:30:00")
@@ -189,6 +197,7 @@ def test_parse_datetime_invalid():
 
 # -------------------- Boolean --------------------
 
+
 def test_parse_bool_true_variants():
     for v in ("yes", "Yes", "YES", "true", "True", "y", "1", "ok", "agree", "correct"):
         assert parse_bool(v) is True, f"expected True for {v!r}"
@@ -209,6 +218,7 @@ def test_parse_bool_strips_whitespace():
 
 
 # -------------------- Enum --------------------
+
 
 def test_parse_enum_match():
     assert parse_enum("approve", choices=["approve", "deny", "review"]) == "approve"

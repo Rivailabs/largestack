@@ -1,4 +1,5 @@
 """v0.9.0: Tests for Docker Compose stack files."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,6 +17,7 @@ def test_docker_compose_yaml_present():
 def test_docker_compose_has_required_services():
     pytest.importorskip("yaml")
     import yaml as _yaml
+
     with open(DEPLOY_DIR / "docker-compose.yml") as f:
         data = _yaml.safe_load(f)
     services = set(data.get("services", {}).keys())

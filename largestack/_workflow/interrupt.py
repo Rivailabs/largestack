@@ -39,6 +39,7 @@ The exception-based pattern integrates naturally with the Graph DSL
 once checkpointing is added in v0.9. For v0.8 we ship the API and
 the callback-based path that works without checkpointing.
 """
+
 from __future__ import annotations
 import asyncio
 import inspect
@@ -53,6 +54,7 @@ log = logging.getLogger("largestack.workflow.interrupt")
 @dataclass
 class InterruptResponse:
     """A human's response to an interrupt."""
+
     interrupt_id: str
     answer: Any
     metadata: dict = field(default_factory=dict)

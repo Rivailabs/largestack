@@ -32,6 +32,7 @@ Usage::
 
     # LARGESTACK spans now flow to Phoenix automatically
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -50,6 +51,7 @@ class PhoenixConfig:
     - ``PHOENIX_API_KEY`` (for hosted Phoenix Cloud)
     - ``PHOENIX_PROJECT_NAME``
     """
+
     endpoint: str = "http://localhost:6006"
     api_key: str = ""
     project_name: str = "default"
@@ -72,8 +74,13 @@ class PhoenixConfig:
 
         if not self.allow_non_india_host:
             india_markers = (
-                "ap-south", "mumbai", ".in/", ".in:", ".in",
-                "localhost", "127.0.0.1",  # local self-host is fine
+                "ap-south",
+                "mumbai",
+                ".in/",
+                ".in:",
+                ".in",
+                "localhost",
+                "127.0.0.1",  # local self-host is fine
             )
             ep = self.endpoint.lower()
             if not any(m in ep for m in india_markers):
@@ -87,6 +94,7 @@ class PhoenixConfig:
 def _have_phoenix() -> bool:
     try:
         import phoenix  # noqa
+
         return True
     except ImportError:
         return False
@@ -95,12 +103,14 @@ def _have_phoenix() -> bool:
 def _have_openinference() -> bool:
     try:
         import openinference  # noqa
+
         return True
     except ImportError:
         return False
 
 
 # -------------------- Configuration --------------------
+
 
 class PhoenixIntegration:
     """Phoenix integration handle."""
@@ -119,6 +129,7 @@ class PhoenixIntegration:
             from opentelemetry.sdk.trace import TracerProvider
             from opentelemetry.sdk.trace.export import BatchSpanProcessor
             from opentelemetry.sdk.resources import Resource
+
             try:
                 from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
                     OTLPSpanExporter,
@@ -133,26 +144,23 @@ class PhoenixIntegration:
             log.warning(f"OTEL setup failed: {e}")
             return False
 
-        endpoint = (
-            f"{self.config.endpoint.rstrip('/')}/v1/traces"
-        )
+        endpoint = f"{self.config.endpoint.rstrip('/')}/v1/traces"
         headers: dict[str, str] = {}
         if self.config.api_key:
             headers["api_key"] = self.config.api_key
 
         exporter = OTLPSpanExporter(endpoint=endpoint, headers=headers)
-        resource = Resource.create({
-            "service.name": self.config.project_name,
-            "openinference.project.name": self.config.project_name,
-        })
+        resource = Resource.create(
+            {
+                "service.name": self.config.project_name,
+                "openinference.project.name": self.config.project_name,
+            }
+        )
         provider = TracerProvider(resource=resource)
         provider.add_span_processor(BatchSpanProcessor(exporter))
         trace.set_tracer_provider(provider)
         self._tracer_provider = provider
-        log.info(
-            f"Phoenix OTEL configured: {endpoint} "
-            f"(project: {self.config.project_name})"
-        )
+        log.info(f"Phoenix OTEL configured: {endpoint} (project: {self.config.project_name})")
         return True
 
     def shutdown(self) -> None:
@@ -182,6 +190,7 @@ def get_integration() -> PhoenixIntegration | None:
 
 # -------------------- OpenInference semantic conventions --------------------
 
+
 # Standard OpenInference attribute names (subset)
 class OISpanKind:
     LLM = "LLM"
@@ -205,6 +214,7 @@ def openinference_attributes_for_llm(
 ) -> dict[str, Any]:
     """Build OpenInference attributes for an LLM call span."""
     import json
+
     attrs: dict[str, Any] = {
         "openinference.span.kind": OISpanKind.LLM,
         "llm.model_name": model,
@@ -229,6 +239,7 @@ def openinference_attributes_for_retrieval(
 ) -> dict[str, Any]:
     """Build OpenInference attributes for a retrieval span."""
     import json
+
     return {
         "openinference.span.kind": OISpanKind.RETRIEVER,
         "input.value": query,
@@ -260,6 +271,7 @@ def openinference_attributes_for_tool(
 ) -> dict[str, Any]:
     """Build OpenInference attributes for a tool span."""
     import json
+
     attrs: dict[str, Any] = {
         "openinference.span.kind": OISpanKind.TOOL,
         "tool.name": tool_name,
@@ -270,6 +282,7 @@ def openinference_attributes_for_tool(
 
 
 # -------------------- LARGESTACK-unique extensions --------------------
+
 
 def phoenix_attributes_for_compliance(
     *,
@@ -291,8 +304,15 @@ def phoenix_attributes_for_compliance(
 def phoenix_attributes_for_indic(
     *,
     script: Literal[
-        "devanagari", "bengali", "tamil", "telugu", "kannada",
-        "malayalam", "gujarati", "punjabi", "odia",
+        "devanagari",
+        "bengali",
+        "tamil",
+        "telugu",
+        "kannada",
+        "malayalam",
+        "gujarati",
+        "punjabi",
+        "odia",
     ],
     language: str = "",
 ) -> dict[str, str]:

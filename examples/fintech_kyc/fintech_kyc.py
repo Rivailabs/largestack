@@ -12,6 +12,7 @@ Run::
     export LARGESTACK_KYC_API_KEY=...
     python fintech_kyc.py
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -76,7 +77,7 @@ async def main():
     # Example data (NOT real PII — these are valid format-wise but test data)
     result = await onboard_customer(
         name="Sachith S",
-        pan="AAACR1234C",       # valid format
+        pan="AAACR1234C",  # valid format
         aadhaar="234567890123",  # valid format (starts with 2-9)
     )
 

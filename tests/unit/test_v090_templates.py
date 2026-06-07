@@ -1,4 +1,5 @@
 """v0.9.0: Tests for cookiecutter-style template directories."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -31,10 +32,7 @@ def test_each_template_has_agent_or_workflow_yaml():
     for tpl_dir in TEMPLATES_DIR.iterdir():
         if not tpl_dir.is_dir():
             continue
-        has_yaml = (
-            (tpl_dir / "agent.yaml").exists()
-            or (tpl_dir / "workflow.yaml").exists()
-        )
+        has_yaml = (tpl_dir / "agent.yaml").exists() or (tpl_dir / "workflow.yaml").exists()
         assert has_yaml, f"{tpl_dir.name} has no agent.yaml or workflow.yaml"
 
 

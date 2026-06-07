@@ -1,4 +1,5 @@
 """v0.9.0: Tests for Supervisor, Swarm, and StructuredChatAgent."""
+
 from __future__ import annotations
 
 import json
@@ -8,6 +9,7 @@ import pytest
 
 
 # -------------------- Supervisor --------------------
+
 
 @pytest.mark.asyncio
 async def test_supervisor_routes_to_specialist():
@@ -61,6 +63,7 @@ async def test_supervisor_handles_unknown_agent_name():
 @pytest.mark.asyncio
 async def test_supervisor_caps_at_max_iterations():
     from largestack._core.multiagent import Supervisor
+
     # Always route, never finish
     forever = MagicMock(content="researcher\ntask")
     research_resp = MagicMock(content="more")
@@ -82,12 +85,14 @@ async def test_supervisor_caps_at_max_iterations():
 @pytest.mark.asyncio
 async def test_supervisor_validates_empty_agents():
     from largestack._core.multiagent import Supervisor
+
     supervisor = MagicMock()
     with pytest.raises(ValueError, match="empty"):
         Supervisor(supervisor_agent=supervisor, agents={})
 
 
 # -------------------- Swarm --------------------
+
 
 @pytest.mark.asyncio
 async def test_swarm_no_handoff_returns_first_agent_answer():
@@ -153,6 +158,7 @@ async def test_swarm_unknown_handoff_target_treated_as_final():
 @pytest.mark.asyncio
 async def test_swarm_validates():
     from largestack._core.multiagent import Swarm
+
     with pytest.raises(ValueError, match="empty"):
         Swarm(agents={})
 
@@ -164,6 +170,7 @@ async def test_swarm_validates():
 @pytest.mark.asyncio
 async def test_swarm_caps_handoff_chain():
     from largestack._core.multiagent import Swarm
+
     # Two agents that hand off forever
     a_handoff = MagicMock(content="HANDOFF: b")
     b_handoff = MagicMock(content="HANDOFF: a")
@@ -184,6 +191,7 @@ async def test_swarm_caps_handoff_chain():
 
 # -------------------- StructuredChatAgent --------------------
 
+
 @pytest.mark.asyncio
 async def test_structured_chat_executes_tool_then_final():
     from largestack._core.multiagent import StructuredChatAgent
@@ -193,13 +201,13 @@ async def test_structured_chat_executes_tool_then_final():
     fake_tool._tool_schema = {"name": "search", "description": "search the web"}
 
     # Step 1: agent says use tool
-    step1 = MagicMock(content=json.dumps({
-        "action": "search", "action_input": {"q": "answer to life"}
-    }))
+    step1 = MagicMock(
+        content=json.dumps({"action": "search", "action_input": {"q": "answer to life"}})
+    )
     # Step 2: agent gives final answer
-    step2 = MagicMock(content=json.dumps({
-        "action": "Final Answer", "action_input": "The answer is 42"
-    }))
+    step2 = MagicMock(
+        content=json.dumps({"action": "Final Answer", "action_input": "The answer is 42"})
+    )
 
     agent = MagicMock()
     agent.run = AsyncMock(side_effect=[step1, step2])
@@ -234,13 +242,9 @@ async def test_structured_chat_unknown_tool_recovers():
     from largestack._core.multiagent import StructuredChatAgent
 
     # Step 1: try unknown tool
-    step1 = MagicMock(content=json.dumps({
-        "action": "nonexistent_tool", "action_input": {}
-    }))
+    step1 = MagicMock(content=json.dumps({"action": "nonexistent_tool", "action_input": {}}))
     # Step 2: give up and answer
-    step2 = MagicMock(content=json.dumps({
-        "action": "Final Answer", "action_input": "ok"
-    }))
+    step2 = MagicMock(content=json.dumps({"action": "Final Answer", "action_input": "ok"}))
 
     agent = MagicMock()
     agent.run = AsyncMock(side_effect=[step1, step2])
@@ -258,9 +262,11 @@ async def test_structured_chat_strips_code_fences():
     """LLMs often wrap JSON in ```json fences."""
     from largestack._core.multiagent import StructuredChatAgent
 
-    step1 = MagicMock(content="```json\n" + json.dumps({
-        "action": "Final Answer", "action_input": "wrapped"
-    }) + "\n```")
+    step1 = MagicMock(
+        content="```json\n"
+        + json.dumps({"action": "Final Answer", "action_input": "wrapped"})
+        + "\n```"
+    )
     agent = MagicMock()
     agent.run = AsyncMock(return_value=step1)
     agent.tools = []
@@ -278,9 +284,7 @@ async def test_structured_chat_max_iterations():
     fake_tool = AsyncMock(return_value="x")
     fake_tool._tool_schema = {"name": "t", "description": "t"}
 
-    forever = MagicMock(content=json.dumps({
-        "action": "t", "action_input": {}
-    }))
+    forever = MagicMock(content=json.dumps({"action": "t", "action_input": {}}))
     agent = MagicMock()
     agent.run = AsyncMock(return_value=forever)
     agent.tools = [fake_tool]

@@ -1,4 +1,5 @@
 """v0.13.0: Tests for A2A v0.3 features (SSE streaming + signed cards)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -9,8 +10,10 @@ import pytest
 
 # -------------------- TaskStreamEvent --------------------
 
+
 def test_stream_event_sse_format():
     from largestack._a2a.v03 import TaskStreamEvent
+
     e = TaskStreamEvent(event="state_change", data={"state": "working"})
     sse = e.to_sse()
     assert sse.startswith("event: state_change\n")
@@ -18,14 +21,14 @@ def test_stream_event_sse_format():
     assert sse.endswith("\n\n")
     # JSON parseable
     import json
-    data_line = [
-        l for l in sse.splitlines() if l.startswith("data: ")
-    ][0]
+
+    data_line = [l for l in sse.splitlines() if l.startswith("data: ")][0]
     parsed = json.loads(data_line[6:])
     assert parsed["state"] == "working"
 
 
 # -------------------- StreamingA2AServer --------------------
+
 
 @pytest.mark.asyncio
 async def test_stream_task_emits_state_changes():
@@ -123,7 +126,9 @@ async def test_handle_streaming_request_returns_sse_strings():
 
     chunks = []
     async for sse in server.handle_streaming_request(
-        "POST", "/tasks/sendSubscribe", {"input": "hi"},
+        "POST",
+        "/tasks/sendSubscribe",
+        {"input": "hi"},
     ):
         chunks.append(sse)
 
@@ -147,7 +152,9 @@ async def test_handle_streaming_request_rejects_empty_input():
 
     chunks = []
     async for sse in server.handle_streaming_request(
-        "POST", "/tasks/sendSubscribe", {},
+        "POST",
+        "/tasks/sendSubscribe",
+        {},
     ):
         chunks.append(sse)
 
@@ -157,18 +164,24 @@ async def test_handle_streaming_request_rejects_empty_input():
 
 # -------------------- HS256 signed cards --------------------
 
+
 def test_sign_and_verify_hs256_roundtrip():
     from largestack._a2a import AgentCard, AgentSkill
     from largestack._a2a.v03 import (
-        sign_agent_card_hs256, verify_agent_card_hs256,
+        sign_agent_card_hs256,
+        verify_agent_card_hs256,
     )
 
     card = AgentCard(
-        name="My Agent", description="d", url="u",
+        name="My Agent",
+        description="d",
+        url="u",
         skills=[AgentSkill(id="x", name="X", description="x")],
     )
     signed = sign_agent_card_hs256(
-        card, secret="secret-key", kid="prod-2026",
+        card,
+        secret="secret-key",
+        kid="prod-2026",
     )
     ok, reason = verify_agent_card_hs256(signed, secret="secret-key")
     assert ok, reason
@@ -177,7 +190,8 @@ def test_sign_and_verify_hs256_roundtrip():
 def test_hs256_rejects_wrong_secret():
     from largestack._a2a import AgentCard
     from largestack._a2a.v03 import (
-        sign_agent_card_hs256, verify_agent_card_hs256,
+        sign_agent_card_hs256,
+        verify_agent_card_hs256,
     )
 
     card = AgentCard(name="x", description="y", url="z")
@@ -190,12 +204,15 @@ def test_hs256_rejects_wrong_secret():
 def test_hs256_rejects_expired_signature():
     from largestack._a2a import AgentCard
     from largestack._a2a.v03 import (
-        sign_agent_card_hs256, verify_agent_card_hs256,
+        sign_agent_card_hs256,
+        verify_agent_card_hs256,
     )
 
     card = AgentCard(name="x", description="y", url="z")
     signed = sign_agent_card_hs256(
-        card, secret="s", ttl_seconds=-1,  # already expired
+        card,
+        secret="s",
+        ttl_seconds=-1,  # already expired
     )
     ok, reason = verify_agent_card_hs256(signed, secret="s")
     assert not ok
@@ -205,7 +222,8 @@ def test_hs256_rejects_expired_signature():
 def test_hs256_rejects_tampered_card():
     from largestack._a2a import AgentCard
     from largestack._a2a.v03 import (
-        sign_agent_card_hs256, verify_agent_card_hs256,
+        sign_agent_card_hs256,
+        verify_agent_card_hs256,
     )
 
     card = AgentCard(name="legit", description="d", url="u")
@@ -220,7 +238,9 @@ def test_hs256_rejects_tampered_card():
 def test_signed_card_to_dict_roundtrip():
     from largestack._a2a import AgentCard
     from largestack._a2a.v03 import (
-        sign_agent_card_hs256, SignedAgentCard, verify_agent_card_hs256,
+        sign_agent_card_hs256,
+        SignedAgentCard,
+        verify_agent_card_hs256,
     )
 
     card = AgentCard(name="x", description="y", url="z")
@@ -244,6 +264,7 @@ def test_sign_hs256_requires_secret():
 
 # -------------------- RS256 signed cards (optional dep) --------------------
 
+
 def test_rs256_raises_clean_when_cryptography_missing():
     """If cryptography isn't installed, raise ImportError, not ImportError elsewhere."""
     import sys
@@ -254,6 +275,7 @@ def test_rs256_raises_clean_when_cryptography_missing():
     # this just verifies the function exists and is callable
     try:
         import cryptography  # noqa
+
         # cryptography IS installed — try a round trip
         from cryptography.hazmat.primitives import serialization
         from cryptography.hazmat.primitives.asymmetric import rsa
@@ -270,8 +292,10 @@ def test_rs256_raises_clean_when_cryptography_missing():
         )
 
         from largestack._a2a.v03 import (
-            sign_agent_card_rs256, verify_agent_card_rs256,
+            sign_agent_card_rs256,
+            verify_agent_card_rs256,
         )
+
         card = AgentCard(name="x", description="y", url="z")
         signed = sign_agent_card_rs256(card, private_key_pem=priv_pem)
         ok, _ = verify_agent_card_rs256(signed, public_key_pem=pub_pem)
@@ -287,6 +311,7 @@ def test_rs256_raises_clean_when_cryptography_missing():
 
 def test_canonical_json_is_stable():
     from largestack._a2a.v03 import _canonical_json
+
     a = _canonical_json({"b": 2, "a": 1})
     b = _canonical_json({"a": 1, "b": 2})
     assert a == b  # key order doesn't matter

@@ -9,9 +9,14 @@ of the assertions below corresponds to a feature competitors (LangSmith,
 Phoenix, Langfuse) ship by default and that prior LARGESTACK Studio versions
 lacked.
 """
+
 from __future__ import annotations
 from largestack._studio import (
-    StudioBuilder, NodeSpec, EdgeSpec, MemorySnapshot, ComplianceMarker,
+    StudioBuilder,
+    NodeSpec,
+    EdgeSpec,
+    MemorySnapshot,
+    ComplianceMarker,
 )
 
 
@@ -25,11 +30,16 @@ def _build_demo() -> str:
     b.add_audit_event(agent="a", event="started", payload={}, duration_ms=5.0)
     b.add_audit_event(agent="b", event="ran", payload={"verified": True}, duration_ms=120.0)
     b.add_audit_event(agent="c", event="finished", payload={}, duration_ms=2.0)
-    b.set_memory_snapshot(MemorySnapshot(
-        tenant_id="t", user_id="u",
-        core_count=1, recall_count=2, archival_count=5,
-        core_block_preview="persona",
-    ))
+    b.set_memory_snapshot(
+        MemorySnapshot(
+            tenant_id="t",
+            user_id="u",
+            core_count=1,
+            recall_count=2,
+            archival_count=5,
+            core_block_preview="persona",
+        )
+    )
     b.add_compliance(ComplianceMarker(name="DPDP_Act_2023", section="Section 6"))
     return b.render_html()
 
@@ -46,8 +56,8 @@ def test_studio_has_theme_toggle():
     html = _build_demo()
     assert 'id="theme-toggle"' in html
     assert "data-theme" in html
-    assert ":root[data-theme=\"light\"]" in html
-    assert ":root[data-theme=\"dark\"]" in html
+    assert ':root[data-theme="light"]' in html
+    assert ':root[data-theme="dark"]' in html
 
 
 def test_studio_has_audit_filter():
@@ -61,8 +71,8 @@ def test_studio_has_audit_filter():
 def test_studio_has_collapsible_audit_payloads():
     """Audit rows expand/collapse on click; payload hidden by default."""
     html = _build_demo()
-    assert 'expand-all' in html
-    assert 'collapse-all' in html
+    assert "expand-all" in html
+    assert "collapse-all" in html
     assert ".audit-row.open" in html
     # Default style hides payload
     assert ".audit-payload" in html
@@ -106,7 +116,7 @@ def test_studio_has_responsive_layout():
 def test_studio_has_print_action():
     """Print button on the graph card for auditor paper-trails."""
     html = _build_demo()
-    assert 'window.print()' in html
+    assert "window.print()" in html
 
 
 def test_studio_node_kind_label_visible():
@@ -118,9 +128,11 @@ def test_studio_node_kind_label_visible():
 def test_studio_long_node_label_truncated_in_graph():
     """Long node labels truncate with an ellipsis instead of overflowing."""
     b = StudioBuilder(title="long")
-    b.add_node(NodeSpec(id="x",
-        label="Aadhaar OKYC Verification With CIBIL Bureau Pull And Score",
-        kind="tool"))
+    b.add_node(
+        NodeSpec(
+            id="x", label="Aadhaar OKYC Verification With CIBIL Bureau Pull And Score", kind="tool"
+        )
+    )
     html = b.render_html()
     # The truncLabel JS function exists
     assert "truncLabel" in html
@@ -129,6 +141,7 @@ def test_studio_long_node_label_truncated_in_graph():
 def test_studio_html_is_well_formed():
     """The rendered HTML is parseable by Python's html.parser."""
     from html.parser import HTMLParser
+
     html = _build_demo()
     p = HTMLParser()
     p.feed(html)  # raises on malformed; we just need no exception
@@ -138,12 +151,11 @@ def test_studio_xss_safe_for_event_data():
     """User-supplied audit payloads / titles get HTML-escaped."""
     b = StudioBuilder(title='<script>alert("xss")</script>')
     b.add_node(NodeSpec(id="a", label="<img onerror=alert(1)>", kind="tool"))
-    b.add_audit_event(agent='<img>', event='<script>',
-                       payload={"x": "<bad>"}, duration_ms=1.0)
+    b.add_audit_event(agent="<img>", event="<script>", payload={"x": "<bad>"}, duration_ms=1.0)
     html = b.render_html()
     # Title is interpolated server-side via Python — make sure raw <script>
     # for the title appears only in the (safe, escaped) section
-    assert "<script>alert(\"xss\")" not in html
+    assert '<script>alert("xss")' not in html
     # Audit data is JSON-encoded in <script id="payload">, so raw HTML in
     # values is JSON-escaped. Confirm no unescaped <script> appears in the
     # rendered audit DOM (rendered client-side via escapeHtml).

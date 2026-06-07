@@ -5,6 +5,7 @@ Run with:
 
 This file uses TestModel/FunctionModel, so it does not call a real LLM.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -27,7 +28,11 @@ async def dag_example() -> None:
         agents=[extractor, validator, reporter],
         flow=[("extractor", "validator"), ("validator", "reporter")],
     )
-    with extractor.override(model=TestModel("extracted")), validator.override(model=TestModel("valid")), reporter.override(model=TestModel("report")):
+    with (
+        extractor.override(model=TestModel("extracted")),
+        validator.override(model=TestModel("valid")),
+        reporter.override(model=TestModel("report")),
+    ):
         result = await orch.run({"task": "extract, validate, and report"})
     print("DAG:", result.output)
 
@@ -42,7 +47,10 @@ async def router_example() -> None:
         routes={"billing": billing, "technical": technical},
         default_route="technical",
     )
-    with classifier.override(model=TestModel("billing")), billing.override(model=TestModel("billing answer")):
+    with (
+        classifier.override(model=TestModel("billing")),
+        billing.override(model=TestModel("billing answer")),
+    ):
         result = await orch.run("I was charged twice")
     print("Router:", result.output, result.metadata["router_stats"])
 
@@ -63,7 +71,10 @@ async def supervisor_example() -> None:
         routes={"writer": writer, "reviewer": reviewer},
         max_iterations=2,
     )
-    with manager.override(model=FunctionModel(manager_logic)), writer.override(model=TestModel("summary drafted")):
+    with (
+        manager.override(model=FunctionModel(manager_logic)),
+        writer.override(model=TestModel("summary drafted")),
+    ):
         result = await orch.run("prepare a short summary")
     print("Supervisor:", result.output, result.steps)
 
@@ -72,7 +83,10 @@ async def map_reduce_example() -> None:
     mapper = Agent(name="mapper")
     reducer = Agent(name="reducer")
     orch = Orchestrator(strategy="map_reduce", mapper=mapper, reducer=reducer, max_concurrency=2)
-    with mapper.override(model=TestModel("mapped item")), reducer.override(model=TestModel("combined summary")):
+    with (
+        mapper.override(model=TestModel("mapped item")),
+        reducer.override(model=TestModel("combined summary")),
+    ):
         result = await orch.run({"items": ["doc A", "doc B", "doc C"]})
     print("Map-reduce:", result.output, result.metadata)
 

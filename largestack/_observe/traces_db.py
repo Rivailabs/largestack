@@ -102,6 +102,13 @@ def log_trace(
         conn = sqlite3.connect(db_path, timeout=2.0)
         try:
             conn.execute("PRAGMA busy_timeout=2000")
+            # v1.1.1: redact secrets from persisted content before writing — the
+            # dashboard renders task/output/error, and the logging-only redaction
+            # filter never touched the trace DB. Best-effort; never fatal.
+            try:
+                from largestack._observe.log_redaction import _redact_text as _rx
+            except Exception:
+                _rx = lambda s: s  # noqa: E731
             # Truncate user-supplied strings — the dashboard renders them.
             conn.execute(
                 "INSERT OR REPLACE INTO traces "
@@ -112,10 +119,10 @@ def log_trace(
                     trace_id,
                     time.time(),
                     str(agent)[:200],
-                    str(task)[:2000] if task else None,
+                    _rx(str(task))[:2000] if task else None,
                     str(model)[:100] if model else None,
-                    str(output)[:5000] if output else None,
-                    str(error)[:2000] if error else None,
+                    _rx(str(output))[:5000] if output else None,
+                    _rx(str(error))[:2000] if error else None,
                     float(duration_ms),
                     float(cost),
                     int(tokens),

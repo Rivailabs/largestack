@@ -27,6 +27,7 @@ v0.3.12 fixes:
 
 3. **Result row cap stays at 100** to prevent dump-of-table.
 """
+
 from __future__ import annotations
 import os
 import sqlite3
@@ -58,8 +59,7 @@ def _resolve_db_path(db_path: str) -> tuple[str | None, str | None]:
         if abs_target in allowlist:
             return abs_target, None
         return None, (
-            f"db_path {db_path!r} not in LARGESTACK_DB_TOOL_ALLOWLIST. "
-            f"Allowed: {sorted(allowlist)}"
+            f"db_path {db_path!r} not in LARGESTACK_DB_TOOL_ALLOWLIST. Allowed: {sorted(allowlist)}"
         )
 
     # Default: cwd/data/

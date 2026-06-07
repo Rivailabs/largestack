@@ -16,6 +16,7 @@ All return ``[{content, metadata}]`` dict lists. All gracefully handle
 missing optional dependencies and return error documents instead of
 raising.
 """
+
 from __future__ import annotations
 import asyncio
 import base64
@@ -30,6 +31,7 @@ log = logging.getLogger("largestack.loaders_v09")
 
 
 # -------------------- Notion full database --------------------
+
 
 async def load_notion_database(
     database_id: str,
@@ -47,8 +49,8 @@ async def load_notion_database(
     Returns one document per page in the database with full text content
     and properties as metadata.
     """
-    token = api_token or os.environ.get("LARGESTACK_NOTION_TOKEN") or os.environ.get(
-        "NOTION_TOKEN", ""
+    token = (
+        api_token or os.environ.get("LARGESTACK_NOTION_TOKEN") or os.environ.get("NOTION_TOKEN", "")
     )
     if not token:
         return [{"content": "", "metadata": {"error": "LARGESTACK_NOTION_TOKEN not set"}}]
@@ -68,12 +70,16 @@ async def load_notion_database(
                     body["start_cursor"] = cursor
                 r = await client.post(
                     f"https://api.notion.com/v1/databases/{database_id}/query",
-                    headers=headers, json=body,
+                    headers=headers,
+                    json=body,
                 )
                 if r.status_code >= 400:
-                    return [{"content": "", "metadata": {
-                        "error": f"Notion HTTP {r.status_code}: {r.text[:200]}"
-                    }}]
+                    return [
+                        {
+                            "content": "",
+                            "metadata": {"error": f"Notion HTTP {r.status_code}: {r.text[:200]}"},
+                        }
+                    ]
                 data = r.json()
                 for page in data.get("results", []):
                     page_id = page.get("id", "")
@@ -109,16 +115,18 @@ async def load_notion_database(
                             props[prop_name] = bool(prop_val.get("checkbox", False))
                         elif ptype == "number":
                             props[prop_name] = prop_val.get("number")
-                    docs.append({
-                        "content": "\n".join(text_parts),
-                        "metadata": {
-                            "source": page.get("url", ""),
-                            "format": "notion",
-                            "page_id": page_id,
-                            "database_id": database_id,
-                            **props,
-                        },
-                    })
+                    docs.append(
+                        {
+                            "content": "\n".join(text_parts),
+                            "metadata": {
+                                "source": page.get("url", ""),
+                                "format": "notion",
+                                "page_id": page_id,
+                                "database_id": database_id,
+                                **props,
+                            },
+                        }
+                    )
                 if not data.get("has_more"):
                     break
                 cursor = data.get("next_cursor")
@@ -130,6 +138,7 @@ async def load_notion_database(
 
 
 # -------------------- Confluence space --------------------
+
 
 async def load_confluence(
     base_url: str,
@@ -151,11 +160,15 @@ async def load_confluence(
 
     Auth: HTTP Basic with email + API token.
     """
-    user = username or os.environ.get("LARGESTACK_CONFLUENCE_USER") or os.environ.get(
-        "CONFLUENCE_USER", ""
+    user = (
+        username
+        or os.environ.get("LARGESTACK_CONFLUENCE_USER")
+        or os.environ.get("CONFLUENCE_USER", "")
     )
-    token = api_token or os.environ.get("LARGESTACK_CONFLUENCE_TOKEN") or os.environ.get(
-        "CONFLUENCE_TOKEN", ""
+    token = (
+        api_token
+        or os.environ.get("LARGESTACK_CONFLUENCE_TOKEN")
+        or os.environ.get("CONFLUENCE_TOKEN", "")
     )
     if not user or not token:
         return [{"content": "", "metadata": {"error": "Confluence creds missing"}}]
@@ -167,31 +180,37 @@ async def load_confluence(
             r = await client.get(
                 f"{base_url}/rest/api/content",
                 params={
-                    "spaceKey": space_key, "limit": limit,
+                    "spaceKey": space_key,
+                    "limit": limit,
                     "expand": "body.storage,version",
                 },
             )
             if r.status_code >= 400:
-                return [{"content": "", "metadata": {
-                    "error": f"Confluence HTTP {r.status_code}: {r.text[:200]}"
-                }}]
+                return [
+                    {
+                        "content": "",
+                        "metadata": {"error": f"Confluence HTTP {r.status_code}: {r.text[:200]}"},
+                    }
+                ]
             for page in r.json().get("results", []):
                 title = page.get("title", "")
                 content_html = (page.get("body") or {}).get("storage", {}).get("value", "")
                 # Strip HTML tags
                 text = re.sub(r"<[^>]+>", " ", content_html)
                 text = re.sub(r"\s+", " ", text).strip()
-                docs.append({
-                    "content": text,
-                    "metadata": {
-                        "source": f"{base_url}/spaces/{space_key}/pages/{page.get('id')}",
-                        "format": "confluence",
-                        "title": title,
-                        "page_id": page.get("id", ""),
-                        "space_key": space_key,
-                        "version": (page.get("version") or {}).get("number"),
-                    },
-                })
+                docs.append(
+                    {
+                        "content": text,
+                        "metadata": {
+                            "source": f"{base_url}/spaces/{space_key}/pages/{page.get('id')}",
+                            "format": "confluence",
+                            "title": title,
+                            "page_id": page.get("id", ""),
+                            "space_key": space_key,
+                            "version": (page.get("version") or {}).get("number"),
+                        },
+                    }
+                )
     except Exception as e:
         return [{"content": "", "metadata": {"error": f"Confluence load failed: {e}"}}]
     if not docs:
@@ -200,6 +219,7 @@ async def load_confluence(
 
 
 # -------------------- GitHub repo (recursive) --------------------
+
 
 async def load_github_repo(
     owner: str,
@@ -223,15 +243,26 @@ async def load_github_repo(
         extensions: list of extensions to include (default: .py .md .txt .rst .json .yaml .yml).
         max_files: cap to prevent runaway loads.
     """
-    token = api_token or os.environ.get("LARGESTACK_GITHUB_TOKEN") or os.environ.get(
-        "GITHUB_TOKEN", ""
+    token = (
+        api_token or os.environ.get("LARGESTACK_GITHUB_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
     )
     headers = {"Accept": "application/vnd.github+json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
     extensions = extensions or [
-        ".py", ".md", ".txt", ".rst", ".json", ".yaml", ".yml",
-        ".js", ".ts", ".tsx", ".jsx", ".go", ".rs",
+        ".py",
+        ".md",
+        ".txt",
+        ".rst",
+        ".json",
+        ".yaml",
+        ".yml",
+        ".js",
+        ".ts",
+        ".tsx",
+        ".jsx",
+        ".go",
+        ".rs",
     ]
     docs: list[dict] = []
     try:
@@ -239,15 +270,15 @@ async def load_github_repo(
             # 1. Get tree recursively
             r = await client.get(
                 f"https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}",
-                headers=headers, params={"recursive": "1"},
+                headers=headers,
+                params={"recursive": "1"},
             )
             if r.status_code >= 400:
-                return [{"content": "", "metadata": {
-                    "error": f"GitHub tree HTTP {r.status_code}"
-                }}]
+                return [{"content": "", "metadata": {"error": f"GitHub tree HTTP {r.status_code}"}}]
             tree = r.json().get("tree", [])
             files = [
-                t for t in tree
+                t
+                for t in tree
                 if t.get("type") == "blob"
                 and any(t.get("path", "").endswith(e) for e in extensions)
                 and (t.get("size") or 0) < 1_000_000  # skip huge files
@@ -257,7 +288,8 @@ async def load_github_repo(
                 path = f.get("path", "")
                 cr = await client.get(
                     f"https://api.github.com/repos/{owner}/{repo}/contents/{path}",
-                    headers=headers, params={"ref": branch},
+                    headers=headers,
+                    params={"ref": branch},
                 )
                 if cr.status_code != 200:
                     continue
@@ -270,17 +302,19 @@ async def load_github_repo(
                         continue
                 else:
                     content = content_b64
-                docs.append({
-                    "content": content,
-                    "metadata": {
-                        "source": cdata.get("html_url", ""),
-                        "format": "github",
-                        "path": path,
-                        "repo": f"{owner}/{repo}",
-                        "branch": branch,
-                        "sha": cdata.get("sha", ""),
-                    },
-                })
+                docs.append(
+                    {
+                        "content": content,
+                        "metadata": {
+                            "source": cdata.get("html_url", ""),
+                            "format": "github",
+                            "path": path,
+                            "repo": f"{owner}/{repo}",
+                            "branch": branch,
+                            "sha": cdata.get("sha", ""),
+                        },
+                    }
+                )
     except Exception as e:
         return [{"content": "", "metadata": {"error": f"GitHub load failed: {e}"}}]
     if not docs:
@@ -289,6 +323,7 @@ async def load_github_repo(
 
 
 # -------------------- Google Drive folder --------------------
+
 
 async def load_google_drive(
     folder_id: str,
@@ -310,27 +345,35 @@ async def load_google_drive(
         from googleapiclient.discovery import build
         from google.oauth2 import service_account
     except ImportError:
-        return [{"content": "", "metadata": {
-            "error": "GDrive loader needs: pip install google-api-python-client google-auth"
-        }}]
+        return [
+            {
+                "content": "",
+                "metadata": {
+                    "error": "GDrive loader needs: pip install google-api-python-client google-auth"
+                },
+            }
+        ]
 
-    creds_path = (
-        credentials_path or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
-    )
+    creds_path = credentials_path or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
     if not creds_path:
         return [{"content": "", "metadata": {"error": "GOOGLE_APPLICATION_CREDENTIALS not set"}}]
 
     def _fetch():
         creds = service_account.Credentials.from_service_account_file(
-            creds_path, scopes=["https://www.googleapis.com/auth/drive.readonly"],
+            creds_path,
+            scopes=["https://www.googleapis.com/auth/drive.readonly"],
         )
         service = build("drive", "v3", credentials=creds)
         # List files in folder
-        files_resp = service.files().list(
-            q=f"'{folder_id}' in parents and trashed=false",
-            fields="files(id, name, mimeType, webViewLink)",
-            pageSize=max_files,
-        ).execute()
+        files_resp = (
+            service.files()
+            .list(
+                q=f"'{folder_id}' in parents and trashed=false",
+                fields="files(id, name, mimeType, webViewLink)",
+                pageSize=max_files,
+            )
+            .execute()
+        )
         files = files_resp.get("files", [])
         out = []
         for f in files:
@@ -338,15 +381,25 @@ async def load_google_drive(
             try:
                 if mime == "application/vnd.google-apps.document":
                     # Export as plain text
-                    content = service.files().export_media(
-                        fileId=f["id"], mimeType="text/plain",
-                    ).execute()
+                    content = (
+                        service.files()
+                        .export_media(
+                            fileId=f["id"],
+                            mimeType="text/plain",
+                        )
+                        .execute()
+                    )
                     if isinstance(content, bytes):
                         content = content.decode("utf-8", errors="replace")
                 elif mime == "application/vnd.google-apps.spreadsheet":
-                    content = service.files().export_media(
-                        fileId=f["id"], mimeType="text/csv",
-                    ).execute()
+                    content = (
+                        service.files()
+                        .export_media(
+                            fileId=f["id"],
+                            mimeType="text/csv",
+                        )
+                        .execute()
+                    )
                     if isinstance(content, bytes):
                         content = content.decode("utf-8", errors="replace")
                 else:
@@ -359,16 +412,18 @@ async def load_google_drive(
                             content = "<binary>"
             except Exception as e:
                 content = f"<error: {e}>"
-            out.append({
-                "content": content if isinstance(content, str) else "<binary>",
-                "metadata": {
-                    "source": f.get("webViewLink", ""),
-                    "format": "google_drive",
-                    "name": f.get("name", ""),
-                    "mime_type": mime,
-                    "file_id": f.get("id", ""),
-                },
-            })
+            out.append(
+                {
+                    "content": content if isinstance(content, str) else "<binary>",
+                    "metadata": {
+                        "source": f.get("webViewLink", ""),
+                        "format": "google_drive",
+                        "name": f.get("name", ""),
+                        "mime_type": mime,
+                        "file_id": f.get("id", ""),
+                    },
+                }
+            )
         return out
 
     try:
@@ -381,6 +436,7 @@ async def load_google_drive(
 
 
 # -------------------- Email IMAP --------------------
+
 
 async def load_email_imap(
     server: str,
@@ -406,6 +462,7 @@ async def load_email_imap(
 
     Returns one document per message with subject, from, date as metadata.
     """
+
     def _fetch():
         import imaplib
         import email
@@ -450,18 +507,20 @@ async def load_email_imap(
                     except Exception:
                         pass
                 body = "\n".join(body_parts)
-                out.append({
-                    "content": body,
-                    "metadata": {
-                        "source": f"imap://{username}@{server}/{folder}/{msg_id.decode()}",
-                        "format": "email",
-                        "subject": subject,
-                        "from": from_addr,
-                        "to": to_addr,
-                        "date": date,
-                        "message_id": msg_id.decode(),
-                    },
-                })
+                out.append(
+                    {
+                        "content": body,
+                        "metadata": {
+                            "source": f"imap://{username}@{server}/{folder}/{msg_id.decode()}",
+                            "format": "email",
+                            "subject": subject,
+                            "from": from_addr,
+                            "to": to_addr,
+                            "date": date,
+                            "message_id": msg_id.decode(),
+                        },
+                    }
+                )
             try:
                 M.close()
                 M.logout()
@@ -478,6 +537,7 @@ async def load_email_imap(
 
 
 # -------------------- Gmail (API) --------------------
+
 
 async def load_gmail(
     query: str = "is:unread",
@@ -501,31 +561,56 @@ async def load_gmail(
         from googleapiclient.discovery import build
         from google.oauth2.credentials import Credentials
     except ImportError:
-        return [{"content": "", "metadata": {
-            "error": "Gmail loader needs: pip install google-api-python-client google-auth-oauthlib"
-        }}]
+        return [
+            {
+                "content": "",
+                "metadata": {
+                    "error": "Gmail loader needs: pip install google-api-python-client google-auth-oauthlib"
+                },
+            }
+        ]
 
     token_p = token_path or os.environ.get("GMAIL_TOKEN_PATH", "")
     if not token_p or not os.path.exists(token_p):
-        return [{"content": "", "metadata": {
-            "error": "GMAIL_TOKEN_PATH not set or file missing (run OAuth flow first)"
-        }}]
+        return [
+            {
+                "content": "",
+                "metadata": {
+                    "error": "GMAIL_TOKEN_PATH not set or file missing (run OAuth flow first)"
+                },
+            }
+        ]
 
     def _fetch():
         creds = Credentials.from_authorized_user_file(token_p)
         service = build("gmail", "v1", credentials=creds)
-        resp = service.users().messages().list(
-            userId="me", q=query, maxResults=max_results,
-        ).execute()
+        resp = (
+            service.users()
+            .messages()
+            .list(
+                userId="me",
+                q=query,
+                maxResults=max_results,
+            )
+            .execute()
+        )
         messages = resp.get("messages", [])
         out = []
         for m in messages:
-            msg = service.users().messages().get(
-                userId="me", id=m["id"], format="full",
-            ).execute()
+            msg = (
+                service.users()
+                .messages()
+                .get(
+                    userId="me",
+                    id=m["id"],
+                    format="full",
+                )
+                .execute()
+            )
             payload = msg.get("payload", {})
             headers = {h["name"]: h["value"] for h in payload.get("headers", [])}
             body_data = ""
+
             # Walk parts looking for text/plain
             def walk(part):
                 nonlocal body_data
@@ -540,20 +625,23 @@ async def load_gmail(
                             pass
                 for sub in part.get("parts", []):
                     walk(sub)
+
             walk(payload)
-            out.append({
-                "content": body_data or msg.get("snippet", ""),
-                "metadata": {
-                    "source": f"gmail://me/{m['id']}",
-                    "format": "gmail",
-                    "subject": headers.get("Subject", ""),
-                    "from": headers.get("From", ""),
-                    "to": headers.get("To", ""),
-                    "date": headers.get("Date", ""),
-                    "message_id": m["id"],
-                    "thread_id": msg.get("threadId", ""),
-                },
-            })
+            out.append(
+                {
+                    "content": body_data or msg.get("snippet", ""),
+                    "metadata": {
+                        "source": f"gmail://me/{m['id']}",
+                        "format": "gmail",
+                        "subject": headers.get("Subject", ""),
+                        "from": headers.get("From", ""),
+                        "to": headers.get("To", ""),
+                        "date": headers.get("Date", ""),
+                        "message_id": m["id"],
+                        "thread_id": msg.get("threadId", ""),
+                    },
+                }
+            )
         return out
 
     try:
@@ -563,6 +651,7 @@ async def load_gmail(
 
 
 # -------------------- Web scraping (Playwright) --------------------
+
 
 async def load_web_scrape(
     url: str,
@@ -587,9 +676,14 @@ async def load_web_scrape(
     try:
         from playwright.async_api import async_playwright
     except ImportError:
-        return [{"content": "", "metadata": {
-            "error": "Playwright not installed (pip install playwright; playwright install chromium)"
-        }}]
+        return [
+            {
+                "content": "",
+                "metadata": {
+                    "error": "Playwright not installed (pip install playwright; playwright install chromium)"
+                },
+            }
+        ]
 
     try:
         async with async_playwright() as p:
@@ -608,18 +702,21 @@ async def load_web_scrape(
     except Exception as e:
         return [{"content": "", "metadata": {"error": f"Playwright failed: {e}"}}]
 
-    return [{
-        "content": text or "",
-        "metadata": {
-            "source": url,
-            "format": "web_scrape",
-            "title": title,
-            "rendered": True,
-        },
-    }]
+    return [
+        {
+            "content": text or "",
+            "metadata": {
+                "source": url,
+                "format": "web_scrape",
+                "title": title,
+                "rendered": True,
+            },
+        }
+    ]
 
 
 # -------------------- OCR (Tesseract) --------------------
+
 
 async def load_ocr(
     path: str,
@@ -642,9 +739,7 @@ async def load_ocr(
         import pytesseract
         from PIL import Image
     except ImportError:
-        return [{"content": "", "metadata": {
-            "error": "OCR needs: pip install pytesseract Pillow"
-        }}]
+        return [{"content": "", "metadata": {"error": "OCR needs: pip install pytesseract Pillow"}}]
 
     if not os.path.exists(path):
         return [{"content": "", "metadata": {"error": f"file not found: {path}"}}]
@@ -665,32 +760,38 @@ async def load_ocr(
     try:
         if ext in {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif"}:
             text = await asyncio.to_thread(_ocr_image)
-            return [{
-                "content": text,
-                "metadata": {
-                    "source": path, "format": "ocr_image", "language": language,
-                },
-            }]
-        elif ext == ".pdf":
-            pages_text = await asyncio.to_thread(_ocr_pdf)
-            if pages_text is None:
-                return [{"content": "", "metadata": {
-                    "error": "PDF OCR needs: pip install pdf2image"
-                }}]
             return [
                 {
                     "content": text,
                     "metadata": {
-                        "source": path, "format": "ocr_pdf",
-                        "language": language, "page": i,
+                        "source": path,
+                        "format": "ocr_image",
+                        "language": language,
+                    },
+                }
+            ]
+        elif ext == ".pdf":
+            pages_text = await asyncio.to_thread(_ocr_pdf)
+            if pages_text is None:
+                return [
+                    {"content": "", "metadata": {"error": "PDF OCR needs: pip install pdf2image"}}
+                ]
+            return [
+                {
+                    "content": text,
+                    "metadata": {
+                        "source": path,
+                        "format": "ocr_pdf",
+                        "language": language,
+                        "page": i,
                         "total_pages": len(pages_text),
                     },
                 }
                 for i, text in enumerate(pages_text)
             ]
         else:
-            return [{"content": "", "metadata": {
-                "error": f"unsupported OCR file extension: {ext}"
-            }}]
+            return [
+                {"content": "", "metadata": {"error": f"unsupported OCR file extension: {ext}"}}
+            ]
     except Exception as e:
         return [{"content": "", "metadata": {"error": f"OCR failed: {e}"}}]

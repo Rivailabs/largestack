@@ -30,6 +30,7 @@ Usage:
     with with_traceparent(traceparent):
         result = await agent.run(...)  # uses the propagated trace
 """
+
 from __future__ import annotations
 import logging
 import re
@@ -44,6 +45,7 @@ def _try_otel():
     try:
         from opentelemetry import trace
         from opentelemetry.trace import SpanContext, TraceFlags, Link
+
         return trace, SpanContext, TraceFlags, Link
     except ImportError:
         return None, None, None, None
@@ -74,9 +76,7 @@ def link_to_current_span(
         return _noop_span()
 
     if not _valid_hex(trace_id_hex, 32) or not _valid_hex(span_id_hex, 16):
-        log.warning(
-            f"link_to_current_span: invalid IDs ({trace_id_hex!r}, {span_id_hex!r})"
-        )
+        log.warning(f"link_to_current_span: invalid IDs ({trace_id_hex!r}, {span_id_hex!r})")
         return _noop_span()
 
     parent_ctx = SpanContext(
@@ -105,10 +105,7 @@ def get_traceparent_header() -> dict:
     ctx = span.get_span_context() if span else None
     if not ctx or not ctx.is_valid:
         return {}
-    traceparent = (
-        f"00-{ctx.trace_id:032x}-{ctx.span_id:016x}-"
-        f"{ctx.trace_flags:02x}"
-    )
+    traceparent = f"00-{ctx.trace_id:032x}-{ctx.span_id:016x}-{ctx.trace_flags:02x}"
     return {"traceparent": traceparent}
 
 
@@ -164,6 +161,7 @@ def with_traceparent(traceparent: str | None) -> Iterator[None]:
 
 
 # -------------------- helpers --------------------
+
 
 def _valid_hex(s: str, length: int) -> bool:
     if not isinstance(s, str) or len(s) != length:

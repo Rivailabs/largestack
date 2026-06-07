@@ -25,6 +25,7 @@ Usage::
 The webhooks are POST'd via stdlib ``urllib`` — no extra deps. If
 ``aiohttp`` is installed, async helpers are also available.
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -35,14 +36,15 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from largestack._eval.pr_diff import (
-    EvalDelta, render_pr_comment_markdown, render_slack_message,
+    EvalDelta,
+    render_pr_comment_markdown,
+    render_slack_message,
 )
 
 log = logging.getLogger("largestack.eval.alerts")
 
 
 AlertKind = Literal["slack", "teams", "discord", "generic"]
-
 
 
 def _require_http_url(url: str) -> str:
@@ -58,6 +60,7 @@ def _require_http_url(url: str) -> str:
 @dataclass
 class AlertChannel:
     """Webhook configuration."""
+
     kind: AlertKind
     url: str
     headers: dict[str, str] = field(default_factory=dict)
@@ -67,6 +70,7 @@ class AlertChannel:
 @dataclass
 class AlertResult:
     """Result of attempting to send an alert."""
+
     sent: bool
     status_code: int = 0
     error: str = ""
@@ -77,8 +81,10 @@ class AlertResult:
 
 # -------------------- Payload builders --------------------
 
+
 def _build_slack_payload(
-    delta: EvalDelta, suite_name: str,
+    delta: EvalDelta,
+    suite_name: str,
 ) -> dict[str, Any]:
     """Build a Slack incoming-webhook payload (blocks format)."""
     icon = "⚠️" if delta.is_overall_regression else "✅"
@@ -93,39 +99,34 @@ def _build_slack_payload(
     )
 
     blocks: list[dict[str, Any]] = [
-        {"type": "header",
-         "text": {"type": "plain_text", "text": title}},
-        {"type": "section",
-         "text": {"type": "mrkdwn", "text": summary}},
+        {"type": "header", "text": {"type": "plain_text", "text": title}},
+        {"type": "section", "text": {"type": "mrkdwn", "text": summary}},
     ]
 
     if delta.regressions:
-        regress_text = "\n".join(
-            f"• `{r.name}`" for r in delta.regressions[:10]
-        )
+        regress_text = "\n".join(f"• `{r.name}`" for r in delta.regressions[:10])
         if len(delta.regressions) > 10:
             regress_text += f"\n_…and {len(delta.regressions) - 10} more_"
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": (
-                    f"*🔴 Regressions ({len(delta.regressions)})*\n"
-                    f"{regress_text}"
-                ),
-            },
-        })
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (f"*🔴 Regressions ({len(delta.regressions)})*\n{regress_text}"),
+                },
+            }
+        )
 
     if delta.improvements:
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": (
-                    f"*🟢 Improvements*: {len(delta.improvements)} case(s)"
-                ),
-            },
-        })
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (f"*🟢 Improvements*: {len(delta.improvements)} case(s)"),
+                },
+            }
+        )
 
     return {
         "text": title,  # fallback for clients that don't render blocks
@@ -134,7 +135,8 @@ def _build_slack_payload(
 
 
 def _build_teams_payload(
-    delta: EvalDelta, suite_name: str,
+    delta: EvalDelta,
+    suite_name: str,
 ) -> dict[str, Any]:
     """Build a Microsoft Teams MessageCard payload."""
     color = "FF6B35" if delta.is_overall_regression else "10B981"
@@ -155,10 +157,12 @@ def _build_teams_payload(
         },
     ]
     if delta.regressions:
-        facts.append({
-            "name": "Regressions",
-            "value": str(len(delta.regressions)),
-        })
+        facts.append(
+            {
+                "name": "Regressions",
+                "value": str(len(delta.regressions)),
+            }
+        )
 
     return {
         "@type": "MessageCard",
@@ -167,48 +171,48 @@ def _build_teams_payload(
         "summary": f"{icon} Eval — {suite_name}",
         "title": f"{icon} Eval result — {suite_name}",
         "sections": [
-            {"activityTitle": "LARGESTACK eval-block report",
-             "facts": facts, "markdown": True}
+            {"activityTitle": "LARGESTACK eval-block report", "facts": facts, "markdown": True}
         ],
     }
 
 
 def _build_discord_payload(
-    delta: EvalDelta, suite_name: str,
+    delta: EvalDelta,
+    suite_name: str,
 ) -> dict[str, Any]:
     """Build a Discord webhook payload (embeds)."""
     color = 0xEF4444 if delta.is_overall_regression else 0x10B981
     icon = "⚠️" if delta.is_overall_regression else "✅"
 
     fields = [
-        {"name": "Baseline",
-         "value": f"{delta.baseline_pass_rate * 100:.1f}%",
-         "inline": True},
-        {"name": "Current",
-         "value": f"{delta.current_pass_rate * 100:.1f}%",
-         "inline": True},
-        {"name": "Δ",
-         "value": f"{delta.pass_rate_delta * 100:+.1f}%",
-         "inline": True},
+        {"name": "Baseline", "value": f"{delta.baseline_pass_rate * 100:.1f}%", "inline": True},
+        {"name": "Current", "value": f"{delta.current_pass_rate * 100:.1f}%", "inline": True},
+        {"name": "Δ", "value": f"{delta.pass_rate_delta * 100:+.1f}%", "inline": True},
     ]
     if delta.regressions:
         names = "\n".join(f"• {r.name}" for r in delta.regressions[:10])
-        fields.append({
-            "name": f"🔴 Regressions ({len(delta.regressions)})",
-            "value": names, "inline": False,
-        })
+        fields.append(
+            {
+                "name": f"🔴 Regressions ({len(delta.regressions)})",
+                "value": names,
+                "inline": False,
+            }
+        )
 
     return {
-        "embeds": [{
-            "title": f"{icon} Eval result — {suite_name}",
-            "color": color,
-            "fields": fields,
-        }]
+        "embeds": [
+            {
+                "title": f"{icon} Eval result — {suite_name}",
+                "color": color,
+                "fields": fields,
+            }
+        ]
     }
 
 
 def _build_generic_payload(
-    delta: EvalDelta, suite_name: str,
+    delta: EvalDelta,
+    suite_name: str,
 ) -> dict[str, Any]:
     """Build a generic JSON payload — useful for Zapier / n8n / custom."""
     return {
@@ -229,13 +233,16 @@ def _build_generic_payload(
         "new_cases": [n.name for n in delta.new_cases],
         "removed_cases": [r.name for r in delta.removed_cases],
         "markdown_summary": render_pr_comment_markdown(
-            delta, suite_name=suite_name,
+            delta,
+            suite_name=suite_name,
         ),
     }
 
 
 def build_payload(
-    kind: AlertKind, delta: EvalDelta, suite_name: str,
+    kind: AlertKind,
+    delta: EvalDelta,
+    suite_name: str,
 ) -> dict[str, Any]:
     """Build the appropriate payload for the given channel kind."""
     builders = {
@@ -251,6 +258,7 @@ def build_payload(
 
 # -------------------- HTTP delivery --------------------
 
+
 def _post_json_sync(
     url: str,
     payload: dict[str, Any],
@@ -264,14 +272,19 @@ def _post_json_sync(
         req_headers.update(headers)
     safe_url = _require_http_url(url)
     req = urllib.request.Request(
-        safe_url, data=body, headers=req_headers, method="POST",
+        safe_url,
+        data=body,
+        headers=req_headers,
+        method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
             return AlertResult(sent=True, status_code=resp.status)
     except urllib.error.HTTPError as e:
         return AlertResult(
-            sent=False, status_code=e.code, error=str(e),
+            sent=False,
+            status_code=e.code,
+            error=str(e),
         )
     except (urllib.error.URLError, TimeoutError, OSError) as e:
         return AlertResult(sent=False, error=str(e))
@@ -301,7 +314,8 @@ def notify_eval_result(
 
     payload = build_payload(channel.kind, delta, suite_name)
     return _post_json_sync(
-        channel.url, payload,
+        channel.url,
+        payload,
         headers=channel.headers,
         timeout=channel.timeout_seconds,
     )
@@ -327,8 +341,11 @@ async def notify_eval_result_async(
         import aiohttp  # type: ignore[import-not-found]
     except ImportError:
         return await asyncio.to_thread(
-            _post_json_sync, channel.url, payload,
-            channel.headers, channel.timeout_seconds,
+            _post_json_sync,
+            channel.url,
+            payload,
+            channel.headers,
+            channel.timeout_seconds,
         )
 
     timeout = aiohttp.ClientTimeout(total=channel.timeout_seconds)
@@ -336,7 +353,9 @@ async def notify_eval_result_async(
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
-                channel.url, json=payload, headers=headers,
+                channel.url,
+                json=payload,
+                headers=headers,
             ) as resp:
                 return AlertResult(sent=True, status_code=resp.status)
     except Exception as e:
@@ -344,7 +363,10 @@ async def notify_eval_result_async(
 
 
 __all__ = [
-    "AlertChannel", "AlertResult", "AlertKind",
+    "AlertChannel",
+    "AlertResult",
+    "AlertKind",
     "build_payload",
-    "notify_eval_result", "notify_eval_result_async",
+    "notify_eval_result",
+    "notify_eval_result_async",
 ]

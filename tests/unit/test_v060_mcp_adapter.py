@@ -2,6 +2,7 @@
 
 Mocks MCPClient so we don't need a real MCP server.
 """
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -12,6 +13,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_mcp_adapter_requires_url_or_command():
     from largestack._integrations.mcp_adapter import MCPToolAdapter
+
     with pytest.raises(ValueError, match="requires url or command"):
         MCPToolAdapter()
 
@@ -72,9 +74,7 @@ async def test_mcp_adapter_tool_call_proxies_to_mcp_client():
         result = await send_email(to="a@b.com", subject="Hi")
 
     assert result == "email sent"
-    instance.call_tool.assert_awaited_once_with(
-        "send_email", {"to": "a@b.com", "subject": "Hi"}
-    )
+    instance.call_tool.assert_awaited_once_with("send_email", {"to": "a@b.com", "subject": "Hi"})
 
 
 @pytest.mark.asyncio

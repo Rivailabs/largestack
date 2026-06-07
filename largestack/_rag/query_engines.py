@@ -11,6 +11,7 @@ Two final advanced RAG patterns:
    from a registry. The classifier LLM picks "use vector search" vs
    "use SQL agent" vs "use web search" based on query intent.
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -43,6 +44,7 @@ Synthesize a final, concise answer based on the sub-question results."""
 @dataclass
 class SubQuestionResult:
     """One sub-question's answer."""
+
     sub_question: str
     answer: str = ""
     error: str = ""
@@ -51,6 +53,7 @@ class SubQuestionResult:
 @dataclass
 class SubQuestionAnswer:
     """Final answer from SubQuestionQueryEngine."""
+
     final_answer: str
     original_question: str = ""
     sub_questions: list[SubQuestionResult] = field(default_factory=list)
@@ -113,17 +116,15 @@ class SubQuestionQueryEngine:
             sub_qs = [question]
 
         sem = asyncio.Semaphore(self.max_concurrent)
-        sub_results = await asyncio.gather(
-            *[self._run_sub(q, sem) for q in sub_qs]
-        )
+        sub_results = await asyncio.gather(*[self._run_sub(q, sem) for q in sub_qs])
 
         # Synthesize
         sub_text = "\n\n".join(
-            f"Q: {r.sub_question}\nA: {r.answer or '(error: ' + r.error + ')'}"
-            for r in sub_results
+            f"Q: {r.sub_question}\nA: {r.answer or '(error: ' + r.error + ')'}" for r in sub_results
         )
         synthesis_prompt = SYNTHESIS_PROMPT.format(
-            question=question, sub_results=sub_text,
+            question=question,
+            sub_results=sub_text,
         )
         try:
             resp = await self.synthesizer.run(synthesis_prompt)
@@ -155,6 +156,7 @@ Query: {query}"""
 @dataclass
 class RouterResult:
     """Result of a RouterQueryEngine.query()."""
+
     answer: str
     chosen_engine: str
     available_engines: list[str] = field(default_factory=list)
@@ -192,14 +194,12 @@ class RouterQueryEngine:
             raise ValueError(f"default_engine {default_engine!r} not in engines")
 
     def _format_engines(self) -> str:
-        return "\n".join(
-            f"- {name}: {self.descriptions.get(name, '')}"
-            for name in self.engines
-        )
+        return "\n".join(f"- {name}: {self.descriptions.get(name, '')}" for name in self.engines)
 
     async def _route(self, query: str) -> str:
         prompt = ROUTER_PROMPT.format(
-            engine_descriptions=self._format_engines(), query=query,
+            engine_descriptions=self._format_engines(),
+            query=query,
         )
         try:
             resp = await self.router.run(prompt)

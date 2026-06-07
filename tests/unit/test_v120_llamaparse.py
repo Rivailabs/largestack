@@ -1,4 +1,5 @@
 """v0.12.0: Tests for LlamaParse loader (multi-modal RAG integration)."""
+
 from __future__ import annotations
 
 import sys
@@ -12,12 +13,14 @@ import pytest
 def test_module_imports_cleanly():
     """The module should import even without llama_parse installed."""
     from largestack._loaders import llamaparse
+
     assert hasattr(llamaparse, "load_with_llamaparse")
     assert hasattr(llamaparse, "load_with_llamaparse_sync")
 
 
 def test_llama_parse_available_returns_bool():
     from largestack._loaders.llamaparse import _llama_parse_available
+
     # Returns False on this clean machine — that's the expected baseline
     assert isinstance(_llama_parse_available(), bool)
 
@@ -25,6 +28,7 @@ def test_llama_parse_available_returns_bool():
 @pytest.mark.asyncio
 async def test_load_raises_on_missing_file(tmp_path):
     from largestack._loaders.llamaparse import load_with_llamaparse
+
     with pytest.raises(FileNotFoundError):
         await load_with_llamaparse(tmp_path / "no.pdf")
 
@@ -40,10 +44,13 @@ async def test_load_falls_back_when_llama_parse_missing(tmp_path):
 
     # Force llama_parse to appear unavailable
     with patch.object(
-        llamaparse, "_llama_parse_available", return_value=False,
+        llamaparse,
+        "_llama_parse_available",
+        return_value=False,
     ):
         docs = await llamaparse.load_with_llamaparse(
-            f, fallback_on_error=True,
+            f,
+            fallback_on_error=True,
         )
 
     assert len(docs) >= 1
@@ -59,11 +66,14 @@ async def test_load_raises_when_unavailable_and_no_fallback(tmp_path):
     f.write_text("test")
 
     with patch.object(
-        llamaparse, "_llama_parse_available", return_value=False,
+        llamaparse,
+        "_llama_parse_available",
+        return_value=False,
     ):
         with pytest.raises(ImportError, match="llama_parse"):
             await llamaparse.load_with_llamaparse(
-                f, fallback_on_error=False,
+                f,
+                fallback_on_error=False,
             )
 
 
@@ -77,11 +87,15 @@ async def test_load_raises_when_no_api_key(tmp_path, monkeypatch):
     # Pretend llama_parse is available, but no API key
     monkeypatch.delenv("LLAMA_CLOUD_API_KEY", raising=False)
     with patch.object(
-        llamaparse, "_llama_parse_available", return_value=True,
+        llamaparse,
+        "_llama_parse_available",
+        return_value=True,
     ):
         with pytest.raises(ValueError, match="api_key"):
             await llamaparse.load_with_llamaparse(
-                f, api_key=None, fallback_on_error=False,
+                f,
+                api_key=None,
+                fallback_on_error=False,
             )
 
 
@@ -94,10 +108,14 @@ async def test_load_falls_back_on_no_api_key(tmp_path, monkeypatch):
 
     monkeypatch.delenv("LLAMA_CLOUD_API_KEY", raising=False)
     with patch.object(
-        llamaparse, "_llama_parse_available", return_value=True,
+        llamaparse,
+        "_llama_parse_available",
+        return_value=True,
     ):
         docs = await llamaparse.load_with_llamaparse(
-            f, api_key=None, fallback_on_error=True,
+            f,
+            api_key=None,
+            fallback_on_error=True,
         )
     assert len(docs) >= 1
     assert docs[0]["metadata"]["parser"] == "fallback"
@@ -122,10 +140,17 @@ async def test_load_uses_env_var_for_api_key(tmp_path, monkeypatch):
 
     fake_LlamaParse = MagicMock(return_value=fake_parser)
 
-    with patch.object(
-        llamaparse, "_llama_parse_available", return_value=True,
-    ), patch.object(
-        llamaparse, "_import_llama_parse", return_value=fake_LlamaParse,
+    with (
+        patch.object(
+            llamaparse,
+            "_llama_parse_available",
+            return_value=True,
+        ),
+        patch.object(
+            llamaparse,
+            "_import_llama_parse",
+            return_value=fake_LlamaParse,
+        ),
     ):
         docs = await llamaparse.load_with_llamaparse(f)
 
@@ -155,14 +180,21 @@ async def test_load_returns_normalized_docs(tmp_path):
         return_value=[fake_doc1, fake_doc2],
     )
 
-    with patch.object(
-        llamaparse, "_llama_parse_available", return_value=True,
-    ), patch.object(
-        llamaparse, "_import_llama_parse",
-        return_value=MagicMock(return_value=fake_parser),
+    with (
+        patch.object(
+            llamaparse,
+            "_llama_parse_available",
+            return_value=True,
+        ),
+        patch.object(
+            llamaparse,
+            "_import_llama_parse",
+            return_value=MagicMock(return_value=fake_parser),
+        ),
     ):
         docs = await llamaparse.load_with_llamaparse(
-            f, api_key="llx-test",
+            f,
+            api_key="llx-test",
         )
 
     assert len(docs) == 2
@@ -184,14 +216,22 @@ async def test_load_falls_back_when_parser_raises(tmp_path):
     fake_parser = MagicMock()
     fake_parser.aload_data = AsyncMock(side_effect=RuntimeError("API down"))
 
-    with patch.object(
-        llamaparse, "_llama_parse_available", return_value=True,
-    ), patch.object(
-        llamaparse, "_import_llama_parse",
-        return_value=MagicMock(return_value=fake_parser),
+    with (
+        patch.object(
+            llamaparse,
+            "_llama_parse_available",
+            return_value=True,
+        ),
+        patch.object(
+            llamaparse,
+            "_import_llama_parse",
+            return_value=MagicMock(return_value=fake_parser),
+        ),
     ):
         docs = await llamaparse.load_with_llamaparse(
-            f, api_key="x", fallback_on_error=True,
+            f,
+            api_key="x",
+            fallback_on_error=True,
         )
     assert len(docs) >= 1
     assert docs[0]["metadata"]["parser"] == "fallback"
@@ -207,15 +247,23 @@ async def test_load_re_raises_when_fallback_disabled(tmp_path):
     fake_parser = MagicMock()
     fake_parser.aload_data = AsyncMock(side_effect=RuntimeError("API down"))
 
-    with patch.object(
-        llamaparse, "_llama_parse_available", return_value=True,
-    ), patch.object(
-        llamaparse, "_import_llama_parse",
-        return_value=MagicMock(return_value=fake_parser),
+    with (
+        patch.object(
+            llamaparse,
+            "_llama_parse_available",
+            return_value=True,
+        ),
+        patch.object(
+            llamaparse,
+            "_import_llama_parse",
+            return_value=MagicMock(return_value=fake_parser),
+        ),
     ):
         with pytest.raises(RuntimeError, match="API down"):
             await llamaparse.load_with_llamaparse(
-                f, api_key="x", fallback_on_error=False,
+                f,
+                api_key="x",
+                fallback_on_error=False,
             )
 
 
@@ -229,7 +277,9 @@ def test_sync_wrapper_works(tmp_path, monkeypatch):
     # Force fallback path (no llama_parse)
     monkeypatch.delenv("LLAMA_CLOUD_API_KEY", raising=False)
     with patch.object(
-        llamaparse, "_llama_parse_available", return_value=False,
+        llamaparse,
+        "_llama_parse_available",
+        return_value=False,
     ):
         docs = llamaparse.load_with_llamaparse_sync(f)
 

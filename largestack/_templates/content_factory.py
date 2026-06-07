@@ -1,6 +1,7 @@
 """Largestack AI Template: Content Creation Factory."""
+
 TEMPLATE_FILES = {
-    "agent.py": '''import asyncio
+    "agent.py": """import asyncio
 from largestack import Agent, Team, tool, HumanInTheLoop
 
 hitl = HumanInTheLoop(backend="terminal")
@@ -22,5 +23,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-''',
+""",
 }

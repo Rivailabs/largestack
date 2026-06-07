@@ -2,6 +2,11 @@
 
 The RAG release gate covers recall@k, MRR, citation presence, no-answer behavior, tenant filtering, table/BOM retrieval, large corpus retrieval, and rerank non-regression. Vector-store validation includes in-memory, FAISS, DuckDB, and Qdrant when the optional SDK/service is available.
 
+For broad enterprise document extraction, Largestack can use Apache Tika as an
+opt-in parser via `load_with_tika()` or `load(path, parser="tika")`. Tika is
+useful for PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, HTML, RTF, and other supported
+formats when a trusted Tika server is available.
+
 ## Maturity Boundaries
 
 Do not market RAG as fully enterprise-hardened until these gates have fresh

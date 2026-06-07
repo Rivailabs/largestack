@@ -1,22 +1,25 @@
 """Usage metering and billing — track tokens, costs, tool calls per user/tenant."""
+
 from __future__ import annotations
 import json, logging, os, sqlite3, time
 from typing import Any
 
 log = logging.getLogger("largestack.billing")
 
+
 class UsageMeter:
     """Track detailed usage per user/tenant for billing.
-    
+
     Records: timestamp, user_id, agent, model, input_tokens, output_tokens,
     cost, tool_calls, duration_ms.
-    
+
         meter = UsageMeter(db_path="~/.largestack/usage.db")
         meter.record(user_id="alice", agent="support", model="gpt-4o",
                      input_tokens=500, output_tokens=200, cost=0.012)
-        
+
         summary = meter.get_usage(user_id="alice", since=last_month)
     """
+
     def __init__(self, db_path: str = None):
         if db_path is None:
             self.db_path = ":memory:"
@@ -44,45 +47,65 @@ class UsageMeter:
         self.db.execute("CREATE INDEX IF NOT EXISTS idx_user ON usage(user_id, timestamp)")
         self.db.execute("CREATE INDEX IF NOT EXISTS idx_tenant ON usage(tenant_id, timestamp)")
         self.db.commit()
-    
-    def record(self, user_id: str, input_tokens_or_cost=0, output_tokens: int = 0,
-               cost: float = None, model: str = "", agent: str = "",
-               tenant_id: str = None, cached_tokens: int = 0, tool_calls: int = 0,
-               duration_ms: float = None, metadata: dict = None):
+
+    def record(
+        self,
+        user_id: str,
+        input_tokens_or_cost=0,
+        output_tokens: int = 0,
+        cost: float = None,
+        model: str = "",
+        agent: str = "",
+        tenant_id: str = None,
+        cached_tokens: int = 0,
+        tool_calls: int = 0,
+        duration_ms: float = None,
+        metadata: dict = None,
+        input_tokens: int = None,
+    ):
         """Record a single usage event.
-        
-        Supports both signatures:
-          record(user_id, input_tokens, output_tokens, cost)   (legacy positional)
-          record(user_id, cost=X, input_tokens=Y, ...)         (keyword)
+
+        Forms:
+          record(user_id, input_tokens, output_tokens, cost)          # legacy positional
+          record(user_id, input_tokens=Y, output_tokens=Z, cost=X)    # keyword
+        For a cost-only record, pass ``cost=`` explicitly: ``record(user_id, cost=0.9)``.
+
+        v1.1.1: the documented ``input_tokens=`` keyword now works (the parameter was
+        previously named ``input_tokens_or_cost`` so the keyword form raised TypeError),
+        and a provided cost is never silently dropped (the old float-heuristic branch
+        was dead and zeroed ``record(user, 0.9)``).
         """
-        # Detect legacy positional call: (user, in_toks, out_toks, cost)
-        if cost is None:
-            # 2nd arg is input_tokens
-            input_tokens = int(input_tokens_or_cost)
-            cost = 0.0
-        elif output_tokens or cost:
-            # Full 4-arg positional
-            input_tokens = int(input_tokens_or_cost)
+        # Explicit input_tokens= keyword wins; otherwise the 2nd positional arg.
+        if input_tokens is not None:
+            input_tokens = int(input_tokens)
         else:
-            # Keyword-style: 2nd arg might actually be cost
-            if isinstance(input_tokens_or_cost, float) and input_tokens_or_cost < 1000:
-                cost = input_tokens_or_cost
-                input_tokens = 0
-            else:
-                input_tokens = int(input_tokens_or_cost)
-        
+            input_tokens = int(input_tokens_or_cost or 0)
+        cost = float(cost) if cost is not None else 0.0
+
         self.db.execute(
             """INSERT INTO usage (timestamp, user_id, tenant_id, agent, model,
                input_tokens, output_tokens, cached_tokens, cost, tool_calls,
                duration_ms, metadata) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-            (time.time(), user_id, tenant_id, agent, model,
-             input_tokens, output_tokens, cached_tokens, cost, tool_calls,
-             duration_ms, json.dumps(metadata or {}))
+            (
+                time.time(),
+                user_id,
+                tenant_id,
+                agent,
+                model,
+                input_tokens,
+                output_tokens,
+                cached_tokens,
+                cost,
+                tool_calls,
+                duration_ms,
+                json.dumps(metadata or {}),
+            ),
         )
         self.db.commit()
-    
-    def get_usage(self, user_id: str = None, tenant_id: str = None,
-                  since: float = None, until: float = None) -> dict:
+
+    def get_usage(
+        self, user_id: str = None, tenant_id: str = None, since: float = None, until: float = None
+    ) -> dict:
         """Aggregate usage by filters."""
         row = self.db.execute(
             """SELECT COUNT(*), SUM(input_tokens), SUM(output_tokens),
@@ -118,6 +141,7 @@ class UsageMeter:
         is the correct fail-loud behavior in multi-tenant deployments.
         """
         from largestack._enterprise.tenant import _current_tenant_var
+
         tid = _current_tenant_var.get()
         if not tid:
             raise ValueError(
@@ -136,6 +160,7 @@ class UsageMeter:
         Raises if no tenant context is set.
         """
         from largestack._enterprise.tenant import _current_tenant_var
+
         tid = _current_tenant_var.get()
         if not tid:
             raise ValueError(
@@ -144,7 +169,7 @@ class UsageMeter:
             )
         kw["tenant_id"] = tid
         return self.record(**kw)
-    
+
     def get_top_users(self, since: float = None, limit: int = 10) -> list[dict]:
         """Top users by cost."""
         rows = self.db.execute(
@@ -156,7 +181,10 @@ class UsageMeter:
                LIMIT ?""",
             (since, since, limit),
         ).fetchall()
-        return [{"user_id": r[0], "cost": round(r[1], 6), "requests": r[2], "tokens": r[3]} for r in rows]
+        return [
+            {"user_id": r[0], "cost": round(r[1], 6), "requests": r[2], "tokens": r[3]}
+            for r in rows
+        ]
 
     def get_by_model(self, since: float = None) -> list[dict]:
         """Cost breakdown by model."""
@@ -170,29 +198,38 @@ class UsageMeter:
         ).fetchall()
         return [{"model": r[0], "cost": round(r[1], 6), "requests": r[2]} for r in rows]
 
+
 class BudgetEnforcer:
     """Enforce monthly/daily budgets per user or tenant."""
+
     def __init__(self, meter: UsageMeter):
         self.meter = meter
         self._limits: dict[str, dict] = {}  # user_id → {daily, monthly}
-    
+
     def set_limit(self, user_id: str, daily: float = None, monthly: float = None):
         self._limits[user_id] = {"daily": daily, "monthly": monthly}
-    
+
     def check(self, user_id: str) -> tuple[bool, str]:
         """Returns (allowed, reason_if_blocked)."""
         limits = self._limits.get(user_id)
-        if not limits: return True, ""
-        
+        if not limits:
+            return True, ""
+
         now = time.time()
         if limits.get("daily"):
             daily_usage = self.meter.get_usage(user_id=user_id, since=now - 86400)
             if daily_usage["total_cost"] >= limits["daily"]:
-                return False, f"Daily budget exceeded: ${daily_usage['total_cost']:.2f} / ${limits['daily']:.2f}"
-        
+                return (
+                    False,
+                    f"Daily budget exceeded: ${daily_usage['total_cost']:.2f} / ${limits['daily']:.2f}",
+                )
+
         if limits.get("monthly"):
             monthly_usage = self.meter.get_usage(user_id=user_id, since=now - 2592000)
             if monthly_usage["total_cost"] >= limits["monthly"]:
-                return False, f"Monthly budget exceeded: ${monthly_usage['total_cost']:.2f} / ${limits['monthly']:.2f}"
-        
+                return (
+                    False,
+                    f"Monthly budget exceeded: ${monthly_usage['total_cost']:.2f} / ${limits['monthly']:.2f}",
+                )
+
         return True, ""

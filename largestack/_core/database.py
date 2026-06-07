@@ -5,6 +5,7 @@ Usage:
     db = Database.create("sqlite:///~/.largestack/data.db")
     db = Database.create("postgresql://user:pass@host:5432/largestack")
 """
+
 from __future__ import annotations
 import json, logging, os, sqlite3, time
 from typing import Any
@@ -15,23 +16,23 @@ log = logging.getLogger("largestack.database")
 
 class Database:
     """Unified database interface for SQLite and PostgreSQL."""
-    
+
     def __init__(self, backend: str = "sqlite", connection_string: str = None):
         self.backend = backend
         self.connection_string = connection_string
         self._conn = None
         self._pool = None
-    
+
     @classmethod
     def create(cls, url: str = None) -> "Database":
         """Create database from URL or env var.
-        
+
         v0.3.6: reads in this priority order:
           1. explicit `url` arg
           2. LARGESTACK_DATABASE_URL (canonical)
           3. LARGESTACK_POSTGRES_DSN (alias — used by docker-compose.yml)
           4. SQLite default at ~/.largestack/data.db
-        
+
         Logs a warning if LARGESTACK_POSTGRES_DSN is set without LARGESTACK_DATABASE_URL
         so the env var name mismatch is visible.
         """
@@ -49,36 +50,36 @@ class Database:
                     url = dsn_alias
                 else:
                     url = "sqlite:///~/.largestack/data.db"
-        
+
         if url.startswith("postgresql://") or url.startswith("postgres://"):
             return PostgreSQLDatabase(url)
         else:
             path = url.replace("sqlite:///", "")
             return SQLiteDatabase(path)
-    
+
     def execute(self, sql: str, params: tuple = ()) -> Any:
         raise NotImplementedError
-    
+
     def executemany(self, sql: str, params_list: list) -> Any:
         raise NotImplementedError
-    
+
     def fetchone(self, sql: str, params: tuple = ()) -> dict | None:
         raise NotImplementedError
-    
+
     def fetchall(self, sql: str, params: tuple = ()) -> list[dict]:
         raise NotImplementedError
-    
+
     def commit(self):
         raise NotImplementedError
-    
+
     def close(self):
         raise NotImplementedError
-    
+
     @contextmanager
     def transaction(self):
         """Context manager for atomic transactions."""
         raise NotImplementedError
-    
+
     @property
     def placeholder(self) -> str:
         """Parameter placeholder: ? for SQLite, %s for PostgreSQL."""
@@ -87,7 +88,7 @@ class Database:
 
 class SQLiteDatabase(Database):
     """SQLite backend with WAL mode."""
-    
+
     def __init__(self, path: str = "~/.largestack/data.db"):
         super().__init__("sqlite")
         self.path = os.path.expanduser(path)
@@ -102,26 +103,26 @@ class SQLiteDatabase(Database):
         self._conn.execute("PRAGMA synchronous=NORMAL")
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.row_factory = sqlite3.Row
-    
+
     def execute(self, sql: str, params: tuple = ()):
         return self._conn.execute(sql, params)
-    
+
     def executemany(self, sql: str, params_list: list):
         return self._conn.executemany(sql, params_list)
-    
+
     def fetchone(self, sql: str, params: tuple = ()) -> dict | None:
         row = self._conn.execute(sql, params).fetchone()
         return dict(row) if row else None
-    
+
     def fetchall(self, sql: str, params: tuple = ()) -> list[dict]:
         return [dict(r) for r in self._conn.execute(sql, params).fetchall()]
-    
+
     def commit(self):
         self._conn.commit()
-    
+
     def close(self):
         self._conn.close()
-    
+
     @contextmanager
     def transaction(self):
         try:
@@ -130,7 +131,7 @@ class SQLiteDatabase(Database):
         except Exception:
             self._conn.rollback()
             raise
-    
+
     @property
     def placeholder(self) -> str:
         return "?"
@@ -138,7 +139,7 @@ class SQLiteDatabase(Database):
 
 class PostgreSQLDatabase(Database):
     """PostgreSQL backend with connection pooling."""
-    
+
     def __init__(self, url: str):
         super().__init__("postgresql", url)
         self._pool = None
@@ -146,17 +147,18 @@ class PostgreSQLDatabase(Database):
         # Connect lazily so configuration/factory tests and startup checks can
         # verify routing without requiring DNS/network access immediately.
 
-    
     def _connect(self):
         try:
             import psycopg2
             import psycopg2.extras
+
             self._conn = psycopg2.connect(self.connection_string)
             self._conn.autocommit = False
             log.info("PostgreSQL: connected")
         except ImportError:
             try:
                 import psycopg
+
                 self._conn = psycopg.connect(self.connection_string)
                 self._conn.autocommit = False
                 log.info("PostgreSQL (psycopg3): connected")
@@ -165,7 +167,7 @@ class PostgreSQLDatabase(Database):
                     "PostgreSQL requires psycopg2 or psycopg3: "
                     "pip install psycopg2-binary  OR  pip install psycopg[binary]"
                 )
-    
+
     def _ensure_connection(self):
         if self._conn is None:
             self._connect()
@@ -176,14 +178,14 @@ class PostgreSQLDatabase(Database):
         cursor = self._conn.cursor()
         cursor.execute(sql, params)
         return cursor
-    
+
     def executemany(self, sql: str, params_list: list):
         self._ensure_connection()
         sql = self._convert_placeholders(sql)
         cursor = self._conn.cursor()
         cursor.executemany(sql, params_list)
         return cursor
-    
+
     def fetchone(self, sql: str, params: tuple = ()) -> dict | None:
         self._ensure_connection()
         sql = self._convert_placeholders(sql)
@@ -194,7 +196,7 @@ class PostgreSQLDatabase(Database):
             return None
         cols = [d[0] for d in cursor.description]
         return dict(zip(cols, row))
-    
+
     def fetchall(self, sql: str, params: tuple = ()) -> list[dict]:
         self._ensure_connection()
         sql = self._convert_placeholders(sql)
@@ -202,15 +204,15 @@ class PostgreSQLDatabase(Database):
         cursor.execute(sql, params)
         cols = [d[0] for d in cursor.description]
         return [dict(zip(cols, row)) for row in cursor.fetchall()]
-    
+
     def commit(self):
         self._ensure_connection()
         self._conn.commit()
-    
+
     def close(self):
         if self._conn:
             self._conn.close()
-    
+
     @contextmanager
     def transaction(self):
         self._ensure_connection()
@@ -220,11 +222,11 @@ class PostgreSQLDatabase(Database):
         except Exception:
             self._conn.rollback()
             raise
-    
+
     @property
     def placeholder(self) -> str:
         return "%s"
-    
+
     @staticmethod
     def _convert_placeholders(sql: str) -> str:
         """Convert SQLite ? placeholders to PostgreSQL %s."""
@@ -237,7 +239,7 @@ class PostgreSQLDatabase(Database):
                 quote_char = char
             elif char == quote_char and in_string:
                 in_string = False
-            
+
             if char == "?" and not in_string:
                 result.append("%s")
             else:
@@ -313,12 +315,12 @@ def run_migrations(db: Database):
         db.execute("""CREATE TABLE IF NOT EXISTS largestack_migrations (
             name TEXT PRIMARY KEY, applied_at DOUBLE PRECISION NOT NULL)""")
     db.commit()
-    
+
     for name, sql in MIGRATIONS.items():
         existing = db.fetchone("SELECT name FROM largestack_migrations WHERE name=?", (name,))
         if existing:
             continue
-        
+
         # Execute migration
         for statement in sql.strip().split(";"):
             statement = statement.strip()
@@ -327,8 +329,10 @@ def run_migrations(db: Database):
                 if db.backend == "sqlite":
                     statement = statement.replace("SERIAL", "INTEGER")
                 db.execute(statement)
-        
-        db.execute("INSERT INTO largestack_migrations (name, applied_at) VALUES (?, ?)",
-                   (name, time.time()))
+
+        db.execute(
+            "INSERT INTO largestack_migrations (name, applied_at) VALUES (?, ?)",
+            (name, time.time()),
+        )
         db.commit()
         log.info(f"Migration applied: {name}")

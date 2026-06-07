@@ -1,4 +1,5 @@
 """v0.12.0: Tests for A2A (Agent2Agent) Protocol adapter."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
@@ -8,19 +9,23 @@ import pytest
 
 # -------------------- AgentCard --------------------
 
+
 def test_agent_card_to_dict_round_trip():
     from largestack._a2a import AgentCard, AgentSkill
+
     card = AgentCard(
         name="KYC Agent",
         description="Indian KYC and DPDP-compliant verification",
         url="https://kyc.example.com",
-        skills=[AgentSkill(
-            id="pan_verify",
-            name="Verify PAN",
-            description="Verifies a PAN against Signzy",
-            tags=["kyc", "india"],
-            examples=["Verify PAN AAACR1234C"],
-        )],
+        skills=[
+            AgentSkill(
+                id="pan_verify",
+                name="Verify PAN",
+                description="Verifies a PAN against Signzy",
+                tags=["kyc", "india"],
+                examples=["Verify PAN AAACR1234C"],
+            )
+        ],
         provider_name="RivaiLabs",
     )
     d = card.to_dict()
@@ -34,8 +39,11 @@ def test_agent_card_to_dict_round_trip():
 
 def test_agent_card_default_capabilities():
     from largestack._a2a import AgentCard
+
     card = AgentCard(
-        name="x", description="y", url="z",
+        name="x",
+        description="y",
+        url="z",
     )
     assert card.capabilities.streaming is False
     assert card.capabilities.state_transition_history is True
@@ -43,8 +51,11 @@ def test_agent_card_default_capabilities():
 
 def test_agent_card_from_dict_tolerates_unknown_keys():
     from largestack._a2a import AgentCard
+
     d = {
-        "name": "n", "description": "d", "url": "u",
+        "name": "n",
+        "description": "d",
+        "url": "u",
         "future_field": "ignored",
     }
     card = AgentCard.from_dict(d)
@@ -53,14 +64,17 @@ def test_agent_card_from_dict_tolerates_unknown_keys():
 
 def test_agent_card_protocol_version_default():
     from largestack._a2a import AgentCard
+
     card = AgentCard(name="x", description="y", url="z")
     assert card.protocol_version == "0.3.0"
 
 
 # -------------------- A2AMessage --------------------
 
+
 def test_message_text_helper():
     from largestack._a2a import A2AMessage
+
     m = A2AMessage.text("user", "hello")
     assert m.role == "user"
     assert m.parts[0]["type"] == "text"
@@ -69,18 +83,24 @@ def test_message_text_helper():
 
 def test_message_get_text_concatenates_parts():
     from largestack._a2a import A2AMessage
-    m = A2AMessage(role="agent", parts=[
-        {"type": "text", "text": "hello"},
-        {"type": "text", "text": "world"},
-        {"type": "image", "url": "https://x"},  # not text
-    ])
+
+    m = A2AMessage(
+        role="agent",
+        parts=[
+            {"type": "text", "text": "hello"},
+            {"type": "text", "text": "world"},
+            {"type": "image", "url": "https://x"},  # not text
+        ],
+    )
     assert m.get_text() == "hello\nworld"
 
 
 # -------------------- A2ATask --------------------
 
+
 def test_task_lifecycle_transitions():
     from largestack._a2a import A2ATask, A2AMessage
+
     t = A2ATask(id="t1")
     assert t.state == "submitted"
     t.transition("working")
@@ -93,6 +113,7 @@ def test_task_lifecycle_transitions():
 
 def test_task_transition_with_error():
     from largestack._a2a import A2ATask
+
     t = A2ATask(id="t1")
     t.transition("failed", error="LLM down")
     assert t.state == "failed"
@@ -101,6 +122,7 @@ def test_task_transition_with_error():
 
 def test_task_to_dict_serializes_messages():
     from largestack._a2a import A2ATask, A2AMessage
+
     t = A2ATask(id="t1")
     t.add_message(A2AMessage.text("user", "go"))
     d = t.to_dict()
@@ -110,6 +132,7 @@ def test_task_to_dict_serializes_messages():
 
 
 # -------------------- A2AServer --------------------
+
 
 @pytest.mark.asyncio
 async def test_server_submit_task_success():
@@ -176,6 +199,7 @@ async def test_server_purge_expired_tasks():
 
 # -------------------- A2AServer HTTP request handling --------------------
 
+
 @pytest.mark.asyncio
 async def test_handle_get_well_known_agent_json():
     from largestack._a2a import A2AServer, AgentCard
@@ -186,7 +210,9 @@ async def test_handle_get_well_known_agent_json():
     card = AgentCard(name="Test", description="d", url="u")
     server = A2AServer(card=card, handler=handler)
     status, body = await server.handle_request(
-        "GET", "/.well-known/agent.json", None,
+        "GET",
+        "/.well-known/agent.json",
+        None,
     )
     assert status == 200
     assert body["name"] == "Test"
@@ -204,7 +230,9 @@ async def test_handle_post_tasks_send_with_input_field():
         handler=handler,
     )
     status, body = await server.handle_request(
-        "POST", "/tasks/send", {"input": "hello"},
+        "POST",
+        "/tasks/send",
+        {"input": "hello"},
     )
     assert status == 200
     assert body["state"] == "completed"
@@ -225,7 +253,8 @@ async def test_handle_post_tasks_send_with_message_parts():
         handler=handler,
     )
     status, body = await server.handle_request(
-        "POST", "/tasks/send",
+        "POST",
+        "/tasks/send",
         {"message": {"parts": [{"type": "text", "text": "from parts"}]}},
     )
     assert status == 200
@@ -241,7 +270,9 @@ async def test_handle_post_tasks_send_rejects_empty_input():
         handler=lambda t, task: None,
     )
     status, body = await server.handle_request(
-        "POST", "/tasks/send", {},
+        "POST",
+        "/tasks/send",
+        {},
     )
     assert status == 400
 
@@ -259,7 +290,9 @@ async def test_handle_get_specific_task():
     )
     task = await server.submit_task("x", task_id="t-fixed")
     status, body = await server.handle_request(
-        "GET", f"/tasks/{task.id}", None,
+        "GET",
+        f"/tasks/{task.id}",
+        None,
     )
     assert status == 200
     assert body["id"] == "t-fixed"
@@ -274,7 +307,9 @@ async def test_handle_get_unknown_task_returns_404():
         handler=lambda t, task: None,
     )
     status, body = await server.handle_request(
-        "GET", "/tasks/nope", None,
+        "GET",
+        "/tasks/nope",
+        None,
     )
     assert status == 404
 
@@ -282,17 +317,21 @@ async def test_handle_get_unknown_task_returns_404():
 @pytest.mark.asyncio
 async def test_handle_unknown_endpoint():
     from largestack._a2a import A2AServer, AgentCard
+
     server = A2AServer(
         card=AgentCard(name="x", description="y", url="z"),
         handler=lambda t, task: None,
     )
     status, _ = await server.handle_request(
-        "GET", "/unknown", None,
+        "GET",
+        "/unknown",
+        None,
     )
     assert status == 404
 
 
 # -------------------- A2AClient (against in-process server) --------------------
+
 
 @pytest.mark.asyncio
 async def test_client_against_in_process_server():
@@ -304,7 +343,9 @@ async def test_client_against_in_process_server():
 
     server = A2AServer(
         card=AgentCard(
-            name="Test", description="d", url="http://localhost:0",
+            name="Test",
+            description="d",
+            url="http://localhost:0",
         ),
         handler=handler,
     )
@@ -314,6 +355,7 @@ async def test_client_against_in_process_server():
 
     async def fake_post(path, body):
         return await server.handle_request("POST", path, body)
+
     async def fake_get(path):
         return await server.handle_request("GET", path, None)
 
@@ -337,6 +379,7 @@ async def test_client_get_task_returns_none_on_404():
 
     async def fake_get(path):
         return 404, {"error": "not found"}
+
     client._get_json = fake_get
 
     result = await client.get_task("nope")
@@ -351,6 +394,7 @@ async def test_client_send_task_raises_on_error():
 
     async def fake_post(path, body):
         return 500, {"error": "boom"}
+
     client._post_json = fake_post
 
     with pytest.raises(RuntimeError, match="send_task failed"):
@@ -359,14 +403,17 @@ async def test_client_send_task_raises_on_error():
 
 # -------------------- expose_largestack_agent helper --------------------
 
+
 @pytest.mark.asyncio
 async def test_expose_largestack_agent_wraps_correctly():
     from largestack._a2a import expose_largestack_agent, AgentSkill
 
     largestack_agent = MagicMock()
-    largestack_agent.run = AsyncMock(return_value=MagicMock(
-        content="42",
-    ))
+    largestack_agent.run = AsyncMock(
+        return_value=MagicMock(
+            content="42",
+        )
+    )
 
     server = expose_largestack_agent(
         largestack_agent,
@@ -390,7 +437,10 @@ async def test_expose_largestack_agent_default_provider():
     largestack_agent.run = AsyncMock(return_value=MagicMock(content="x"))
 
     server = expose_largestack_agent(
-        largestack_agent, name="x", description="y", url="z",
+        largestack_agent,
+        name="x",
+        description="y",
+        url="z",
     )
     assert server.card.provider_name == "RivaiLabs"
     assert server.card.provider_url == "https://largestack.ai"

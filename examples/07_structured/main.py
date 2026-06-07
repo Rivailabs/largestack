@@ -27,10 +27,13 @@ class Review(BaseModel):
     rating: int = Field(ge=1, le=10)
     summary: str
 
+
 async def main():
     model = select_model()
     if model.startswith("deepseek/") or os.environ.get("LARGESTACK_DEEPSEEK_API_KEY"):
-        print("SKIP_PROVIDER_CAPABILITY: DeepSeek response_format structured output is unavailable now.")
+        print(
+            "SKIP_PROVIDER_CAPABILITY: DeepSeek response_format structured output is unavailable now."
+        )
         return
 
     agent = Agent(

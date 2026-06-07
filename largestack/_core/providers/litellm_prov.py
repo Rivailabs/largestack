@@ -32,13 +32,19 @@ Cohere) work normally — LiteLLM reads them itself.
 Requires: ``pip install litellm``. Without it, this provider raises a
 clear ImportError on first use.
 """
+
 from __future__ import annotations
 import json
 import logging
 from typing import Any, AsyncIterator
 
 from largestack._core.providers.base import BaseProvider
-from largestack.errors import ProviderAuthError, ProviderRateLimitError, ProviderError, ProviderTimeoutError
+from largestack.errors import (
+    ProviderAuthError,
+    ProviderRateLimitError,
+    ProviderError,
+    ProviderTimeoutError,
+)
 from largestack.types import LLMResponse, ToolCall
 
 log = logging.getLogger("largestack.providers.litellm")
@@ -50,6 +56,7 @@ class LiteLLMProvider(BaseProvider):
     Lazy-imports LiteLLM only when ``chat()`` or ``chat_stream()`` is
     called — keeps LARGESTACK startup time fast even when LiteLLM isn't used.
     """
+
     name = "litellm"
 
     def __init__(self, api_key: str | None = None, base_url: str | None = None):
@@ -65,19 +72,18 @@ class LiteLLMProvider(BaseProvider):
         if self._litellm is None:
             try:
                 import litellm  # type: ignore
+
                 # Suppress LiteLLM's verbose info logs by default
                 litellm.suppress_debug_info = True
                 self._litellm = litellm
             except ImportError as e:
-                raise ImportError(
-                    "litellm not installed. Run: pip install litellm"
-                ) from e
+                raise ImportError("litellm not installed. Run: pip install litellm") from e
         return self._litellm
 
     def get_model(self, model: str) -> str:
-        """``litellm/bedrock/anthropic.claude-3-sonnet`` -> 
+        """``litellm/bedrock/anthropic.claude-3-sonnet`` ->
         ``bedrock/anthropic.claude-3-sonnet``.
-        
+
         Strips only the ``litellm/`` prefix, leaving the provider/model
         intact for LiteLLM to dispatch.
         """
@@ -92,19 +98,19 @@ class LiteLLMProvider(BaseProvider):
                 if isinstance(exc, ll.AuthenticationError):
                     return ProviderAuthError(self.name, str(exc))
                 if isinstance(exc, ll.RateLimitError):
-                    return ProviderRateLimitError(self.name, str(exc))
+                    return ProviderRateLimitError(f"{self.name}: {exc}")
                 if isinstance(exc, ll.Timeout):
-                    return ProviderTimeoutError(self.name, str(exc))
+                    return ProviderTimeoutError(self.name, detail=str(exc))
             except AttributeError:
                 pass
         # Fallback by message inspection
         if "auth" in msg or "api key" in msg or "401" in msg:
             return ProviderAuthError(self.name, str(exc))
         if "rate" in msg or "429" in msg or "quota" in msg:
-            return ProviderRateLimitError(self.name, str(exc))
+            return ProviderRateLimitError(f"{self.name}: {exc}")
         if "timeout" in msg or "timed out" in msg:
-            return ProviderTimeoutError(self.name, str(exc))
-        return ProviderError(self.name, str(exc))
+            return ProviderTimeoutError(self.name, detail=str(exc))
+        return ProviderError(f"{self.name}: {exc}")
 
     async def chat(
         self,

@@ -17,6 +17,7 @@ every authenticated request and we don't want to force `await` everywhere
 the SSO provider is used. For Redis, this means we use the synchronous
 `redis-py` client (still fast enough — <1ms per op on local Redis).
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -30,6 +31,7 @@ log = logging.getLogger("largestack.session_store")
 
 class _SessionLike(Protocol):
     """Duck-typed session — anything with these attributes works."""
+
     session_id: str
     user_info: dict
     created_at: float
@@ -68,6 +70,7 @@ class SessionStore:
 # In-memory backend (legacy v0.4 behavior)
 # --------------------------------------------------------------------------
 
+
 class InMemorySessionStore(SessionStore):
     """Per-worker dict. Default backend."""
 
@@ -98,7 +101,8 @@ class InMemorySessionStore(SessionStore):
     def cleanup_expired(self) -> int:
         with self._lock:
             expired = [
-                sid for sid, s in self._sessions.items()
+                sid
+                for sid, s in self._sessions.items()
                 if hasattr(s, "is_expired") and s.is_expired
             ]
             for sid in expired:
@@ -116,6 +120,7 @@ class InMemorySessionStore(SessionStore):
 # --------------------------------------------------------------------------
 # Redis backend (production multi-worker)
 # --------------------------------------------------------------------------
+
 
 class RedisSessionStore(SessionStore):
     """Distributed sessions via Redis. Falls back to in-memory on connect failure.
@@ -193,6 +198,7 @@ class RedisSessionStore(SessionStore):
             s.last_active = d.get("last_active", time.time())
             s.refresh_token = d.get("refresh_token")
             return s
+
         return _make
 
     def get(self, session_id: str) -> _SessionLike | None:
@@ -266,6 +272,7 @@ class RedisSessionStore(SessionStore):
 # --------------------------------------------------------------------------
 # Factory
 # --------------------------------------------------------------------------
+
 
 def create_session_store() -> SessionStore:
     """Create a session store based on env vars.

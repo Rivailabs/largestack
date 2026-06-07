@@ -22,6 +22,7 @@ This is **still not a real sandbox**. For production with untrusted inputs,
 use the e2b_sandbox provider in largestack._core.e2b_sandbox or wrap the agent
 in a container with seccomp/AppArmor.
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -40,7 +41,6 @@ if _ALLOW_SHELL:
 
 
 @tool(timeout=30)
-
 async def _terminate_process_safely(proc):
     """Terminate subprocess and drain pipes to avoid ResourceWarning leaks."""
     import asyncio
@@ -58,6 +58,7 @@ async def _terminate_process_safely(proc):
 
     with contextlib.suppress(Exception):
         await asyncio.wait_for(proc.wait(), timeout=2)
+
 
 async def code_execute(code: str, language: str = "python") -> str:
     """Execute code. Returns stdout + stderr.
@@ -124,7 +125,11 @@ async def _run_python(code: str) -> str:
             # LARGESTACK_CODE_SITE_PACKAGES=1 when user code must import installed
             # third-party packages from the host environment.
             py_args = [os.path.abspath(sys.executable)]
-            if os.environ.get("LARGESTACK_CODE_SITE_PACKAGES", "").lower() not in ("1", "true", "yes"):
+            if os.environ.get("LARGESTACK_CODE_SITE_PACKAGES", "").lower() not in (
+                "1",
+                "true",
+                "yes",
+            ):
                 py_args.append("-S")
             py_args.append(script_path)
             proc = await asyncio.create_subprocess_exec(
@@ -163,9 +168,12 @@ async def _run_python(code: str) -> str:
 async def _run_bash(code: str) -> str:
     """Run bash. ONLY reached if LARGESTACK_ALLOW_SHELL_EXEC=1."""
     import asyncio
+
     log.warning("code_execute(bash): running shell code (length=%d)", len(code))
     proc = await asyncio.create_subprocess_exec(
-        "bash", "-c", code,
+        "bash",
+        "-c",
+        code,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
         start_new_session=True,
@@ -178,6 +186,5 @@ async def _run_bash(code: str) -> str:
         except ProcessLookupError:
             pass
         return "Error: shell execution timed out (25s)"
-    out = (stdout.decode("utf-8", errors="replace")
-           + stderr.decode("utf-8", errors="replace"))
+    out = stdout.decode("utf-8", errors="replace") + stderr.decode("utf-8", errors="replace")
     return out.strip()[:3000] or "(no output)"

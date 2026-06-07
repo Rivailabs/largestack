@@ -8,17 +8,19 @@ Validates tool parameters, enforces rate limits, and restricts tool access per a
     policy.rate_limit("web_search", max_calls=10, window_seconds=60)
     policy.validate_params("shell_command", {"command": r"^ls|cat|head|tail"})
 """
+
 from __future__ import annotations
 import re, time, logging
 from typing import Any
 
 log = logging.getLogger("largestack.tool_access")
 
+
 class ToolAccessPolicy:
     def __init__(self):
         self._allow: dict[str, set[str]] = {}  # agent → allowed tools
-        self._deny: dict[str, set[str]] = {}   # agent → denied tools
-        self._rate: dict[str, dict] = {}        # tool → {max, window, calls:[]}
+        self._deny: dict[str, set[str]] = {}  # agent → denied tools
+        self._rate: dict[str, dict] = {}  # tool → {max, window, calls:[]}
         self._param_rules: dict[str, dict[str, str]] = {}  # tool → {param: regex}
         self._output_caps: dict[str, int] = {}  # tool → max output chars
 
@@ -48,21 +50,29 @@ class ToolAccessPolicy:
         return True
 
     def check_rate(self, tool_name: str) -> bool:
-        if tool_name not in self._rate: return True
+        if tool_name not in self._rate:
+            return True
         r = self._rate[tool_name]
         now = time.time()
         r["calls"] = [t for t in r["calls"] if now - t < r["window"]]
         if len(r["calls"]) >= r["max"]:
-            log.warning(f"Tool rate limit: {tool_name} ({len(r['calls'])}/{r['max']} in {r['window']}s)")
+            log.warning(
+                f"Tool rate limit: {tool_name} ({len(r['calls'])}/{r['max']} in {r['window']}s)"
+            )
             return False
         r["calls"].append(now)
         return True
 
     def check_params(self, tool_name: str, params: dict) -> tuple[bool, str]:
-        if tool_name not in self._param_rules: return True, ""
+        if tool_name not in self._param_rules:
+            return True, ""
         for param, pattern in self._param_rules[tool_name].items():
             val = str(params.get(param, ""))
-            if not re.match(pattern, val):
+            # v1.1.1: fullmatch, not match — re.match anchors only the START, so a
+            # rule like "^(ls|cat)" accepted "ls; rm -rf ~". fullmatch requires the
+            # WHOLE value to match. (Callers must still treat tool args as untrusted
+            # and never pass them straight to a shell.)
+            if not re.fullmatch(pattern, val, re.DOTALL):
                 msg = f"Parameter validation failed: {tool_name}.{param}='{val}' doesn't match '{pattern}'"
                 log.warning(msg)
                 return False, msg
@@ -82,5 +92,6 @@ class ToolAccessPolicy:
         if not self.check_rate(tool_name):
             return False, f"Rate limit exceeded for {tool_name}"
         ok, msg = self.check_params(tool_name, params)
-        if not ok: return False, msg
+        if not ok:
+            return False, msg
         return True, ""

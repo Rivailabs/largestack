@@ -2,13 +2,16 @@
 
 Replaces string-only context. Every agent gets full history of previous agents.
 """
+
 from __future__ import annotations
 from typing import Any
 from pydantic import BaseModel, Field
 from largestack.types import AgentResult
 
+
 class AgentContext(BaseModel):
     """Structured context passed between agents in multi-agent workflows."""
+
     task: str = ""
     outputs: dict[str, AgentResult] = Field(default_factory=dict)
     shared: dict[str, Any] = Field(default_factory=dict)
@@ -30,7 +33,8 @@ class AgentContext(BaseModel):
         return self.outputs.get(agent_name)
 
     def last_output(self) -> str:
-        if not self.history: return self.task
+        if not self.history:
+            return self.task
         return self.get_output(self.history[-1])
 
     def build_prompt(self, agent_name: str) -> str:
@@ -45,5 +49,8 @@ class AgentContext(BaseModel):
             parts.append(f"\n--- Shared context ---\n{self.shared}")
         return "\n".join(parts)
 
-    def set(self, key: str, value: Any): self.shared[key] = value
-    def get(self, key: str, default: Any = None) -> Any: return self.shared.get(key, default)
+    def set(self, key: str, value: Any):
+        self.shared[key] = value
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.shared.get(key, default)

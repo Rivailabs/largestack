@@ -5,6 +5,7 @@ Lightweight checks for production-relevant metrics that v0.6 introduced:
 - Memory growth per run stays bounded
 - Bench script itself executes successfully
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -35,7 +36,7 @@ async def test_concurrent_runs_complete_within_reasonable_time():
 @pytest.mark.asyncio
 async def test_memory_growth_per_run_is_bounded():
     """Per-run memory growth should be small (<10KB/run).
-    
+
     This is a coarse regression guard — meaningful regressions
     (caches that grow unboundedly, etc.) blow this up by 100x+.
     """
@@ -69,8 +70,7 @@ async def test_memory_growth_per_run_is_bounded():
     per_run = total_growth / n_runs
     # Generous bound: 50KB/run. A real leak would be much larger.
     assert per_run < 50_000, (
-        f"memory growth {per_run:.0f} bytes/run exceeds 50KB threshold; "
-        f"possible leak"
+        f"memory growth {per_run:.0f} bytes/run exceeds 50KB threshold; possible leak"
     )
 
 
@@ -79,12 +79,15 @@ def test_bench_v2_script_runs_without_error():
     import subprocess
     import sys
     from pathlib import Path
+
     repo = Path(__file__).resolve().parent.parent.parent
     script = repo / "benchmarks" / "bench_v2_concurrency.py"
     assert script.exists()
     result = subprocess.run(
         [sys.executable, str(script)],
-        capture_output=True, text=True, timeout=180,
+        capture_output=True,
+        text=True,
+        timeout=180,
     )
     assert result.returncode == 0, (
         f"bench_v2 failed:\nstdout:{result.stdout}\nstderr:{result.stderr}"

@@ -1,4 +1,5 @@
 """Production migration helpers stay deterministic and idempotent."""
+
 from __future__ import annotations
 
 import json

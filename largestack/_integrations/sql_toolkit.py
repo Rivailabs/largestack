@@ -13,6 +13,7 @@ Usage:
     toolkit = SQLToolkit("postgresql://user:pw@host/db")
     agent = Agent(name="dba", llm="...", tools=toolkit.get_tools())
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -136,18 +137,22 @@ class SQLToolkit:
 
     def _list_tables_sync(self) -> str:
         from sqlalchemy import inspect
+
         self._connect()
         insp = inspect(self._engine)
         tables = insp.get_table_names()
         views = insp.get_view_names() if hasattr(insp, "get_view_names") else []
-        return json.dumps({
-            "dialect": self._dialect,
-            "tables": tables,
-            "views": views,
-        })
+        return json.dumps(
+            {
+                "dialect": self._dialect,
+                "tables": tables,
+                "views": views,
+            }
+        )
 
     def _describe_sync(self, table_name: str) -> str:
         from sqlalchemy import inspect
+
         self._connect()
         insp = inspect(self._engine)
         try:
@@ -156,26 +161,29 @@ class SQLToolkit:
             pk = insp.get_pk_constraint(table_name)
         except Exception as e:
             return f"error: table {table_name!r} not found: {e}"
-        return json.dumps({
-            "table": table_name,
-            "columns": [
-                {
-                    "name": c.get("name"),
-                    "type": str(c.get("type")),
-                    "nullable": c.get("nullable", True),
-                    "default": str(c.get("default")) if c.get("default") is not None else None,
-                }
-                for c in cols
-            ],
-            "indexes": [
-                {"name": i.get("name"), "columns": list(i.get("column_names") or [])}
-                for i in indexes
-            ],
-            "primary_key": list(pk.get("constrained_columns") or []),
-        })
+        return json.dumps(
+            {
+                "table": table_name,
+                "columns": [
+                    {
+                        "name": c.get("name"),
+                        "type": str(c.get("type")),
+                        "nullable": c.get("nullable", True),
+                        "default": str(c.get("default")) if c.get("default") is not None else None,
+                    }
+                    for c in cols
+                ],
+                "indexes": [
+                    {"name": i.get("name"), "columns": list(i.get("column_names") or [])}
+                    for i in indexes
+                ],
+                "primary_key": list(pk.get("constrained_columns") or []),
+            }
+        )
 
     def _query_sync(self, sql: str) -> str:
         from sqlalchemy import text
+
         self._connect()
         with self._engine.connect() as conn:
             result = conn.execute(text(sql))
@@ -191,15 +199,18 @@ class SQLToolkit:
                         s = s[: self.max_cell_chars] + "...[truncated]"
                     cell_dict[k] = s
                 rows.append(cell_dict)
-        return json.dumps({
-            "columns": cols,
-            "rows": rows,
-            "row_count": len(rows),
-            "truncated": len(rows) >= self.max_rows,
-        })
+        return json.dumps(
+            {
+                "columns": cols,
+                "rows": rows,
+                "row_count": len(rows),
+                "truncated": len(rows) >= self.max_rows,
+            }
+        )
 
     def _explain_sync(self, sql: str) -> str:
         from sqlalchemy import text
+
         self._connect()
         # Different dialects use different EXPLAIN syntax
         if self._dialect == "postgresql":

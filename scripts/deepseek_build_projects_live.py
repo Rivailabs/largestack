@@ -5,6 +5,7 @@ implementations. It asks a Largestack Agent backed by DeepSeek to produce each
 project as JSON files, saves those files, then runs compile, pytest, and hidden
 acceptance checks.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -39,7 +40,9 @@ from largestack.observability import Monitor
 
 
 MODEL = "deepseek/deepseek-chat"
-RUN_ID = os.environ.get("LARGESTACK_DEEPSEEK_BUILD_RUN_ID") or datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+RUN_ID = os.environ.get("LARGESTACK_DEEPSEEK_BUILD_RUN_ID") or datetime.now(timezone.utc).strftime(
+    "%Y%m%d-%H%M%S"
+)
 OUTDIR = ROOT / "release_evidence" / "deepseek_build_projects_live" / RUN_ID
 PROJECTS_DIR = OUTDIR / "projects"
 
@@ -172,7 +175,9 @@ def selected_project_specs() -> dict[str, dict[str, str]]:
     requested = [item.strip() for item in raw.split(",") if item.strip()]
     unknown = [name for name in requested if name not in PROJECT_SPECS]
     if unknown:
-        raise SystemExit(f"Unknown project names in LARGESTACK_DEEPSEEK_PROJECTS: {', '.join(unknown)}")
+        raise SystemExit(
+            f"Unknown project names in LARGESTACK_DEEPSEEK_PROJECTS: {', '.join(unknown)}"
+        )
     wanted = set(requested)
     return {name: spec for name, spec in PROJECT_SPECS.items() if name in wanted}
 
@@ -205,7 +210,9 @@ def extract_json(text: str) -> dict[str, Any] | None:
     return None
 
 
-async def build_project(agent: Agent, name: str, requirements: str, feedback: str = "") -> tuple[dict[str, Any] | None, Any, int]:
+async def build_project(
+    agent: Agent, name: str, requirements: str, feedback: str = ""
+) -> tuple[dict[str, Any] | None, Any, int]:
     prompt = f"""
 Generate a complete small project named {name}.
 
@@ -237,7 +244,12 @@ Rules:
     data = None
     for _ in range(2):
         attempts += 1
-        result = await agent.run(prompt if last is None else f"Fix this into valid JSON only:\n{last.content[:6000]}", timeout=150, temperature=0.1, max_tokens=1800)
+        result = await agent.run(
+            prompt if last is None else f"Fix this into valid JSON only:\n{last.content[:6000]}",
+            timeout=150,
+            temperature=0.1,
+            max_tokens=1800,
+        )
         last = result
         data = extract_json(result.content)
         if data:
@@ -259,7 +271,13 @@ def validate_project(project_path: Path, acceptance_code: str) -> tuple[bool, bo
     pytest_out = run_pytest(project_path)
     accept_out = run_acceptance(project_path, acceptance_code)
     validation = compile_out + "\n" + pytest_out["stdout"]
-    return compile_ok, pytest_out["returncode"] == 0, accept_out["returncode"] == 0, validation, accept_out["stdout"]
+    return (
+        compile_ok,
+        pytest_out["returncode"] == 0,
+        accept_out["returncode"] == 0,
+        validation,
+        accept_out["stdout"],
+    )
 
 
 def feedback_from_failure(
@@ -320,7 +338,16 @@ def run_cmd(cmd: list[str], cwd: Path, timeout: int = 60) -> dict[str, Any]:
     env = dict(os.environ)
     env["PYTHONPATH"] = str(cwd)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
-    p = subprocess.run(cmd, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, check=False)
+    p = subprocess.run(
+        cmd,
+        cwd=cwd,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        timeout=timeout,
+        check=False,
+    )
     return {"returncode": p.returncode, "stdout": p.stdout[-5000:]}
 
 
@@ -368,13 +395,13 @@ def summarize_record(record: BuildRecord) -> str:
             "```text",
             record.acceptance_output[-3000:],
             "```",
-        "",
-        "## Model Notes",
-        record.notes,
-        "",
-        "## Repair History",
-        *[f"- {item}" for item in record.repair_history],
-    ]
+            "",
+            "## Model Notes",
+            record.notes,
+            "",
+            "## Repair History",
+            *[f"- {item}" for item in record.repair_history],
+        ]
     )
 
 
@@ -409,15 +436,29 @@ async def main_async() -> int:
                 shutil.rmtree(project_path)
             builder = AutonomousProjectBuilder(
                 agent,
-                budget=BuilderBudget(max_attempts=4, max_tokens=300_000, max_seconds=600, cost_budget=1.0),
+                budget=BuilderBudget(
+                    max_attempts=4, max_tokens=300_000, max_seconds=600, cost_budget=1.0
+                ),
             )
             project_spec = ProjectSpec(
                 name=name,
                 requirements=spec["requirements"],
                 acceptance=spec["acceptance"],
                 required_files=["tests/test_*.py"],
-                forbidden_actions=["network", "secrets", "payments", "email_send", "social_publish"],
-                evidence_required=["input", "generated_files", "validation", "acceptance", "repair_attempts"],
+                forbidden_actions=[
+                    "network",
+                    "secrets",
+                    "payments",
+                    "email_send",
+                    "social_publish",
+                ],
+                evidence_required=[
+                    "input",
+                    "generated_files",
+                    "validation",
+                    "acceptance",
+                    "repair_attempts",
+                ],
             )
             record = await builder.build(project_spec, project_path)
             record.project_path = str(project_path.relative_to(OUTDIR))

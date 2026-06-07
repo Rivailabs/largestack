@@ -15,6 +15,7 @@ Usage:
     toolkit = PandasToolkit(df)
     agent = Agent(name="analyst", llm="...", tools=toolkit.get_tools())
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -72,21 +73,25 @@ class PandasToolkit:
         @tool(name="dataframe_info", description="Show shape, columns, dtypes, null counts")
         async def df_info() -> str:
             df = toolkit.df
-            return json.dumps({
-                "shape": list(df.shape),
-                "columns": [str(c) for c in df.columns],
-                "dtypes": {str(c): str(df[c].dtype) for c in df.columns},
-                "null_counts": {str(c): int(df[c].isna().sum()) for c in df.columns},
-                "memory_bytes": int(df.memory_usage(deep=True).sum()),
-            })
+            return json.dumps(
+                {
+                    "shape": list(df.shape),
+                    "columns": [str(c) for c in df.columns],
+                    "dtypes": {str(c): str(df[c].dtype) for c in df.columns},
+                    "null_counts": {str(c): int(df[c].isna().sum()) for c in df.columns},
+                    "memory_bytes": int(df.memory_usage(deep=True).sum()),
+                }
+            )
 
         @tool(name="dataframe_head", description="Show first N rows of the DataFrame")
         async def df_head(n: int = 10) -> str:
             n = min(int(n), toolkit.max_rows)
-            return json.dumps({
-                "rows": toolkit._to_records(toolkit.df.head(n)),
-                "n": n,
-            })
+            return json.dumps(
+                {
+                    "rows": toolkit._to_records(toolkit.df.head(n)),
+                    "n": n,
+                }
+            )
 
         @tool(
             name="dataframe_describe",
@@ -116,11 +121,13 @@ class PandasToolkit:
         async def df_query(expression: str) -> str:
             try:
                 result = toolkit.df.query(expression)
-                return json.dumps({
-                    "rows": toolkit._to_records(result),
-                    "matched_count": len(result),
-                    "truncated": len(result) > toolkit.max_rows,
-                })
+                return json.dumps(
+                    {
+                        "rows": toolkit._to_records(result),
+                        "matched_count": len(result),
+                        "truncated": len(result) > toolkit.max_rows,
+                    }
+                )
             except Exception as e:
                 return f"error: {e}"
 
@@ -143,12 +150,14 @@ class PandasToolkit:
                 result = getattr(grouped, agg_func)()
                 # Convert to list of dicts
                 df_out = result.reset_index()
-                return json.dumps({
-                    "group_by": cols,
-                    "agg_col": agg_col,
-                    "agg_func": agg_func,
-                    "rows": toolkit._to_records(df_out),
-                })
+                return json.dumps(
+                    {
+                        "group_by": cols,
+                        "agg_col": agg_col,
+                        "agg_func": agg_func,
+                        "rows": toolkit._to_records(df_out),
+                    }
+                )
             except Exception as e:
                 return f"error: {e}"
 

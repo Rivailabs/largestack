@@ -13,6 +13,7 @@ v0.8's HuggingFace/Jina:
 All return JSON ``{model, dim, tokens, embedding}`` strings or error
 strings. Never raise.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -74,22 +75,28 @@ async def sentence_transformers_embed(
 
         # Run inference in a thread to avoid blocking the event loop
         import asyncio
+
         vec = await asyncio.to_thread(
-            st_model.encode, text, normalize_embeddings=normalize,
+            st_model.encode,
+            text,
+            normalize_embeddings=normalize,
         )
         vec_list = [float(x) for x in vec]
     except Exception as e:
         return f"error: sentence-transformers encode failed: {e}"
 
-    return json.dumps({
-        "model": model,
-        "dim": len(vec_list),
-        "tokens": len(text.split()),  # approximation
-        "embedding": vec_list,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec_list),
+            "tokens": len(text.split()),  # approximation
+            "embedding": vec_list,
+        }
+    )
 
 
 # -------------------- Ollama (local) --------------------
+
 
 @tool(timeout=60)
 async def ollama_embed(
@@ -138,17 +145,20 @@ async def ollama_embed(
     if isinstance(vec, list) and vec and isinstance(vec[0], list):
         vec = vec[0]  # some Ollama versions wrap in list
     if not vec:
-        return f"error: no embedding in Ollama response"
+        return "error: no embedding in Ollama response"
 
-    return json.dumps({
-        "model": model,
-        "dim": len(vec),
-        "tokens": data.get("prompt_eval_count", 0),
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec),
+            "tokens": data.get("prompt_eval_count", 0),
+            "embedding": vec,
+        }
+    )
 
 
 # -------------------- Nomic Atlas --------------------
+
 
 @tool(timeout=30)
 async def nomic_embed(
@@ -172,10 +182,7 @@ async def nomic_embed(
     if not isinstance(text, str) or not text:
         return "error: text must be a non-empty string"
 
-    api_key = (
-        os.environ.get("LARGESTACK_NOMIC_API_KEY")
-        or os.environ.get("NOMIC_API_KEY", "")
-    )
+    api_key = os.environ.get("LARGESTACK_NOMIC_API_KEY") or os.environ.get("NOMIC_API_KEY", "")
     if not api_key:
         return "error: LARGESTACK_NOMIC_API_KEY (or NOMIC_API_KEY) not set"
 
@@ -207,17 +214,20 @@ async def nomic_embed(
 
     embeddings = data.get("embeddings") or []
     if not embeddings:
-        return f"error: no embedding in Nomic response"
+        return "error: no embedding in Nomic response"
     vec = embeddings[0]
-    return json.dumps({
-        "model": model,
-        "dim": len(vec),
-        "tokens": data.get("usage", {}).get("total_tokens", 0),
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec),
+            "tokens": data.get("usage", {}).get("total_tokens", 0),
+            "embedding": vec,
+        }
+    )
 
 
 # -------------------- AWS Bedrock --------------------
+
 
 @tool(timeout=30)
 async def bedrock_embed(
@@ -268,6 +278,7 @@ async def bedrock_embed(
             body = {"inputText": text}
 
         import asyncio as _asyncio
+
         resp = await _asyncio.to_thread(
             client.invoke_model,
             modelId=model,
@@ -294,15 +305,18 @@ async def bedrock_embed(
     if not vec:
         return "error: no embedding returned from Bedrock"
 
-    return json.dumps({
-        "model": model,
-        "dim": len(vec),
-        "tokens": result.get("inputTextTokenCount", 0),
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec),
+            "tokens": result.get("inputTextTokenCount", 0),
+            "embedding": vec,
+        }
+    )
 
 
 # -------------------- Google Vertex AI --------------------
+
 
 @tool(timeout=30)
 async def vertex_embed(
@@ -347,42 +361,43 @@ async def vertex_embed(
         return "error: google-cloud-aiplatform not installed"
 
     try:
-        endpoint = (
-            f"projects/{project}/locations/{location}/"
-            f"publishers/google/models/{model}"
-        )
+        endpoint = f"projects/{project}/locations/{location}/publishers/google/models/{model}"
         client = aiplatform_v1.PredictionServiceAsyncClient(
             client_options={"api_endpoint": f"{location}-aiplatform.googleapis.com"}
         )
         instance = {"content": text, "task_type": task_type}
         from google.protobuf.struct_pb2 import Value
         from google.protobuf import json_format
+
         instance_pb = Value()
         json_format.ParseDict(instance, instance_pb)
         resp = await client.predict(
-            endpoint=endpoint, instances=[instance_pb],
+            endpoint=endpoint,
+            instances=[instance_pb],
         )
         # Predictions come back as Value protobufs
         from google.protobuf.json_format import MessageToDict
+
         first_pred = MessageToDict(resp.predictions[0])
         vec = first_pred.get("embeddings", {}).get("values") or []
-        token_count = first_pred.get("embeddings", {}).get(
-            "statistics", {}
-        ).get("token_count", 0)
+        token_count = first_pred.get("embeddings", {}).get("statistics", {}).get("token_count", 0)
     except Exception as e:
         return f"error: Vertex predict failed: {e}"
 
     if not vec:
         return "error: no embedding returned from Vertex"
-    return json.dumps({
-        "model": model,
-        "dim": len(vec),
-        "tokens": int(token_count or 0),
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec),
+            "tokens": int(token_count or 0),
+            "embedding": vec,
+        }
+    )
 
 
 # -------------------- Azure OpenAI Service --------------------
+
 
 @tool(timeout=30)
 async def azure_openai_embed(
@@ -422,10 +437,7 @@ async def azure_openai_embed(
         return "error: Azure api_key required (AZURE_OPENAI_API_KEY)"
 
     endpoint = endpoint.rstrip("/")
-    url = (
-        f"{endpoint}/openai/deployments/{deployment}/embeddings"
-        f"?api-version={api_version}"
-    )
+    url = f"{endpoint}/openai/deployments/{deployment}/embeddings?api-version={api_version}"
 
     try:
         async with httpx.AsyncClient(timeout=30) as client:
@@ -448,9 +460,11 @@ async def azure_openai_embed(
     if not items:
         return "error: no embedding in Azure response"
     vec = items[0].get("embedding") or []
-    return json.dumps({
-        "model": f"azure/{deployment}",
-        "dim": len(vec),
-        "tokens": data.get("usage", {}).get("total_tokens", 0),
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": f"azure/{deployment}",
+            "dim": len(vec),
+            "tokens": data.get("usage", {}).get("total_tokens", 0),
+            "embedding": vec,
+        }
+    )

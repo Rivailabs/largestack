@@ -10,6 +10,7 @@ v0.3.11 fixed it inline. v0.3.12 extracts the validator to
 `_url_validator.py` so `web_fetch` and `browser_navigate` (which had the
 same flaw — silently) share the same protection.
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -19,15 +20,15 @@ from largestack._core.builtin_tools._url_validator import validate_url
 
 log = logging.getLogger("largestack.tools.http")
 
-_FOLLOW_REDIRECTS = os.environ.get(
-    "LARGESTACK_HTTP_TOOL_FOLLOW_REDIRECTS", ""
-).lower() in ("1", "true", "yes")
+_FOLLOW_REDIRECTS = os.environ.get("LARGESTACK_HTTP_TOOL_FOLLOW_REDIRECTS", "").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 
 @tool(timeout=15)
-async def http_request(
-    url: str, method: str = "GET", body: str = "", headers: str = ""
-) -> str:
+async def http_request(url: str, method: str = "GET", body: str = "", headers: str = "") -> str:
     """Make an HTTP/HTTPS request. SSRF-protected.
 
     Validation:
@@ -64,9 +65,7 @@ async def http_request(
         return f"Unsupported method: {method!r}"
 
     try:
-        async with httpx.AsyncClient(
-            timeout=10, follow_redirects=_FOLLOW_REDIRECTS
-        ) as c:
+        async with httpx.AsyncClient(timeout=10, follow_redirects=_FOLLOW_REDIRECTS) as c:
             if method_u == "GET":
                 r = await c.get(url, headers=h)
             elif method_u == "POST":

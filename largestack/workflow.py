@@ -1,20 +1,29 @@
 """Public Workflow — DAG and state machine with Agent support and cost budget."""
+
 from __future__ import annotations
 from typing import Any, Callable
 from largestack._orchestrate.dag import DAGWorkflow
 from largestack._orchestrate.state_machine import StateMachine
 
+
 class Workflow:
     """Build complex agent workflows. Accepts Agent objects directly.
 
-        wf = Workflow("pipeline")
-        wf.add_node("research", researcher_agent)           # Agent object!
-        wf.add_node("write", writer_agent, deps=["research"])
-        result = await wf.run({"task": "Analyze AI trends"})
+    wf = Workflow("pipeline")
+    wf.add_node("research", researcher_agent)           # Agent object!
+    wf.add_node("write", writer_agent, deps=["research"])
+    result = await wf.run({"task": "Analyze AI trends"})
     """
-    def __init__(self, name: str = "workflow", mode: str = "dag",
-                 max_transitions: int = 50, cost_budget: float = 0):
-        self.name = name; self.mode = mode
+
+    def __init__(
+        self,
+        name: str = "workflow",
+        mode: str = "dag",
+        max_transitions: int = 50,
+        cost_budget: float = 0,
+    ):
+        self.name = name
+        self.mode = mode
         if mode == "state_machine":
             self._impl = StateMachine(name, max_transitions, cost_budget)
         else:
@@ -116,9 +125,11 @@ class WorkflowResult(dict):
     current state of the underlying dict — mutating ``result["new_key"]``
     after construction is honored.
     """
+
     @classmethod
     def from_state(cls, state: dict | None, *, workflow_name: str = "workflow") -> "WorkflowResult":
         import uuid as _uuid
+
         state = dict(state) if state else {}
         wr = cls(state)
         # Cache only the immutable identity bits; everything derivable stays a property.
@@ -138,15 +149,17 @@ class WorkflowResult(dict):
         seen: set[str] = set()
         for k in self.keys():
             if k.endswith("_output") and not k.startswith("_"):
-                node = k[:-len("_output")]
+                node = k[: -len("_output")]
                 if node in seen:
                     continue
                 seen.add(node)
-                out.append({
-                    "name": node,
-                    "output": self[k],
-                    "cost": float(self.get(f"{node}_cost", 0.0)),
-                })
+                out.append(
+                    {
+                        "name": node,
+                        "output": self[k],
+                        "cost": float(self.get(f"{node}_cost", 0.0)),
+                    }
+                )
         return out
 
     @property
@@ -178,8 +191,11 @@ class WorkflowResult(dict):
     def __reduce__(self):
         return (
             _rebuild_workflow_result,
-            (dict(self), self.__dict__.get("_trace_id"),
-             self.__dict__.get("_workflow_name", "workflow")),
+            (
+                dict(self),
+                self.__dict__.get("_trace_id"),
+                self.__dict__.get("_workflow_name", "workflow"),
+            ),
         )
 
 

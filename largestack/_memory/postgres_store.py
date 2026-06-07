@@ -13,6 +13,7 @@ Designed for:
 If neither ``asyncpg`` nor ``psycopg2`` is installed, raises
 ``ImportError`` on first use. All install dependencies are optional.
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -21,7 +22,10 @@ import time
 from typing import Any
 
 from largestack._memory.long_term import (
-    LongTermMemoryEntry, LongTermMemoryStore, MemoryScope, MemoryTier,
+    LongTermMemoryEntry,
+    LongTermMemoryStore,
+    MemoryScope,
+    MemoryTier,
 )
 
 log = logging.getLogger("largestack.memory.postgres")
@@ -58,6 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_ltm_content_trgm
 def _have_asyncpg() -> bool:
     try:
         import asyncpg  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -85,8 +90,7 @@ class PostgresLongTermStore(LongTermMemoryStore):
     ):
         if not _have_asyncpg():
             raise ImportError(
-                "asyncpg required for PostgresLongTermStore. "
-                "Install with: pip install asyncpg"
+                "asyncpg required for PostgresLongTermStore. Install with: pip install asyncpg"
             )
         self.dsn = dsn
         self.pool_min_size = pool_min_size
@@ -99,6 +103,7 @@ class PostgresLongTermStore(LongTermMemoryStore):
     async def _get_pool(self):
         if self._pool is None:
             import asyncpg
+
             self._pool = await asyncpg.create_pool(
                 self.dsn,
                 min_size=self.pool_min_size,
@@ -116,14 +121,9 @@ class PostgresLongTermStore(LongTermMemoryStore):
             async with pool.acquire() as conn:
                 if self.enable_trgm:
                     try:
-                        await conn.execute(
-                            "CREATE EXTENSION IF NOT EXISTS pg_trgm"
-                        )
+                        await conn.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
                     except Exception as e:
-                        log.warning(
-                            f"could not install pg_trgm: {e}; "
-                            "search will use basic LIKE"
-                        )
+                        log.warning(f"could not install pg_trgm: {e}; search will use basic LIKE")
                 # Split schema into individual statements for asyncpg
                 for stmt in _SCHEMA_SQL.split(";"):
                     stmt = stmt.strip()
@@ -173,10 +173,19 @@ class PostgresLongTermStore(LongTermMemoryStore):
                  ttl_seconds, lawful_basis, metadata)
                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
                 """,
-                entry.id, entry.tenant_id, entry.user_id, entry.tier,
-                entry.scope, entry.content, entry.created_at,
-                entry.last_accessed_at, entry.tag, entry.source,
-                entry.purpose, entry.ttl_seconds, entry.lawful_basis,
+                entry.id,
+                entry.tenant_id,
+                entry.user_id,
+                entry.tier,
+                entry.scope,
+                entry.content,
+                entry.created_at,
+                entry.last_accessed_at,
+                entry.tag,
+                entry.source,
+                entry.purpose,
+                entry.ttl_seconds,
+                entry.lawful_basis,
                 json.dumps(entry.metadata),
             )
 
@@ -192,9 +201,9 @@ class PostgresLongTermStore(LongTermMemoryStore):
                 return None
             now = time.time()
             await conn.execute(
-                "UPDATE lt_memory_entries SET last_accessed_at = $1 "
-                "WHERE id = $2",
-                now, entry_id,
+                "UPDATE lt_memory_entries SET last_accessed_at = $1 WHERE id = $2",
+                now,
+                entry_id,
             )
             entry = self._row_to_entry(row)
             entry.last_accessed_at = now
@@ -212,10 +221,17 @@ class PostgresLongTermStore(LongTermMemoryStore):
                     lawful_basis=$9, metadata=$10
                 WHERE id=$11
                 """,
-                entry.tier, entry.scope, entry.content,
-                entry.last_accessed_at, entry.tag, entry.source,
-                entry.purpose, entry.ttl_seconds, entry.lawful_basis,
-                json.dumps(entry.metadata), entry.id,
+                entry.tier,
+                entry.scope,
+                entry.content,
+                entry.last_accessed_at,
+                entry.tag,
+                entry.source,
+                entry.purpose,
+                entry.ttl_seconds,
+                entry.lawful_basis,
+                json.dumps(entry.metadata),
+                entry.id,
             )
 
     async def delete(self, entry_id: str) -> bool:
@@ -277,10 +293,7 @@ class PostgresLongTermStore(LongTermMemoryStore):
     ) -> list[LongTermMemoryEntry]:
         await self._ensure_schema()
         pool = await self._get_pool()
-        sql = (
-            "SELECT * FROM lt_memory_entries "
-            "WHERE tenant_id = $1 AND content ILIKE $2"
-        )
+        sql = "SELECT * FROM lt_memory_entries WHERE tenant_id = $1 AND content ILIKE $2"
         params: list[Any] = [tenant_id, f"%{query}%"]
         idx = 3
         if user_id is not None:
@@ -301,14 +314,16 @@ class PostgresLongTermStore(LongTermMemoryStore):
             if results:
                 ids = [r.id for r in results]
                 await conn.execute(
-                    "UPDATE lt_memory_entries SET last_accessed_at = $1 "
-                    "WHERE id = ANY($2::text[])",
-                    now, ids,
+                    "UPDATE lt_memory_entries SET last_accessed_at = $1 WHERE id = ANY($2::text[])",
+                    now,
+                    ids,
                 )
             return results
 
     async def purge_expired(
-        self, *, tenant_id: str | None = None,
+        self,
+        *,
+        tenant_id: str | None = None,
     ) -> int:
         await self._ensure_schema()
         pool = await self._get_pool()
@@ -334,9 +349,7 @@ class PostgresLongTermStore(LongTermMemoryStore):
         pool = await self._get_pool()
         async with pool.acquire() as conn:
             if tenant_id is None:
-                result = await conn.execute(
-                    "DELETE FROM lt_memory_entries"
-                )
+                result = await conn.execute("DELETE FROM lt_memory_entries")
             else:
                 result = await conn.execute(
                     "DELETE FROM lt_memory_entries WHERE tenant_id = $1",

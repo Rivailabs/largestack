@@ -11,11 +11,13 @@ exfiltrate customer data. LARGESTACK should:
   6. Generate principal-facing notifications
   7. Track the 72-hour DPDP §8(6) deadline
 """
+
 from __future__ import annotations
 
 # Ensure repo root is importable when this script is launched by path from CI or shell.
 import sys as _ls_sys
 from pathlib import Path as _LSPath
+
 _LS_ROOT = _LSPath(__file__).resolve().parents[1]
 if str(_LS_ROOT) not in _ls_sys.path:
     _ls_sys.path.insert(0, str(_LS_ROOT))
@@ -24,8 +26,11 @@ import asyncio
 import time
 
 from largestack._compliance.dpdp_breach import (
-    BreachDetector, BreachClassifier, BreachDetectorConfig,
-    render_dpb_notification, render_principal_notification,
+    BreachDetector,
+    BreachClassifier,
+    BreachDetectorConfig,
+    render_dpb_notification,
+    render_principal_notification,
     LoggingNotifier,
     DPB_NOTIFICATION_DEADLINE_SECONDS,
     PRINCIPAL_NOTIFICATION_DEADLINE_SECONDS,
@@ -38,10 +43,12 @@ async def main():
     print("=" * 70)
 
     # ---- Setup detector ----
-    detector = BreachDetector(BreachDetectorConfig(
-        mass_read_threshold=1000,
-        mass_read_window_seconds=300.0,
-    ))
+    detector = BreachDetector(
+        BreachDetectorConfig(
+            mass_read_threshold=1000,
+            mass_read_window_seconds=300.0,
+        )
+    )
     classifier = BreachClassifier()
     notifier = LoggingNotifier()
 
@@ -49,7 +56,8 @@ async def main():
     print("\n--- Phase 1: Normal traffic (5 mins) ---")
     for i in range(50):
         detector.observe_read(
-            tenant_id="bank_a", user_id=f"normal_user_{i % 5}",
+            tenant_id="bank_a",
+            user_id=f"normal_user_{i % 5}",
             record_count=1,
         )
     indicators = detector.flush()
@@ -62,7 +70,8 @@ async def main():
     print("  Simulating: rogue user reads 1500 customer records...")
     for _ in range(1500):
         detector.observe_read(
-            tenant_id="bank_a", user_id="rogue_employee",
+            tenant_id="bank_a",
+            user_id="rogue_employee",
             record_count=1,
         )
     indicators = detector.flush()
@@ -108,7 +117,7 @@ async def main():
     assert len(exports) == 1
 
     cls = classifier.classify(exports[0])
-    print(f"  ✓ Unauthorized export indicator")
+    print("  ✓ Unauthorized export indicator")
     print(f"    Records:     {cls.affected_principal_count}")
     print(f"    Severity:    {cls.severity}")
     assert cls.severity == "high"  # 1000-9999 records
@@ -126,12 +135,12 @@ async def main():
     )
 
     print(f"  Subject: {notif.subject}")
-    print(f"  Deadline: {notif.deadline_seconds/3600:.0f} hours")
+    print(f"  Deadline: {notif.deadline_seconds / 3600:.0f} hours")
     print(f"  Body length: {len(notif.body)} chars")
-    print(f"\n  --- Notification body preview ---")
+    print("\n  --- Notification body preview ---")
     for line in notif.body.split("\n")[:10]:
         print(f"    {line}")
-    print(f"    ... [truncated]")
+    print("    ... [truncated]")
     assert "Section 8(6)" in notif.body
     assert notif.deadline_seconds == DPB_NOTIFICATION_DEADLINE_SECONDS
 
@@ -143,8 +152,7 @@ async def main():
         contact_email="grievance@srirajeshwari.in",
         principal_name="Sachith I A",
         remediation_steps=[
-            "Reset your account password using the secure link sent to "
-            "your registered email",
+            "Reset your account password using the secure link sent to your registered email",
             "Enable two-factor authentication via your account settings",
             "Review your recent transactions and report any unrecognized "
             "activity to grievance@srirajeshwari.in",
@@ -152,12 +160,12 @@ async def main():
         ],
     )
     print(f"  Subject: {principal_notif.subject}")
-    print(f"  Deadline: "
-          f"{PRINCIPAL_NOTIFICATION_DEADLINE_SECONDS/3600:.0f} hours")
+    print(f"  Deadline: {PRINCIPAL_NOTIFICATION_DEADLINE_SECONDS / 3600:.0f} hours")
 
     # Verify principal notification doesn't have regulator jargon
-    assert "Section 8(6)" not in principal_notif.body, \
+    assert "Section 8(6)" not in principal_notif.body, (
         "principal notification should not have §8(6) jargon"
+    )
     assert "Sachith I A" in principal_notif.body
     print("  ✓ plain language (no §8(6) jargon)")
 
@@ -171,16 +179,17 @@ async def main():
     print("\n" + "=" * 70)
     print("  BREACH SCENARIO RESULTS")
     print("=" * 70)
-    print(f"  Mass-read detected:       ✓")
-    print(f"  Cross-tenant detected:    ✓")
-    print(f"  Unauthorized export:      ✓")
-    print(f"  DPB notification ready:   ✓")
-    print(f"  Principal notification:   ✓ (plain language)")
-    print(f"  72hr deadline tracked:    ✓")
-    print("\n  ✅ DPDP §8 BREACH FLOW: VERIFIED PRODUCTION-READY")
+    print("  Mass-read detected:       ✓")
+    print("  Cross-tenant detected:    ✓")
+    print("  Unauthorized export:      ✓")
+    print("  DPB notification ready:   ✓")
+    print("  Principal notification:   ✓ (plain language)")
+    print("  72hr deadline tracked:    ✓")
+    print("\n  ✅ DPDP §8 BREACH FLOW: scenario smoke test passed (beta)")
     return 0
 
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(asyncio.run(main()))

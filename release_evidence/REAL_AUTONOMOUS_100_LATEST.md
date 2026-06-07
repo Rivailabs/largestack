@@ -1,5 +1,9 @@
 # Real Autonomous 100 Summary
 
+> Internal harness run — **self-graded** scenario gate. "Passed/Score" here means a
+> scenario cleared the harness's own checks, **NOT** independent validation or
+> production readiness. See `docs/known-limitations.md`.
+
 - Total scenarios: `100`
 - Passed: `100`
 - Failed: `0`

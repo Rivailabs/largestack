@@ -3,6 +3,7 @@
 Verifies the /login → use cookie → /logout flow, and that X-API-Key
 still works alongside cookies (both auth methods accepted).
 """
+
 from __future__ import annotations
 
 import pytest
@@ -17,11 +18,13 @@ def client(monkeypatch):
 
     # Reset session store singleton between tests
     from largestack.serve import _get_session_store
+
     if hasattr(_get_session_store, "_store"):
         delattr(_get_session_store, "_store")
 
     from largestack import Agent
     from largestack.serve import create_api
+
     agent = Agent(name="cookietest", llm="openai/gpt-4o-mini")
     yield TestClient(create_api(agent))
 
@@ -96,11 +99,13 @@ def test_login_endpoint_returns_503_when_no_api_key_configured(monkeypatch):
     monkeypatch.delenv("LARGESTACK_API_KEY", raising=False)
 
     from largestack.serve import _get_session_store
+
     if hasattr(_get_session_store, "_store"):
         delattr(_get_session_store, "_store")
 
     from largestack import Agent
     from largestack.serve import create_api
+
     agent = Agent(name="nokey", llm="openai/gpt-4o-mini")
     client = TestClient(create_api(agent))
 

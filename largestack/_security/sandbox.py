@@ -1,15 +1,18 @@
 """Agent sandboxing — restrict what tools can do."""
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 import tempfile
 
+
 @dataclass
 class Sandbox:
     """Execution sandbox configuration.
-    
+
     Controls: network access, file system, memory, CPU, timeout.
     Backends: subprocess (default), docker, gvisor (recommended).
     """
+
     backend: str = "subprocess"
     network_allow: list[str] = field(default_factory=list)
     network_deny: list[str] = field(default_factory=lambda: ["*"])
@@ -21,6 +24,7 @@ class Sandbox:
     def check_network(self, url: str) -> bool:
         """Check if URL is allowed."""
         from urllib.parse import urlparse
+
         host = urlparse(url).hostname or ""
         # Check deny first
         for pattern in self.network_deny:
@@ -37,5 +41,6 @@ class Sandbox:
     def check_path(self, path: str) -> bool:
         """Check if file path is allowed."""
         import os
+
         abs_path = os.path.abspath(path)
         return any(abs_path.startswith(os.path.abspath(p)) for p in self.allowed_paths)

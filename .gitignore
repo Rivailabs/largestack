@@ -6,6 +6,7 @@ __pycache__/
 *.pyd
 dist/
 build/
+site/
 *.egg-info/
 .eggs/
 
@@ -40,6 +41,16 @@ htmlcov/
 !.env.example
 .largestack/
 
+# Jarvis demo bundle: keep the source (jarvis_app/), ignore generated artifacts
+jarvis_app.zip
+jarvis_app/jarvis_data/
+.jarvis/
+
+# Enterprise Jarvis bundle: keep source (enterprise_jarvis/), ignore artifacts
+enterprise_jarvis.zip
+enterprise_jarvis/ejarvis_data/
+.ejarvis/
+
 # Tooling
 .mypy_cache/
 .ruff_cache/
@@ -71,3 +82,7 @@ release_evidence/**
 !release_evidence/**/SUMMARY.md
 !release_evidence/**/FINAL*_SUMMARY.md
 !release_evidence/**/MAC_FIX_VALIDATION_REPORT.md
+
+# generated enterprise deliverables (never package these)
+largestack-enterprise-*/
+largestack-enterprise-*.zip

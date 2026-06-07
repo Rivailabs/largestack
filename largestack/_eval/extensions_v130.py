@@ -11,6 +11,7 @@ Adds two missing pieces to ``largestack._eval``:
 
 Backward compatible — existing suites work unchanged.
 """
+
 from __future__ import annotations
 import hashlib
 import json
@@ -25,9 +26,11 @@ log = logging.getLogger("largestack.eval.v130")
 
 # -------------------- Dataset versioning --------------------
 
+
 @dataclass
 class SuiteVersion:
     """Hashed identity of an eval suite. Embed in reports."""
+
     name: str
     sha256: str
     case_count: int
@@ -70,6 +73,7 @@ def version_suite(yaml_path: Path | str) -> SuiteVersion:
 
     try:
         import yaml
+
         parsed = yaml.safe_load(text)
     except ImportError:
         parsed = {}
@@ -92,6 +96,7 @@ def short_hash(sha256: str, length: int = 12) -> str:
 
 # -------------------- Embedding similarity assertions --------------------
 
+
 @dataclass
 class EmbeddingSimilarityAssertion:
     """Assert that ``actual`` is semantically close to ``expected``.
@@ -103,6 +108,7 @@ class EmbeddingSimilarityAssertion:
         threshold: minimum cosine similarity to pass (0.0-1.0)
         embedder: any embedder; defaults to ``HashingEmbedder`` if absent
     """
+
     expected: str
     threshold: float = 0.7
     embedder: Any = None
@@ -117,6 +123,7 @@ class EmbeddingSimilarityAssertion:
         embedder = self.embedder
         if embedder is None:
             from largestack._memory.vector_store import HashingEmbedder
+
             embedder = HashingEmbedder()
 
         try:
@@ -127,9 +134,7 @@ class EmbeddingSimilarityAssertion:
 
         sim = _cosine(v_actual, v_expected)
         passed = sim >= self.threshold
-        reason = (
-            f"sim={sim:.3f} {'>=' if passed else '<'} {self.threshold:.3f}"
-        )
+        reason = f"sim={sim:.3f} {'>=' if passed else '<'} {self.threshold:.3f}"
         return passed, sim, reason
 
 
@@ -145,6 +150,7 @@ def _cosine(a: list[float], b: list[float]) -> float:
 
 
 # -------------------- Suite parsing for new assertion type --------------------
+
 
 def parse_assertions(case_spec: dict[str, Any]) -> list[Any]:
     """Parse a YAML case's assertion specs into assertion objects.
@@ -172,10 +178,12 @@ def parse_assertions(case_spec: dict[str, Any]) -> list[Any]:
     # Similarity assertion (NEW v0.13)
     sim_spec = case_spec.get("similarity")
     if isinstance(sim_spec, dict):
-        assertions.append(EmbeddingSimilarityAssertion(
-            expected=sim_spec["expected"],
-            threshold=float(sim_spec.get("threshold", 0.7)),
-        ))
+        assertions.append(
+            EmbeddingSimilarityAssertion(
+                expected=sim_spec["expected"],
+                threshold=float(sim_spec.get("threshold", 0.7)),
+            )
+        )
     elif isinstance(sim_spec, str):
         # Shorthand: similarity: "expected text"
         assertions.append(EmbeddingSimilarityAssertion(expected=sim_spec))
@@ -189,9 +197,10 @@ class _ContainsAssertion:
 
     async def evaluate(self, actual: str) -> tuple[bool, float, str]:
         ok = self.needle.lower() in (actual or "").lower()
-        return ok, (1.0 if ok else 0.0), (
-            f"contains '{self.needle}'" if ok
-            else f"missing '{self.needle}'"
+        return (
+            ok,
+            (1.0 if ok else 0.0),
+            (f"contains '{self.needle}'" if ok else f"missing '{self.needle}'"),
         )
 
 
@@ -201,12 +210,11 @@ class _EqualsAssertion:
 
     async def evaluate(self, actual: str) -> tuple[bool, float, str]:
         ok = (actual or "").strip() == str(self.expected).strip()
-        return ok, (1.0 if ok else 0.0), (
-            "equals" if ok else "not equal"
-        )
+        return ok, (1.0 if ok else 0.0), ("equals" if ok else "not equal")
 
 
 # -------------------- Report enrichment --------------------
+
 
 def enrich_report_with_version(
     report: dict[str, Any],

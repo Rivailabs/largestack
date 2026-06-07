@@ -1,5 +1,9 @@
 # Final Public Validation
 
+> **Point-in-time snapshot** (see date below), not live status. Gates drift over time —
+> e.g. a newly-published CVE can flip `pip_audit` from PASS to FAIL. For current status,
+> run the gates on the latest commit / see CI. Kept as a historical record only.
+
 Generated: 2026-05-28T14:46:49Z
 Log root: `/tmp/largestack-final-validate-20260528-201351`
 Summary TSV: `/tmp/largestack-final-validate-20260528-201351/summary.tsv`

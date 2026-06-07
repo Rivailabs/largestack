@@ -1,4 +1,5 @@
 """v0.9.0: Tests for 8 high-value document loaders."""
+
 from __future__ import annotations
 
 import json
@@ -11,11 +12,13 @@ respx = pytest.importorskip("respx")
 
 # -------------------- Notion database --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_notion_database_no_token(monkeypatch):
     monkeypatch.delenv("LARGESTACK_NOTION_TOKEN", raising=False)
     monkeypatch.delenv("NOTION_TOKEN", raising=False)
     from largestack._loaders import load_notion_database
+
     docs = await load_notion_database("xxx")
     assert "LARGESTACK_NOTION_TOKEN" in docs[0]["metadata"]["error"]
 
@@ -40,16 +43,12 @@ async def test_load_notion_database_paginated(monkeypatch):
     }
     blocks_resp = {
         "results": [
-            {"type": "paragraph", "paragraph": {
-                "rich_text": [{"plain_text": "Hello world."}]
-            }},
+            {"type": "paragraph", "paragraph": {"rich_text": [{"plain_text": "Hello world."}]}},
         ]
     }
 
     with respx.mock() as mock:
-        mock.post("https://api.notion.com/v1/databases/db1/query").respond(
-            200, json=page1
-        )
+        mock.post("https://api.notion.com/v1/databases/db1/query").respond(200, json=page1)
         mock.get("https://api.notion.com/v1/blocks/page-uuid-1/children").respond(
             200, json=blocks_resp
         )
@@ -65,6 +64,7 @@ async def test_load_notion_database_paginated(monkeypatch):
 async def test_load_notion_database_http_error(monkeypatch):
     monkeypatch.setenv("LARGESTACK_NOTION_TOKEN", "fake")
     from largestack._loaders import load_notion_database
+
     with respx.mock() as mock:
         mock.post("https://api.notion.com/v1/databases/x/query").respond(401)
         docs = await load_notion_database("x")
@@ -73,6 +73,7 @@ async def test_load_notion_database_http_error(monkeypatch):
 
 # -------------------- Confluence --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_confluence_missing_creds(monkeypatch):
     monkeypatch.delenv("LARGESTACK_CONFLUENCE_USER", raising=False)
@@ -80,6 +81,7 @@ async def test_load_confluence_missing_creds(monkeypatch):
     monkeypatch.delenv("CONFLUENCE_USER", raising=False)
     monkeypatch.delenv("CONFLUENCE_TOKEN", raising=False)
     from largestack._loaders import load_confluence
+
     docs = await load_confluence("https://x.atlassian.net/wiki", "SPC")
     assert "creds missing" in docs[0]["metadata"]["error"]
 
@@ -87,6 +89,7 @@ async def test_load_confluence_missing_creds(monkeypatch):
 @pytest.mark.asyncio
 async def test_load_confluence_strips_html():
     from largestack._loaders import load_confluence
+
     fake_resp = {
         "results": [
             {
@@ -98,12 +101,12 @@ async def test_load_confluence_strips_html():
         ]
     }
     with respx.mock() as mock:
-        mock.get("https://x.atlassian.net/wiki/rest/api/content").respond(
-            200, json=fake_resp
-        )
+        mock.get("https://x.atlassian.net/wiki/rest/api/content").respond(200, json=fake_resp)
         docs = await load_confluence(
-            "https://x.atlassian.net/wiki", "SPC",
-            username="u@e.com", api_token="t",
+            "https://x.atlassian.net/wiki",
+            "SPC",
+            username="u@e.com",
+            api_token="t",
         )
     assert "Hello world" in docs[0]["content"]
     assert "<p>" not in docs[0]["content"]
@@ -112,6 +115,7 @@ async def test_load_confluence_strips_html():
 
 
 # -------------------- GitHub repo --------------------
+
 
 @pytest.mark.asyncio
 async def test_load_github_repo_lists_and_fetches():
@@ -140,9 +144,7 @@ async def test_load_github_repo_lists_and_fetches():
     }
 
     with respx.mock() as mock:
-        mock.get("https://api.github.com/repos/o/r/git/trees/main").respond(
-            200, json=tree_resp
-        )
+        mock.get("https://api.github.com/repos/o/r/git/trees/main").respond(200, json=tree_resp)
         mock.get("https://api.github.com/repos/o/r/contents/README.md").respond(
             200, json=readme_resp
         )
@@ -161,14 +163,15 @@ async def test_load_github_repo_lists_and_fetches():
 @pytest.mark.asyncio
 async def test_load_github_repo_skips_unknown_extensions():
     from largestack._loaders import load_github_repo
-    tree_resp = {"tree": [
-        {"path": "data.csv", "type": "blob", "size": 100},
-        {"path": "image.png", "type": "blob", "size": 100},
-    ]}
+
+    tree_resp = {
+        "tree": [
+            {"path": "data.csv", "type": "blob", "size": 100},
+            {"path": "image.png", "type": "blob", "size": 100},
+        ]
+    }
     with respx.mock() as mock:
-        mock.get("https://api.github.com/repos/o/r/git/trees/main").respond(
-            200, json=tree_resp
-        )
+        mock.get("https://api.github.com/repos/o/r/git/trees/main").respond(200, json=tree_resp)
         docs = await load_github_repo("o", "r")
     # No matching extensions, so error doc returned
     assert "no matching files" in docs[0]["metadata"]["error"]
@@ -176,15 +179,21 @@ async def test_load_github_repo_skips_unknown_extensions():
 
 # -------------------- Google Drive --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_google_drive_missing_sdk(monkeypatch):
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if "googleapiclient" in name:
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_google_drive
+
     docs = await load_google_drive("folder123")
     assert "google-api-python-client" in docs[0]["metadata"]["error"]
 
@@ -197,25 +206,31 @@ async def test_load_google_drive_missing_credentials(monkeypatch):
     fake_googleapi.discovery.build = MagicMock()
     fake_oauth2 = MagicMock()
     fake_oauth2.service_account.Credentials.from_service_account_file = MagicMock()
-    
-    with patch.dict("sys.modules", {
-        "googleapiclient": fake_googleapi,
-        "googleapiclient.discovery": fake_googleapi.discovery,
-        "google": MagicMock(),
-        "google.oauth2": fake_oauth2,
-        "google.oauth2.service_account": fake_oauth2.service_account,
-    }):
+
+    with patch.dict(
+        "sys.modules",
+        {
+            "googleapiclient": fake_googleapi,
+            "googleapiclient.discovery": fake_googleapi.discovery,
+            "google": MagicMock(),
+            "google.oauth2": fake_oauth2,
+            "google.oauth2.service_account": fake_oauth2.service_account,
+        },
+    ):
         from largestack._loaders import load_google_drive
+
         docs = await load_google_drive("folder1")
     assert "GOOGLE_APPLICATION_CREDENTIALS" in docs[0]["metadata"]["error"]
 
 
 # -------------------- Email IMAP --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_email_imap_connection_error():
     """Bad server returns error doc, not exception."""
     from largestack._loaders import load_email_imap
+
     docs = await load_email_imap(
         server="invalid.host.local",
         username="x@x.com",
@@ -230,6 +245,7 @@ async def test_load_email_imap_connection_error():
 
 # -------------------- Gmail --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_gmail_missing_token(monkeypatch):
     monkeypatch.delenv("GMAIL_TOKEN_PATH", raising=False)
@@ -237,58 +253,79 @@ async def test_load_gmail_missing_token(monkeypatch):
     fake_googleapi.discovery.build = MagicMock()
     fake_oauth2 = MagicMock()
     fake_oauth2.credentials.Credentials.from_authorized_user_file = MagicMock()
-    
-    with patch.dict("sys.modules", {
-        "googleapiclient": fake_googleapi,
-        "googleapiclient.discovery": fake_googleapi.discovery,
-        "google": MagicMock(),
-        "google.oauth2": fake_oauth2,
-        "google.oauth2.credentials": fake_oauth2.credentials,
-    }):
+
+    with patch.dict(
+        "sys.modules",
+        {
+            "googleapiclient": fake_googleapi,
+            "googleapiclient.discovery": fake_googleapi.discovery,
+            "google": MagicMock(),
+            "google.oauth2": fake_oauth2,
+            "google.oauth2.credentials": fake_oauth2.credentials,
+        },
+    ):
         from largestack._loaders import load_gmail
+
         docs = await load_gmail("test")
     assert "GMAIL_TOKEN_PATH" in docs[0]["metadata"]["error"]
 
 
 @pytest.mark.asyncio
 async def test_load_gmail_missing_sdk(monkeypatch):
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if "googleapiclient" in name:
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_gmail
+
     docs = await load_gmail("test")
     assert "google-api-python-client" in docs[0]["metadata"]["error"]
 
 
 # -------------------- Web scraping --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_web_scrape_missing_playwright(monkeypatch):
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if name == "playwright" or name.startswith("playwright."):
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_web_scrape
+
     docs = await load_web_scrape("https://example.com")
     assert "playwright" in docs[0]["metadata"]["error"].lower()
 
 
 # -------------------- OCR --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_ocr_missing_pytesseract(monkeypatch):
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if name == "pytesseract":
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._loaders import load_ocr
+
     docs = await load_ocr("/tmp/nope.png")
     assert "pytesseract" in docs[0]["metadata"]["error"]
 
@@ -298,6 +335,7 @@ async def test_load_ocr_missing_file(tmp_path):
     """If pytesseract isn't installed we get the dep error first.
     Otherwise we get the missing-file error. Both are valid responses."""
     from largestack._loaders import load_ocr
+
     docs = await load_ocr(str(tmp_path / "nonexistent.png"))
     err = docs[0]["metadata"]["error"]
     assert "not found" in err or "pytesseract" in err
@@ -309,6 +347,7 @@ async def test_load_ocr_unsupported_extension(tmp_path):
     p = tmp_path / "x.xyz"
     p.write_bytes(b"fake")
     from largestack._loaders import load_ocr
+
     docs = await load_ocr(str(p))
     err = docs[0]["metadata"]["error"]
     assert "unsupported" in err.lower() or "pytesseract" in err

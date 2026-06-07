@@ -3,12 +3,14 @@
 Multi-tenant SaaS requires safe defaults: forgetting to pass tenant_id
 must FAIL LOUD, not silently leak data across tenants.
 """
+
 from __future__ import annotations
 
 import pytest
 
 
 # ---------- billing tenant scoping ----------
+
 
 def test_usage_meter_get_for_current_tenant_requires_context():
     """Without a tenant context, the safe-default method must raise."""
@@ -43,21 +45,15 @@ def test_usage_meter_scoped_record_and_query_isolates_tenants():
     # Tenant A records
     tok = _current_tenant_var.set("acme")
     try:
-        meter.record_for_current_tenant(
-            user_id="alice", cost=1.0, model="gpt-4o"
-        )
-        meter.record_for_current_tenant(
-            user_id="alice", cost=2.5, model="gpt-4o"
-        )
+        meter.record_for_current_tenant(user_id="alice", cost=1.0, model="gpt-4o")
+        meter.record_for_current_tenant(user_id="alice", cost=2.5, model="gpt-4o")
     finally:
         _current_tenant_var.reset(tok)
 
     # Tenant B records
     tok = _current_tenant_var.set("globex")
     try:
-        meter.record_for_current_tenant(
-            user_id="bob", cost=10.0, model="claude-3-5-sonnet"
-        )
+        meter.record_for_current_tenant(user_id="bob", cost=10.0, model="claude-3-5-sonnet")
     finally:
         _current_tenant_var.reset(tok)
 
@@ -91,6 +87,7 @@ def test_usage_meter_legacy_api_still_works():
 
 
 # ---------- RBAC tenant scoping ----------
+
 
 def test_rbac_users_isolated_per_tenant():
     """Same user_id in different tenants must be separate identities."""

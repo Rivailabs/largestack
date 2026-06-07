@@ -5,6 +5,7 @@ failed project generation, Docker cleanup failures, and security skips as HOLD
 conditions. It never reads API keys from arguments or files; export a rotated
 ``LARGESTACK_DEEPSEEK_API_KEY`` in the shell/CI secret store before running.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -262,7 +263,13 @@ def make_specs() -> list[ProjectSpec]:
             ),
             acceptance=acceptance,
             required_files=["README.md"],
-            forbidden_actions=["send_email", "refund_payment", "delete_file", "publish_social", "write_production"],
+            forbidden_actions=[
+                "send_email",
+                "refund_payment",
+                "delete_file",
+                "publish_social",
+                "write_production",
+            ],
         )
 
     return [
@@ -413,17 +420,25 @@ def scan_project_security(path: Path) -> tuple[bool, list[str]]:
 
 def project_has_readme(path: Path) -> bool:
     readme = path / "README.md"
-    return readme.exists() and len(readme.read_text(encoding="utf-8", errors="ignore").strip()) >= 80
+    return (
+        readme.exists() and len(readme.read_text(encoding="utf-8", errors="ignore").strip()) >= 80
+    )
 
 
 def deterministic_score(report: BuildReport, security_ok: bool, readme_ok: bool) -> ReviewScore:
     validation = report.validation
     score = ReviewScore()
     score.api_correctness = 20 if validation.acceptance_passed else 0
-    score.tests_acceptance = int((10 if validation.pytest_passed else 0) + (10 if validation.acceptance_passed else 0))
+    score.tests_acceptance = int(
+        (10 if validation.pytest_passed else 0) + (10 if validation.acceptance_passed else 0)
+    )
     score.largestack_deepseek_usage = 15 if report.trace_ids and report.tokens > 0 else 0
     score.security_guardrails = 15 if security_ok else 0
-    score.code_quality = int((8 if validation.compile_passed else 0) + (4 if report.generated_files else 0) + (3 if len(report.attempts) <= 4 else 0))
+    score.code_quality = int(
+        (8 if validation.compile_passed else 0)
+        + (4 if report.generated_files else 0)
+        + (3 if len(report.attempts) <= 4 else 0)
+    )
     score.docs_readme = 10 if readme_ok else 0
     score.budget_discipline = 5 if not report.budget_exceeded and report.tokens <= 300_000 else 0
     return score
@@ -446,7 +461,9 @@ def reconcile_reviewer_with_validation(
     """
 
     if report.passed and security_ok and readme_ok and score.deterministic_total == 100:
-        if reviewer.json_valid and (not reviewer.passed or reviewer.score < PROJECT_MIN_SCORE or reviewer.critical_blocker):
+        if reviewer.json_valid and (
+            not reviewer.passed or reviewer.score < PROJECT_MIN_SCORE or reviewer.critical_blocker
+        ):
             notes = (
                 reviewer.notes
                 + " reviewer warning overridden because compile, pytest, hidden acceptance, security, and README checks all passed."
@@ -480,13 +497,17 @@ def parse_reviewer_json(text: str) -> dict[str, Any] | None:
     return None
 
 
-async def review_project(reviewer: Agent, spec: ProjectSpec, report: BuildReport) -> ReviewerOutcome:
+async def review_project(
+    reviewer: Agent, spec: ProjectSpec, report: BuildReport
+) -> ReviewerOutcome:
     project_path = Path(report.project_path)
     snapshot_parts: list[str] = []
     for file in sorted(project_path.rglob("*"))[:40]:
         if file.is_file() and "__pycache__" not in file.parts and file.stat().st_size < 20_000:
             try:
-                snapshot_parts.append(f"--- {file.relative_to(project_path)} ---\n{file.read_text()[:4000]}")
+                snapshot_parts.append(
+                    f"--- {file.relative_to(project_path)} ---\n{file.read_text()[:4000]}"
+                )
             except UnicodeDecodeError:
                 continue
     prompt = f"""
@@ -660,7 +681,17 @@ def parse_final_validator(gate: GateResult) -> list[GateResult]:
         parts = line.split()
         if len(parts) >= 2 and parts[1] in {"PASS", "FAIL", "SKIP"}:
             name, status = parts[0], parts[1]
-            if name in {"deepseek_live_tests", "gitleaks_no_git", "helm_lint", "docker_runtime_start", "docker_health"} and status != "PASS":
+            if (
+                name
+                in {
+                    "deepseek_live_tests",
+                    "gitleaks_no_git",
+                    "helm_lint",
+                    "docker_runtime_start",
+                    "docker_health",
+                }
+                and status != "PASS"
+            ):
                 rows.append(
                     GateResult(
                         name=f"final_validator_{name}",
@@ -675,7 +706,12 @@ def parse_final_validator(gate: GateResult) -> list[GateResult]:
 
 def run_extra_gates(outdir: Path) -> list[GateResult]:
     gates = [
-        run_cmd("security_tests", [sys.executable, "-m", "pytest", "tests/security", "-q", "--tb=short"], outdir, 600),
+        run_cmd(
+            "security_tests",
+            [sys.executable, "-m", "pytest", "tests/security", "-q", "--tb=short"],
+            outdir,
+            600,
+        ),
         run_cmd("helm_lint_chart", ["helm", "lint", "deploy/helm/largestack"], outdir, 300),
         run_cmd("docker_compose_config", ["docker", "compose", "config"], outdir, 300),
     ]
@@ -688,35 +724,103 @@ def docker_cleanup_probe(outdir: Path, run_id: str) -> GateResult:
     image = f"largestack:final-95-{run_id}"
     log = outdir / "logs" / "docker_cleanup_probe.log"
     lines: list[str] = []
+
     def step(cmd: list[str], timeout: int = 300) -> int:
         lines.append("$ " + " ".join(cmd))
-        proc = subprocess.run(cmd, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, check=False)
+        proc = subprocess.run(
+            cmd,
+            cwd=ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+            check=False,
+        )
         lines.append(proc.stdout[-4000:])
         return proc.returncode
+
     try:
         if step(["docker", "build", "-t", image, "."], 1800) != 0:
-            status = "FAIL"; reason = "docker build failed"
-        elif step(["docker", "run", "--rm", "-d", "--name", name, "-p", "127.0.0.1::8787", "-e", "LARGESTACK_API_KEY=test-key", "-e", "LARGESTACK_DASHBOARD_KEY=test-key", image], 120) != 0:
-            status = "FAIL"; reason = "docker run failed"
+            status = "FAIL"
+            reason = "docker build failed"
+        elif (
+            step(
+                [
+                    "docker",
+                    "run",
+                    "--rm",
+                    "-d",
+                    "--name",
+                    name,
+                    "-p",
+                    "127.0.0.1::8787",
+                    "-e",
+                    "LARGESTACK_API_KEY=test-key",
+                    "-e",
+                    "LARGESTACK_DASHBOARD_KEY=test-key",
+                    image,
+                ],
+                120,
+            )
+            != 0
+        ):
+            status = "FAIL"
+            reason = "docker run failed"
         else:
             time.sleep(4)
             port_cmd = ["docker", "port", name, "8787/tcp"]
-            port_proc = subprocess.run(port_cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
-            lines.append("$ " + " ".join(port_cmd)); lines.append(port_proc.stdout)
+            port_proc = subprocess.run(
+                port_cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False
+            )
+            lines.append("$ " + " ".join(port_cmd))
+            lines.append(port_proc.stdout)
             match = re.search(r":(\d+)", port_proc.stdout)
             port = match.group(1) if match else ""
             checks = []
             if port:
                 checks.append(step(["curl", "-fsS", f"http://127.0.0.1:{port}/health"], 60) == 0)
-                checks.append(step(["curl", "-fsS", "-H", "X-API-Key: test-key", f"http://127.0.0.1:{port}/api/metrics"], 60) == 0)
-                bad = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "-H", "X-API-Key: wrong", f"http://127.0.0.1:{port}/api/metrics"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+                checks.append(
+                    step(
+                        [
+                            "curl",
+                            "-fsS",
+                            "-H",
+                            "X-API-Key: test-key",
+                            f"http://127.0.0.1:{port}/api/metrics",
+                        ],
+                        60,
+                    )
+                    == 0
+                )
+                bad = subprocess.run(
+                    [
+                        "curl",
+                        "-s",
+                        "-o",
+                        "/dev/null",
+                        "-w",
+                        "%{http_code}",
+                        "-H",
+                        "X-API-Key: wrong",
+                        f"http://127.0.0.1:{port}/api/metrics",
+                    ],
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    check=False,
+                )
                 lines.append("bad auth status=" + bad.stdout)
                 checks.append(bad.stdout.strip() in {"401", "403"})
             cleanup_ok = step(["docker", "rm", "-f", name], 120) == 0
             status = "PASS" if port and all(checks) and cleanup_ok else "FAIL"
-            reason = "docker runtime/auth/cleanup passed" if status == "PASS" else "docker runtime/auth/cleanup failed"
+            reason = (
+                "docker runtime/auth/cleanup passed"
+                if status == "PASS"
+                else "docker runtime/auth/cleanup failed"
+            )
     except Exception as exc:
-        status = "FAIL"; reason = f"{type(exc).__name__}: {exc}"
+        status = "FAIL"
+        reason = f"{type(exc).__name__}: {exc}"
     write_text(log, "\n".join(lines))
     result = GateResult(
         name="docker_runtime_auth_cleanup",
@@ -726,37 +830,70 @@ def docker_cleanup_probe(outdir: Path, run_id: str) -> GateResult:
         reason=reason,
         solution="Run on a Docker host where build, health probes, auth probes, and container cleanup all succeed.",
     )
-    progress(f"gate done: docker_runtime_auth_cleanup status={result.status} reason={result.reason}")
+    progress(
+        f"gate done: docker_runtime_auth_cleanup status={result.status} reason={result.reason}"
+    )
     return result
 
 
-def compute_scores(gates: list[GateResult], projects: list[ProjectCertification]) -> dict[str, float]:
+def compute_scores(
+    gates: list[GateResult], projects: list[ProjectCertification]
+) -> dict[str, float]:
     gate_pass_rate = 100.0 * sum(g.status == "PASS" for g in gates) / max(len(gates), 1)
     project_average = sum(p.score for p in projects) / max(len(projects), 1)
     all_projects_pass = all(p.passed for p in projects) and len(projects) >= REQUIRED_PROJECT_COUNT
-    deepseek_live = 100.0 if all_projects_pass and project_average >= SUITE_MIN_AVERAGE else min(project_average, 94.0)
+    deepseek_live = (
+        100.0
+        if all_projects_pass and project_average >= SUITE_MIN_AVERAGE
+        else min(project_average, 94.0)
+    )
     docker_ok = any(g.name == "docker_runtime_auth_cleanup" and g.status == "PASS" for g in gates)
-    security_ok = all(g.status == "PASS" for g in gates if g.name in {"security_tests", "baseline_final_release_validate"})
+    security_ok = all(
+        g.status == "PASS"
+        for g in gates
+        if g.name in {"security_tests", "baseline_final_release_validate"}
+    )
     ubuntu = min(gate_pass_rate, 100.0 if docker_ok else 94.0)
     return {
         "core_framework": gate_pass_rate,
         "deepseek_live": deepseek_live,
-        "real_project_generation": project_average if all_projects_pass else min(project_average, 94.0),
+        "real_project_generation": project_average
+        if all_projects_pass
+        else min(project_average, 94.0),
         "ubuntu_package_docker": ubuntu,
-        "saas": min(ubuntu, project_average, 95.0 if docker_ok and security_ok and all_projects_pass else 89.0),
-        "bfsi": 95.0 if docker_ok and security_ok and all_projects_pass and os.environ.get("LARGESTACK_EXTERNAL_AUDIT_PASSED") == "1" else 85.0,
+        "saas": min(
+            ubuntu,
+            project_average,
+            95.0 if docker_ok and security_ok and all_projects_pass else 89.0,
+        ),
+        "bfsi": 95.0
+        if docker_ok
+        and security_ok
+        and all_projects_pass
+        and os.environ.get("LARGESTACK_EXTERNAL_AUDIT_PASSED") == "1"
+        else 85.0,
     }
 
 
-def build_summary(run_id: str, outdir: Path, started: str, gates: list[GateResult], projects: list[ProjectCertification]) -> CertificationSummary:
+def build_summary(
+    run_id: str,
+    outdir: Path,
+    started: str,
+    gates: list[GateResult],
+    projects: list[ProjectCertification],
+) -> CertificationSummary:
     scores = compute_scores(gates, projects)
     blockers: list[dict[str, str]] = []
     for gate in gates:
         if gate.status != "PASS":
-            blockers.append({"type": gate.blocker_type, "item": gate.name, "solution": gate.solution})
+            blockers.append(
+                {"type": gate.blocker_type, "item": gate.name, "solution": gate.solution}
+            )
     for project in projects:
         if not project.passed:
-            blockers.append({"type": project.blocker_type, "item": project.name, "solution": project.solution})
+            blockers.append(
+                {"type": project.blocker_type, "item": project.name, "solution": project.solution}
+            )
     targets_met = all(scores.get(name, 0) >= target for name, target in TARGET_SCORES.items())
     final_decision = "GO" if targets_met and not blockers else "HOLD"
     return CertificationSummary(
@@ -777,7 +914,18 @@ def write_summary_files(summary: CertificationSummary) -> None:
     outdir = Path(summary.outdir)
     write_json(outdir / "summary.json", asdict(summary))
     with (outdir / "projects.csv").open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=["name", "passed", "score", "failed_checks", "tokens", "actual_cost", "report_path"])
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=[
+                "name",
+                "passed",
+                "score",
+                "failed_checks",
+                "tokens",
+                "actual_cost",
+                "report_path",
+            ],
+        )
         writer.writeheader()
         for project in summary.projects:
             writer.writerow(
@@ -808,9 +956,19 @@ def write_summary_files(summary: CertificationSummary) -> None:
     lines.extend(["", "## Gates", "", "| Gate | Status | Reason |", "|---|---|---|"])
     for gate in summary.gates:
         lines.append(f"| {gate.name} | {gate.status} | {gate.reason} |")
-    lines.extend(["", "## Project Results", "", "| Project | Pass | Score | Failed Checks |", "|---|---:|---:|---|"])
+    lines.extend(
+        [
+            "",
+            "## Project Results",
+            "",
+            "| Project | Pass | Score | Failed Checks |",
+            "|---|---:|---:|---|",
+        ]
+    )
     for project in summary.projects:
-        lines.append(f"| {project.name} | {project.passed} | {project.score} | {', '.join(project.failed_checks)} |")
+        lines.append(
+            f"| {project.name} | {project.passed} | {project.score} | {', '.join(project.failed_checks)} |"
+        )
     if summary.blockers:
         lines.extend(["", "## Blockers", ""])
         for blocker in summary.blockers:
@@ -843,7 +1001,12 @@ async def async_main(args: argparse.Namespace) -> int:
         return 2
     progress("deepseek key present: yes")
     if not args.skip_baseline:
-        baseline = run_cmd("baseline_final_release_validate", ["bash", "scripts/final_release_validate.sh"], outdir, args.baseline_timeout)
+        baseline = run_cmd(
+            "baseline_final_release_validate",
+            ["bash", "scripts/final_release_validate.sh"],
+            outdir,
+            args.baseline_timeout,
+        )
         gates.append(baseline)
         gates.extend(parse_final_validator(baseline))
     if args.skip_extra_gates:
@@ -861,11 +1024,28 @@ async def async_main(args: argparse.Namespace) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run final 95+ LARGESTACK certification.")
     parser.add_argument("--run-id", default="", help="Evidence run ID. Defaults to UTC timestamp.")
-    parser.add_argument("--project-limit", type=int, default=0, help="Debug only: limit project count.")
-    parser.add_argument("--project-start", type=int, default=1, help="Debug only: 1-based project index to start from.")
-    parser.add_argument("--skip-baseline", action="store_true", help="Debug only: skip final_release_validate.sh.")
-    parser.add_argument("--skip-extra-gates", action="store_true", help="Debug only: skip security/docker/helm gates.")
-    parser.add_argument("--no-cleanup", action="store_true", help="Do not remove generated caches/build metadata first.")
+    parser.add_argument(
+        "--project-limit", type=int, default=0, help="Debug only: limit project count."
+    )
+    parser.add_argument(
+        "--project-start",
+        type=int,
+        default=1,
+        help="Debug only: 1-based project index to start from.",
+    )
+    parser.add_argument(
+        "--skip-baseline", action="store_true", help="Debug only: skip final_release_validate.sh."
+    )
+    parser.add_argument(
+        "--skip-extra-gates",
+        action="store_true",
+        help="Debug only: skip security/docker/helm gates.",
+    )
+    parser.add_argument(
+        "--no-cleanup",
+        action="store_true",
+        help="Do not remove generated caches/build metadata first.",
+    )
     parser.add_argument("--baseline-timeout", type=int, default=7200)
     args = parser.parse_args()
     args.project_limit = args.project_limit or None

@@ -1,4 +1,5 @@
 """v0.14.0: Tests for sub-graph Workflow composition."""
+
 from __future__ import annotations
 
 import pytest
@@ -22,6 +23,7 @@ async def _explode(state):
 
 
 # -------------------- as_node basic --------------------
+
 
 @pytest.mark.asyncio
 async def test_as_node_runs_inner_workflow():
@@ -123,6 +125,7 @@ async def test_subworkflow_output_mapping_renames_output():
 
 # -------------------- isolate_errors --------------------
 
+
 @pytest.mark.asyncio
 async def test_subworkflow_isolate_errors_swallows():
     from largestack.workflow import Workflow
@@ -151,6 +154,7 @@ async def test_subworkflow_propagates_errors_when_not_isolated():
 
 
 # -------------------- WorkflowComposer --------------------
+
 
 @pytest.mark.asyncio
 async def test_composer_builds_workflow_with_subgraphs():

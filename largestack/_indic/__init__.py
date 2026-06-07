@@ -18,6 +18,7 @@ Provides:
 
 Zero external deps. Pure stdlib regex.
 """
+
 from __future__ import annotations
 import logging
 import re
@@ -33,14 +34,14 @@ log = logging.getLogger("largestack.indic")
 # Unicode block ranges for major Indic scripts
 SCRIPT_RANGES = {
     "devanagari": (0x0900, 0x097F),  # Hindi, Marathi, Sanskrit, Konkani, Nepali
-    "bengali":    (0x0980, 0x09FF),  # Bengali, Assamese
-    "gurmukhi":   (0x0A00, 0x0A7F),  # Punjabi
-    "gujarati":   (0x0A80, 0x0AFF),
-    "oriya":      (0x0B00, 0x0B7F),
-    "tamil":      (0x0B80, 0x0BFF),
-    "telugu":     (0x0C00, 0x0C7F),
-    "kannada":    (0x0C80, 0x0CFF),
-    "malayalam":  (0x0D00, 0x0D7F),
+    "bengali": (0x0980, 0x09FF),  # Bengali, Assamese
+    "gurmukhi": (0x0A00, 0x0A7F),  # Punjabi
+    "gujarati": (0x0A80, 0x0AFF),
+    "oriya": (0x0B00, 0x0B7F),
+    "tamil": (0x0B80, 0x0BFF),
+    "telugu": (0x0C00, 0x0C7F),
+    "kannada": (0x0C80, 0x0CFF),
+    "malayalam": (0x0D00, 0x0D7F),
 }
 
 
@@ -90,9 +91,7 @@ def primary_script(text: str) -> str:
 
 # Sentence boundary markers for Indic scripts
 # Devanagari Danda (।) and Double Danda (॥) are sentence ends in Hindi/Sanskrit
-_INDIC_SENTENCE_END = re.compile(
-    r"(?<=[।॥।.!?])\s+"
-)
+_INDIC_SENTENCE_END = re.compile(r"(?<=[।॥।.!?])\s+")
 # Latin-style sentence boundaries
 _LATIN_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 
@@ -107,6 +106,7 @@ class IndicTokenizer:
     Args:
         preserve_danda: keep ``।`` as a separate token (default False).
     """
+
     preserve_danda: bool = False
 
     def sentences(self, text: str) -> list[str]:
@@ -134,27 +134,59 @@ class IndicTokenizer:
 
 # Devanagari digit map
 DEVANAGARI_DIGITS = {
-    "०": "0", "१": "1", "२": "2", "३": "3", "४": "4",
-    "५": "5", "६": "6", "७": "7", "८": "8", "९": "9",
+    "०": "0",
+    "१": "1",
+    "२": "2",
+    "३": "3",
+    "४": "4",
+    "५": "5",
+    "६": "6",
+    "७": "7",
+    "८": "8",
+    "९": "9",
 }
 DEVANAGARI_DIGITS_REV = {v: k for k, v in DEVANAGARI_DIGITS.items()}
 
 # Bengali digit map
 BENGALI_DIGITS = {
-    "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
-    "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9",
+    "০": "0",
+    "১": "1",
+    "২": "2",
+    "৩": "3",
+    "৪": "4",
+    "৫": "5",
+    "৬": "6",
+    "৭": "7",
+    "৮": "8",
+    "৯": "9",
 }
 
 # Tamil digit map
 TAMIL_DIGITS = {
-    "௦": "0", "௧": "1", "௨": "2", "௩": "3", "௪": "4",
-    "௫": "5", "௬": "6", "௭": "7", "௮": "8", "௯": "9",
+    "௦": "0",
+    "௧": "1",
+    "௨": "2",
+    "௩": "3",
+    "௪": "4",
+    "௫": "5",
+    "௬": "6",
+    "௭": "7",
+    "௮": "8",
+    "௯": "9",
 }
 
 # Telugu digit map
 TELUGU_DIGITS = {
-    "౦": "0", "౧": "1", "౨": "2", "౩": "3", "౪": "4",
-    "౫": "5", "౬": "6", "౭": "7", "౮": "8", "౯": "9",
+    "౦": "0",
+    "౧": "1",
+    "౨": "2",
+    "౩": "3",
+    "౪": "4",
+    "౫": "5",
+    "౬": "6",
+    "౭": "7",
+    "౮": "8",
+    "౯": "9",
 }
 
 
@@ -172,24 +204,16 @@ def normalize_indic_digits(text: str) -> str:
 
 
 # Aadhaar in Devanagari numerals
-AADHAAR_DEVANAGARI = re.compile(
-    r"[२-९][०-९]{3}\s?[०-९]{4}\s?[०-९]{4}"
-)
+AADHAAR_DEVANAGARI = re.compile(r"[२-९][०-९]{3}\s?[०-९]{4}\s?[०-९]{4}")
 
 # Aadhaar in Bengali numerals
-AADHAAR_BENGALI = re.compile(
-    r"[২-৯][০-৯]{3}\s?[০-৯]{4}\s?[০-৯]{4}"
-)
+AADHAAR_BENGALI = re.compile(r"[২-৯][০-৯]{3}\s?[০-৯]{4}\s?[০-৯]{4}")
 
 # Aadhaar in Tamil numerals (rare but possible)
-AADHAAR_TAMIL = re.compile(
-    r"[௨-௯][௦-௯]{3}\s?[௦-௯]{4}\s?[௦-௯]{4}"
-)
+AADHAAR_TAMIL = re.compile(r"[௨-௯][௦-௯]{3}\s?[௦-௯]{4}\s?[௦-௯]{4}")
 
 # Indian mobile in multiple formats: +91-9876543210, 09876543210, 9876543210
-INDIAN_MOBILE = re.compile(
-    r"(?:\+91[-\s]?|0)?[6-9][0-9]{9}\b"
-)
+INDIAN_MOBILE = re.compile(r"(?:\+91[-\s]?|0)?[6-9][0-9]{9}\b")
 
 # Indian PIN code (6 digits)
 PIN_CODE = re.compile(r"\b[1-9][0-9]{5}\b")
@@ -199,9 +223,7 @@ PIN_CODE_DEVANAGARI = re.compile(r"[१-९][०-९]{5}")
 
 # Common Hindi name particles (for entity hint, not strict matching)
 # These appear in addresses and Hindi-script PII contexts
-HINDI_HONORIFIC_PARTICLES = re.compile(
-    r"(?:श्री|श्रीमती|डॉ|कुमारी|पंडित|मौलाना)\s*\.?\s*"
-)
+HINDI_HONORIFIC_PARTICLES = re.compile(r"(?:श्री|श्रीमती|डॉ|कुमारी|पंडित|मौलाना)\s*\.?\s*")
 
 
 def detect_indic_pii(text: str) -> dict[str, list[dict]]:
@@ -235,12 +257,14 @@ def detect_indic_pii(text: str) -> dict[str, list[dict]]:
 
     for kind, pattern in pattern_map.items():
         for m in pattern.finditer(text):
-            findings[kind].append({
-                "match": m.group(),
-                "start": m.start(),
-                "end": m.end(),
-                "line": text[: m.start()].count("\n") + 1,
-            })
+            findings[kind].append(
+                {
+                    "match": m.group(),
+                    "start": m.start(),
+                    "end": m.end(),
+                    "line": text[: m.start()].count("\n") + 1,
+                }
+            )
 
     # Drop empty
     return {k: v for k, v in findings.items() if v}
@@ -250,6 +274,7 @@ def redact_indic_aadhaar(text: str) -> str:
     """Redact all Aadhaar numbers (Latin + Devanagari + Bengali + Tamil)
     to XXXX XXXX <last4>.
     """
+
     def _redact(m: re.Match) -> str:
         raw = m.group()
         digits = re.sub(r"\s", "", raw)
@@ -275,20 +300,67 @@ def redact_indic_aadhaar(text: str) -> str:
 
 DEVANAGARI_TO_LATIN = {
     # Vowels (independent)
-    "अ": "a", "आ": "aa", "इ": "i", "ई": "ii", "उ": "u", "ऊ": "uu",
-    "ऋ": "Ri", "ए": "e", "ऐ": "ai", "ओ": "o", "औ": "au", "अं": "am", "अः": "ah",
+    "अ": "a",
+    "आ": "aa",
+    "इ": "i",
+    "ई": "ii",
+    "उ": "u",
+    "ऊ": "uu",
+    "ऋ": "Ri",
+    "ए": "e",
+    "ऐ": "ai",
+    "ओ": "o",
+    "औ": "au",
+    "अं": "am",
+    "अः": "ah",
     # Consonants
-    "क": "ka", "ख": "kha", "ग": "ga", "घ": "gha", "ङ": "nga",
-    "च": "cha", "छ": "chha", "ज": "ja", "झ": "jha", "ञ": "nya",
-    "ट": "Ta", "ठ": "Tha", "ड": "Da", "ढ": "Dha", "ण": "Na",
-    "त": "ta", "थ": "tha", "द": "da", "ध": "dha", "न": "na",
-    "प": "pa", "फ": "pha", "ब": "ba", "भ": "bha", "म": "ma",
-    "य": "ya", "र": "ra", "ल": "la", "व": "va", "श": "sha",
-    "ष": "Sha", "स": "sa", "ह": "ha",
+    "क": "ka",
+    "ख": "kha",
+    "ग": "ga",
+    "घ": "gha",
+    "ङ": "nga",
+    "च": "cha",
+    "छ": "chha",
+    "ज": "ja",
+    "झ": "jha",
+    "ञ": "nya",
+    "ट": "Ta",
+    "ठ": "Tha",
+    "ड": "Da",
+    "ढ": "Dha",
+    "ण": "Na",
+    "त": "ta",
+    "थ": "tha",
+    "द": "da",
+    "ध": "dha",
+    "न": "na",
+    "प": "pa",
+    "फ": "pha",
+    "ब": "ba",
+    "भ": "bha",
+    "म": "ma",
+    "य": "ya",
+    "र": "ra",
+    "ल": "la",
+    "व": "va",
+    "श": "sha",
+    "ष": "Sha",
+    "स": "sa",
+    "ह": "ha",
     # Vowel signs (matras)
-    "ा": "aa", "ि": "i", "ी": "ii", "ु": "u", "ू": "uu",
-    "ृ": "Ri", "े": "e", "ै": "ai", "ो": "o", "ौ": "au",
-    "ं": "m", "ः": "h", "्": "",  # virama
+    "ा": "aa",
+    "ि": "i",
+    "ी": "ii",
+    "ु": "u",
+    "ू": "uu",
+    "ृ": "Ri",
+    "े": "e",
+    "ै": "ai",
+    "ो": "o",
+    "ौ": "au",
+    "ं": "m",
+    "ः": "h",
+    "्": "",  # virama
     # Numerals
     **DEVANAGARI_DIGITS,
 }
@@ -310,6 +382,7 @@ def transliterate_devanagari_to_latin(text: str) -> str:
 
 
 # -------------------- Indic-aware text utilities --------------------
+
 
 def normalize_indic_whitespace(text: str) -> str:
     """Normalize whitespace + Unicode forms in Indic text."""
@@ -335,7 +408,5 @@ def is_likely_indic(text: str, min_indic_ratio: float = 0.3) -> bool:
     if not text:
         return False
     fractions = script_detect(text)
-    indic_total = sum(
-        fractions.get(s, 0.0) for s in SCRIPT_RANGES
-    )
+    indic_total = sum(fractions.get(s, 0.0) for s in SCRIPT_RANGES)
     return indic_total >= min_indic_ratio

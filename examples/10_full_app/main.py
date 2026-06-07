@@ -1,4 +1,5 @@
 """Full production-style app: RAG + typed agent + tools."""
+
 from pathlib import Path
 import sys
 from dataclasses import dataclass

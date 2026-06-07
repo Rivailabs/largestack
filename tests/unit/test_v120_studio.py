@@ -1,4 +1,5 @@
 """v0.12.0: Tests for LARGESTACK Studio v0 — single-HTML graph visualizer."""
+
 from __future__ import annotations
 
 import json
@@ -9,6 +10,7 @@ import pytest
 
 def test_node_spec_defaults():
     from largestack._studio import NodeSpec
+
     n = NodeSpec(id="x", label="X")
     assert n.kind == "agent"
     assert n.metadata == {}
@@ -16,6 +18,7 @@ def test_node_spec_defaults():
 
 def test_edge_spec_defaults():
     from largestack._studio import EdgeSpec
+
     e = EdgeSpec(source="a", target="b")
     assert e.label == ""
     assert e.condition == ""
@@ -23,6 +26,7 @@ def test_edge_spec_defaults():
 
 def test_builder_add_node_and_edge():
     from largestack._studio import StudioBuilder, NodeSpec, EdgeSpec
+
     b = StudioBuilder(title="t")
     b.add_node(NodeSpec(id="a", label="A", kind="start"))
     b.add_node(NodeSpec(id="b", label="B", kind="agent"))
@@ -35,6 +39,7 @@ def test_builder_add_node_and_edge():
 
 def test_builder_rejects_duplicate_node_id():
     from largestack._studio import StudioBuilder, NodeSpec
+
     b = StudioBuilder()
     b.add_node(NodeSpec(id="a", label="A"))
     with pytest.raises(ValueError, match="duplicate"):
@@ -43,6 +48,7 @@ def test_builder_rejects_duplicate_node_id():
 
 def test_builder_rejects_edge_with_unknown_source():
     from largestack._studio import StudioBuilder, NodeSpec, EdgeSpec
+
     b = StudioBuilder()
     b.add_node(NodeSpec(id="a", label="A"))
     with pytest.raises(ValueError, match="source"):
@@ -51,6 +57,7 @@ def test_builder_rejects_edge_with_unknown_source():
 
 def test_builder_rejects_edge_with_unknown_target():
     from largestack._studio import StudioBuilder, NodeSpec, EdgeSpec
+
     b = StudioBuilder()
     b.add_node(NodeSpec(id="a", label="A"))
     with pytest.raises(ValueError, match="target"):
@@ -59,9 +66,11 @@ def test_builder_rejects_edge_with_unknown_target():
 
 def test_builder_audit_events():
     from largestack._studio import StudioBuilder
+
     b = StudioBuilder()
     b.add_audit_event(
-        agent="kyc", event="pan_verify",
+        agent="kyc",
+        event="pan_verify",
         payload={"pan": "AAACR1234C"},
         duration_ms=234.0,
     )
@@ -73,12 +82,18 @@ def test_builder_audit_events():
 
 def test_builder_memory_snapshot():
     from largestack._studio import StudioBuilder, MemorySnapshot
+
     b = StudioBuilder()
-    b.set_memory_snapshot(MemorySnapshot(
-        tenant_id="t1", user_id="u1",
-        core_count=3, recall_count=10, archival_count=22,
-        core_block_preview="persona: helpful",
-    ))
+    b.set_memory_snapshot(
+        MemorySnapshot(
+            tenant_id="t1",
+            user_id="u1",
+            core_count=3,
+            recall_count=10,
+            archival_count=22,
+            core_block_preview="persona: helpful",
+        )
+    )
     payload = b.build_payload()
     assert payload["memory"]["core_count"] == 3
     assert payload["memory"]["recall_count"] == 10
@@ -86,12 +101,15 @@ def test_builder_memory_snapshot():
 
 def test_builder_compliance_markers():
     from largestack._studio import StudioBuilder, ComplianceMarker
+
     b = StudioBuilder()
-    b.add_compliance(ComplianceMarker(
-        name="DPDP_Act_2023",
-        section="Section 6",
-        notes="explicit consent required",
-    ))
+    b.add_compliance(
+        ComplianceMarker(
+            name="DPDP_Act_2023",
+            section="Section 6",
+            notes="explicit consent required",
+        )
+    )
     payload = b.build_payload()
     assert len(payload["compliance"]) == 1
     assert payload["compliance"][0]["name"] == "DPDP_Act_2023"
@@ -99,6 +117,7 @@ def test_builder_compliance_markers():
 
 def test_render_html_is_valid_self_contained_document():
     from largestack._studio import StudioBuilder, NodeSpec, EdgeSpec
+
     b = StudioBuilder(title="My Agent", description="An agent")
     b.add_node(NodeSpec(id="start", label="Start", kind="start"))
     b.add_node(NodeSpec(id="end", label="End", kind="end"))
@@ -122,12 +141,11 @@ def test_render_html_is_valid_self_contained_document():
 
 def test_render_html_escapes_xss_in_title():
     from largestack._studio import StudioBuilder
+
     b = StudioBuilder(title="<script>alert(1)</script>")
     html = b.render_html()
     # Title should be escaped, not raw
-    assert "<script>alert(1)</script>" not in html.split(
-        "{{PAYLOAD_JSON}}"
-    )[0]
+    assert "<script>alert(1)</script>" not in html.split("{{PAYLOAD_JSON}}")[0]
     assert "&lt;script&gt;" in html
 
 
@@ -135,10 +153,14 @@ def test_render_html_escapes_closing_script_in_payload():
     """Embedded JSON containing </ must be escaped to prevent
     breaking out of the <script> block."""
     from largestack._studio import StudioBuilder, NodeSpec
+
     b = StudioBuilder()
-    b.add_node(NodeSpec(
-        id="x", label="</script><script>alert(1)</script>",
-    ))
+    b.add_node(
+        NodeSpec(
+            id="x",
+            label="</script><script>alert(1)</script>",
+        )
+    )
     html = b.render_html()
     # The </script> in the payload must be escaped
     assert "</script><script>alert" not in html
@@ -146,6 +168,7 @@ def test_render_html_escapes_closing_script_in_payload():
 
 def test_export_writes_file(tmp_path):
     from largestack._studio import StudioBuilder, NodeSpec, EdgeSpec
+
     b = StudioBuilder(title="Test")
     b.add_node(NodeSpec(id="a", label="A"))
     out = tmp_path / "studio.html"
@@ -159,6 +182,7 @@ def test_export_writes_file(tmp_path):
 
 def test_export_creates_parent_dirs(tmp_path):
     from largestack._studio import StudioBuilder
+
     b = StudioBuilder()
     out = tmp_path / "deep" / "nested" / "studio.html"
     b.export(out)
@@ -186,15 +210,20 @@ async def test_from_memory_manager_helper():
 
 def test_from_audit_log_records_helper():
     from largestack._studio import from_audit_log_records
+
     records = [
         {
-            "timestamp": 1000.0, "agent": "kyc",
-            "event": "verify", "payload": {"pan": "X"},
-            "tenant_id": "t1", "user_id": "u1",
+            "timestamp": 1000.0,
+            "agent": "kyc",
+            "event": "verify",
+            "payload": {"pan": "X"},
+            "tenant_id": "t1",
+            "user_id": "u1",
             "duration_ms": 100.0,
         },
         {
-            "timestamp": 1001.0, "agent": "router",
+            "timestamp": 1001.0,
+            "agent": "router",
             "action": "route_to_kyc",
             "data": {"reason": "kyc-needed"},
         },
@@ -210,6 +239,7 @@ def test_from_audit_log_records_helper():
 
 def test_payload_includes_generated_at():
     from largestack._studio import StudioBuilder
+
     b = StudioBuilder()
     payload = b.build_payload()
     assert "generated_at" in payload
@@ -218,17 +248,25 @@ def test_payload_includes_generated_at():
 
 def test_payload_serializes_to_valid_json():
     from largestack._studio import (
-        StudioBuilder, NodeSpec, EdgeSpec,
-        MemorySnapshot, ComplianceMarker,
+        StudioBuilder,
+        NodeSpec,
+        EdgeSpec,
+        MemorySnapshot,
+        ComplianceMarker,
     )
+
     b = StudioBuilder(title="Full Test")
     b.add_node(NodeSpec(id="a", label="A"))
     b.add_node(NodeSpec(id="b", label="B"))
     b.add_edge(EdgeSpec(source="a", target="b", label="next"))
     b.add_audit_event(agent="x", event="y", payload={"k": 1})
-    b.set_memory_snapshot(MemorySnapshot(
-        tenant_id="t1", user_id="u1", core_count=1,
-    ))
+    b.set_memory_snapshot(
+        MemorySnapshot(
+            tenant_id="t1",
+            user_id="u1",
+            core_count=1,
+        )
+    )
     b.add_compliance(ComplianceMarker(name="DPDP_Act_2023"))
 
     # Must round-trip through JSON

@@ -1,5 +1,8 @@
 # DeepSeek Build Projects Live Summary
 
+> Internal harness run — **self-graded** gate. "Passed/Score" means projects cleared
+> the harness's own checks, **NOT** independent validation or production readiness.
+
 - Classification: `DEEPSEEK-BUILT-PROJECTS+LARGESTACK-LIVE`
 - Total projects: `5`
 - Passed: `5`

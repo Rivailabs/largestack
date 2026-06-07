@@ -25,6 +25,7 @@ Exit codes:
 - 2 — usage / argument error
 - 3 — runtime error (file not found, parse error)
 """
+
 from __future__ import annotations
 import argparse
 import logging
@@ -46,29 +47,52 @@ EXIT_ERROR = 3
 
 # Known DPDP / RBI section markers
 DPDP_SECTIONS = {
-    "Section 6", "Section 7", "Section 8", "Section 9", "Section 11",
-    "DPDP_Act_2023", "DPDP",
+    "Section 6",
+    "Section 7",
+    "Section 8",
+    "Section 9",
+    "Section 11",
+    "DPDP_Act_2023",
+    "DPDP",
 }
 RBI_SECTIONS = {
-    "RBI", "MD-NBFC-D", "PA-PG-2024", "MD-KYC", "RBI_IT_Framework",
+    "RBI",
+    "MD-NBFC-D",
+    "PA-PG-2024",
+    "MD-KYC",
+    "RBI_IT_Framework",
 }
 PMLA_SECTIONS = {"PMLA", "PMLA_Rule_9", "Rule_9", "CDD"}
 
 # China-hosted LLM provider prefixes (for residency violation)
 CHINA_HOSTED = {
-    "deepseek", "moonshot", "qwen", "yi", "01ai",
-    "baichuan", "minimax", "doubao",
+    "deepseek",
+    "moonshot",
+    "qwen",
+    "yi",
+    "01ai",
+    "baichuan",
+    "minimax",
+    "doubao",
 }
 
 # Indian aggregator / KYC tools that imply PII handling
 PII_TOOLS = {
-    "aadhaar_verify", "aadhaar_okyc", "pan_verify", "cibil",
-    "experian", "ckyc", "digilocker", "aadhaar_redact",
-    "gstn_lookup", "mca_lookup",
+    "aadhaar_verify",
+    "aadhaar_okyc",
+    "pan_verify",
+    "cibil",
+    "experian",
+    "ckyc",
+    "digilocker",
+    "aadhaar_redact",
+    "gstn_lookup",
+    "mca_lookup",
 }
 
 
 # -------------------- Findings model --------------------
+
 
 @dataclass
 class Finding:
@@ -93,7 +117,11 @@ class CheckReport:
     findings: list[Finding] = field(default_factory=list)
 
     def add(
-        self, severity: str, code: str, message: str, location: str = "",
+        self,
+        severity: str,
+        code: str,
+        message: str,
+        location: str = "",
     ) -> None:
         self.findings.append(Finding(severity, code, message, location))
 
@@ -122,9 +150,7 @@ class CheckReport:
         lines.append("-" * 60)
         e, w = len(self.errors), len(self.warnings)
         i = len([f for f in self.findings if f.severity == "info"])
-        lines.append(
-            f"  Summary: {e} error(s), {w} warning(s), {i} info"
-        )
+        lines.append(f"  Summary: {e} error(s), {w} warning(s), {i} info")
 
         if strict and (e or w):
             lines.append("  Result: FAIL (strict mode)")
@@ -138,6 +164,7 @@ class CheckReport:
 
 # -------------------- Loader --------------------
 
+
 def _load_agent_yaml(path: Path) -> dict[str, Any]:
     try:
         import yaml
@@ -149,16 +176,16 @@ def _load_agent_yaml(path: Path) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8")
     data = yaml.safe_load(text)
     if not isinstance(data, dict):
-        raise ValueError(
-            f"agent.yaml must be a mapping at top level, got {type(data).__name__}"
-        )
+        raise ValueError(f"agent.yaml must be a mapping at top level, got {type(data).__name__}")
     return data
 
 
 # -------------------- Individual checks --------------------
 
+
 def _check_compliance_markers(
-    spec: dict[str, Any], report: CheckReport,
+    spec: dict[str, Any],
+    report: CheckReport,
 ) -> set[str]:
     """Verify at least one compliance marker. Returns marker types found."""
     compliance = spec.get("compliance", [])
@@ -166,7 +193,8 @@ def _check_compliance_markers(
 
     if not compliance:
         report.add(
-            "error", "C001",
+            "error",
+            "C001",
             "no 'compliance:' section found — agents touching Indian "
             "user data must declare DPDP / RBI markers",
             location="root",
@@ -175,7 +203,8 @@ def _check_compliance_markers(
 
     if not isinstance(compliance, list):
         report.add(
-            "error", "C002",
+            "error",
+            "C002",
             "'compliance:' must be a list of marker objects",
             location="compliance",
         )
@@ -184,7 +213,8 @@ def _check_compliance_markers(
     for idx, marker in enumerate(compliance):
         if not isinstance(marker, dict):
             report.add(
-                "error", "C003",
+                "error",
+                "C003",
                 f"compliance entry #{idx} must be a mapping",
                 location=f"compliance[{idx}]",
             )
@@ -195,7 +225,8 @@ def _check_compliance_markers(
 
         if not name:
             report.add(
-                "warning", "C004",
+                "warning",
+                "C004",
                 f"compliance entry #{idx} missing 'name'",
                 location=f"compliance[{idx}]",
             )
@@ -211,7 +242,8 @@ def _check_compliance_markers(
 
     if "dpdp" not in found_kinds:
         report.add(
-            "error", "C005",
+            "error",
+            "C005",
             "no DPDP marker found — declare at least one DPDP_Act_2023 "
             "section if you process personal data of Indian residents",
             location="compliance",
@@ -221,7 +253,9 @@ def _check_compliance_markers(
 
 
 def _check_sector_requirements(
-    spec: dict[str, Any], found_kinds: set[str], report: CheckReport,
+    spec: dict[str, Any],
+    found_kinds: set[str],
+    report: CheckReport,
 ) -> None:
     """Verify sector-specific compliance markers."""
     sector = str(spec.get("sector", "")).strip().lower()
@@ -229,30 +263,37 @@ def _check_sector_requirements(
     if sector == "financial":
         if "rbi" not in found_kinds:
             report.add(
-                "error", "C010",
+                "error",
+                "C010",
                 "sector=financial requires at least one RBI marker "
                 "(MD-NBFC-D, PA-PG-2024, MD-KYC, etc.)",
                 location="compliance",
             )
         if "pmla" not in found_kinds:
             report.add(
-                "warning", "C011",
-                "sector=financial typically also requires PMLA Rule 9 "
-                "CDD marker",
+                "warning",
+                "C011",
+                "sector=financial typically also requires PMLA Rule 9 CDD marker",
                 location="compliance",
             )
     elif sector and sector not in {
-        "general", "education", "retail", "healthcare", "legaltech",
+        "general",
+        "education",
+        "retail",
+        "healthcare",
+        "legaltech",
     }:
         report.add(
-            "info", "C012",
+            "info",
+            "C012",
             f"sector='{sector}' is non-standard — verify required markers",
             location="sector",
         )
 
 
 def _check_tenant_parameterization(
-    spec: dict[str, Any], report: CheckReport,
+    spec: dict[str, Any],
+    report: CheckReport,
 ) -> None:
     """``tenant_id`` should be templated/parameterized, not a hardcoded literal."""
     tenant = spec.get("tenant_id")
@@ -264,23 +305,25 @@ def _check_tenant_parameterization(
 
     if tenant is None:
         report.add(
-            "warning", "C020",
-            "no 'tenant_id' found — multi-tenant agents must scope "
-            "data by tenant",
+            "warning",
+            "C020",
+            "no 'tenant_id' found — multi-tenant agents must scope data by tenant",
             location="root",
         )
         return
 
     tenant_str = str(tenant)
-    is_template = (
-        "{{" in tenant_str or "${" in tenant_str
-        or tenant_str.startswith("$")
-    )
+    is_template = "{{" in tenant_str or "${" in tenant_str or tenant_str.startswith("$")
     if not is_template and tenant_str.lower() in {
-        "default", "demo", "test", "production", "prod",
+        "default",
+        "demo",
+        "test",
+        "production",
+        "prod",
     }:
         report.add(
-            "warning", "C021",
+            "warning",
+            "C021",
             f"tenant_id='{tenant_str}' looks hardcoded — use a template "
             "like '{{ env.TENANT_ID }}' for multi-tenant deploys",
             location="tenant_id",
@@ -288,15 +331,16 @@ def _check_tenant_parameterization(
 
 
 def _check_audit_enabled(
-    spec: dict[str, Any], report: CheckReport,
+    spec: dict[str, Any],
+    report: CheckReport,
 ) -> None:
     """Audit log must be enabled for production."""
     audit = spec.get("audit")
     if audit is None:
         report.add(
-            "error", "C030",
-            "no 'audit:' section — production agents require hash-chain "
-            "audit logging",
+            "error",
+            "C030",
+            "no 'audit:' section — production agents require hash-chain audit logging",
             location="root",
         )
         return
@@ -304,28 +348,32 @@ def _check_audit_enabled(
     if isinstance(audit, dict):
         if audit.get("enabled") is False:
             report.add(
-                "error", "C031",
+                "error",
+                "C031",
                 "audit.enabled=false — must be true for production",
                 location="audit.enabled",
             )
         retention = audit.get("retention_days")
         if retention is not None and retention < 2555:  # 7 years
             report.add(
-                "warning", "C032",
+                "warning",
+                "C032",
                 f"audit.retention_days={retention} is below RBI's "
                 f"8-year (2920 days) recommendation",
                 location="audit.retention_days",
             )
     elif audit is False:
         report.add(
-            "error", "C031",
+            "error",
+            "C031",
             "audit=false — must be enabled for production",
             location="audit",
         )
 
 
 def _check_pii_tools_have_purpose(
-    spec: dict[str, Any], report: CheckReport,
+    spec: dict[str, Any],
+    report: CheckReport,
 ) -> None:
     """If the agent uses Indian PII tools, every such tool must declare purpose+lawful_basis."""
     tools = spec.get("tools", [])
@@ -339,22 +387,23 @@ def _check_pii_tools_have_purpose(
         if any(p in tool_name for p in PII_TOOLS):
             if not t.get("purpose"):
                 report.add(
-                    "error", "C040",
-                    f"PII tool '{tool_name}' must declare 'purpose' "
-                    "(DPDP §6 explicit purpose)",
+                    "error",
+                    "C040",
+                    f"PII tool '{tool_name}' must declare 'purpose' (DPDP §6 explicit purpose)",
                     location=f"tools[{idx}]",
                 )
             if not t.get("lawful_basis"):
                 report.add(
-                    "error", "C041",
-                    f"PII tool '{tool_name}' must declare 'lawful_basis' "
-                    "(DPDP §7)",
+                    "error",
+                    "C041",
+                    f"PII tool '{tool_name}' must declare 'lawful_basis' (DPDP §7)",
                     location=f"tools[{idx}]",
                 )
 
 
 def _check_llm_residency(
-    spec: dict[str, Any], report: CheckReport,
+    spec: dict[str, Any],
+    report: CheckReport,
 ) -> None:
     """Reject China-hosted LLM providers when sector=financial."""
     sector = str(spec.get("sector", "")).strip().lower()
@@ -367,14 +416,16 @@ def _check_llm_residency(
     if provider in CHINA_HOSTED:
         if sector == "financial":
             report.add(
-                "error", "C050",
+                "error",
+                "C050",
                 f"model='{model}' uses China-hosted provider '{provider}' "
                 "— violates India residency for financial sector",
                 location="model",
             )
         else:
             report.add(
-                "warning", "C051",
+                "warning",
+                "C051",
                 f"model='{model}' uses China-hosted provider '{provider}'"
                 " — consider data residency implications",
                 location="model",
@@ -383,13 +434,12 @@ def _check_llm_residency(
     # Bedrock must be Mumbai region for India deploys
     if provider == "bedrock":
         region = (
-            spec.get("region")
-            or spec.get("aws_region")
-            or spec.get("llm", {}).get("region", "")
+            spec.get("region") or spec.get("aws_region") or spec.get("llm", {}).get("region", "")
         )
         if region and region not in ("ap-south-1", "ap-south-2"):
             report.add(
-                "warning", "C052",
+                "warning",
+                "C052",
                 f"Bedrock region='{region}' is not ap-south-1/2 (Mumbai) "
                 "— may violate India residency",
                 location="region",
@@ -397,7 +447,8 @@ def _check_llm_residency(
 
 
 def _check_memory_residency(
-    spec: dict[str, Any], report: CheckReport,
+    spec: dict[str, Any],
+    report: CheckReport,
 ) -> None:
     """Long-term memory backend must be India-resident."""
     memory = spec.get("memory") or {}
@@ -411,17 +462,18 @@ def _check_memory_residency(
     if backend == "postgres":
         host = str(memory.get("host", "")).strip()
         if host and not any(
-            mark in host.lower()
-            for mark in ("mumbai", "ap-south", "in-", ".in", "india")
+            mark in host.lower() for mark in ("mumbai", "ap-south", "in-", ".in", "india")
         ):
             report.add(
-                "warning", "C060",
+                "warning",
+                "C060",
                 f"postgres host='{host}' may not be India-resident — verify",
                 location="memory.host",
             )
 
 
 # -------------------- Top-level runner --------------------
+
 
 def run_compliance_check(
     yaml_path: str | Path,
@@ -459,20 +511,22 @@ def run_compliance_check(
 
 # -------------------- argparse subcommand --------------------
 
+
 def add_compliance_check_parser(sub: argparse._SubParsersAction) -> None:
     """Register the ``compliance-check`` subcommand on a subparsers obj."""
     cc = sub.add_parser(
         "compliance-check",
-        help="Validate DPDP / RBI / PMLA markers in agent.yaml "
-             "before deploy",
+        help="Validate DPDP / RBI / PMLA markers in agent.yaml before deploy",
     )
     cc.add_argument("agent", help="Path to agent.yaml")
     cc.add_argument(
-        "--strict", action="store_true",
+        "--strict",
+        action="store_true",
         help="Treat warnings as failures",
     )
     cc.add_argument(
-        "--sector", default=None,
+        "--sector",
+        default=None,
         help="Override sector ('financial', 'healthcare', etc.)",
     )
     cc.add_argument("--quiet", action="store_true")
@@ -497,8 +551,13 @@ def run_from_args(args: argparse.Namespace) -> int:
 
 
 __all__ = [
-    "Finding", "CheckReport",
-    "run_compliance_check", "run_from_args",
+    "Finding",
+    "CheckReport",
+    "run_compliance_check",
+    "run_from_args",
     "add_compliance_check_parser",
-    "EXIT_OK", "EXIT_FAIL", "EXIT_USAGE", "EXIT_ERROR",
+    "EXIT_OK",
+    "EXIT_FAIL",
+    "EXIT_USAGE",
+    "EXIT_ERROR",
 ]

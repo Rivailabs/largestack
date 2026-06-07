@@ -1,4 +1,5 @@
 """v0.13.0: Tests for eval extensions (similarity + dataset versioning)."""
+
 from __future__ import annotations
 
 import textwrap
@@ -8,6 +9,7 @@ import pytest
 
 
 # -------------------- Dataset versioning --------------------
+
 
 def test_hash_suite_yaml_stable():
     pytest.importorskip("yaml")
@@ -43,14 +45,16 @@ def test_version_suite_from_file(tmp_path):
     from largestack._eval.extensions_v130 import version_suite
 
     p = tmp_path / "suite.yaml"
-    p.write_text(textwrap.dedent("""\
+    p.write_text(
+        textwrap.dedent("""\
         name: my-suite
         cases:
           - name: c1
             input: hi
           - name: c2
             input: bye
-    """))
+    """)
+    )
 
     v = version_suite(p)
     assert v.name == "my-suite"
@@ -61,12 +65,14 @@ def test_version_suite_from_file(tmp_path):
 
 def test_version_suite_missing_file(tmp_path):
     from largestack._eval.extensions_v130 import version_suite
+
     with pytest.raises(FileNotFoundError):
         version_suite(tmp_path / "nope.yaml")
 
 
 def test_short_hash():
     from largestack._eval.extensions_v130 import short_hash
+
     long_hash = "a" * 64
     assert short_hash(long_hash) == "a" * 12
     assert short_hash(long_hash, length=8) == "a" * 8
@@ -74,7 +80,8 @@ def test_short_hash():
 
 def test_enrich_report_adds_version():
     from largestack._eval.extensions_v130 import (
-        enrich_report_with_version, SuiteVersion,
+        enrich_report_with_version,
+        SuiteVersion,
     )
 
     report = {"name": "x", "summary": {}}
@@ -87,12 +94,14 @@ def test_enrich_report_adds_version():
 
 # -------------------- Embedding similarity assertion --------------------
 
+
 @pytest.mark.asyncio
 async def test_similarity_assertion_passes_for_identical():
     from largestack._eval.extensions_v130 import EmbeddingSimilarityAssertion
 
     a = EmbeddingSimilarityAssertion(
-        expected="The user is in Bengaluru", threshold=0.95,
+        expected="The user is in Bengaluru",
+        threshold=0.95,
     )
     passed, sim, reason = await a.evaluate("The user is in Bengaluru")
     assert passed
@@ -104,7 +113,8 @@ async def test_similarity_assertion_fails_for_unrelated():
     from largestack._eval.extensions_v130 import EmbeddingSimilarityAssertion
 
     a = EmbeddingSimilarityAssertion(
-        expected="machine learning research papers", threshold=0.5,
+        expected="machine learning research papers",
+        threshold=0.5,
     )
     passed, sim, reason = await a.evaluate(
         "today's grocery shopping list",
@@ -140,6 +150,7 @@ async def test_similarity_assertion_empty_actual_fails():
 
 # -------------------- parse_assertions --------------------
 
+
 def test_parse_contains_assertion():
     from largestack._eval.extensions_v130 import parse_assertions
 
@@ -156,12 +167,15 @@ def test_parse_equals_assertion():
 
 def test_parse_similarity_assertion_long_form():
     from largestack._eval.extensions_v130 import (
-        parse_assertions, EmbeddingSimilarityAssertion,
+        parse_assertions,
+        EmbeddingSimilarityAssertion,
     )
 
-    assertions = parse_assertions({
-        "similarity": {"expected": "ref text", "threshold": 0.85},
-    })
+    assertions = parse_assertions(
+        {
+            "similarity": {"expected": "ref text", "threshold": 0.85},
+        }
+    )
     assert len(assertions) == 1
     assert isinstance(assertions[0], EmbeddingSimilarityAssertion)
     assert assertions[0].threshold == 0.85
@@ -169,7 +183,8 @@ def test_parse_similarity_assertion_long_form():
 
 def test_parse_similarity_assertion_shorthand():
     from largestack._eval.extensions_v130 import (
-        parse_assertions, EmbeddingSimilarityAssertion,
+        parse_assertions,
+        EmbeddingSimilarityAssertion,
     )
 
     assertions = parse_assertions({"similarity": "ref text"})
@@ -182,8 +197,10 @@ def test_parse_combined_assertions():
     """Multiple assertion types can coexist on a single case."""
     from largestack._eval.extensions_v130 import parse_assertions
 
-    assertions = parse_assertions({
-        "contains": "hello",
-        "similarity": {"expected": "greeting", "threshold": 0.5},
-    })
+    assertions = parse_assertions(
+        {
+            "contains": "hello",
+            "similarity": {"expected": "greeting", "threshold": 0.5},
+        }
+    )
     assert len(assertions) == 2

@@ -8,6 +8,7 @@ finance domains.
 
 API ref: https://docs.voyageai.com/reference/embeddings-api
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -35,8 +36,13 @@ _VALID_MODELS = {
 }
 # Matryoshka dimension support varies by model
 _DIM_SUPPORTED = {
-    "voyage-3-large", "voyage-3.5", "voyage-3.5-lite", "voyage-code-3",
-    "voyage-4-large", "voyage-4", "voyage-4-lite",
+    "voyage-3-large",
+    "voyage-3.5",
+    "voyage-3.5-lite",
+    "voyage-code-3",
+    "voyage-4-large",
+    "voyage-4",
+    "voyage-4-lite",
 }
 _VALID_DIMS = {256, 512, 1024, 2048}
 
@@ -65,10 +71,7 @@ async def voyage_embed(
         JSON string with: ``{"model", "dim", "tokens", "embedding"}``
         OR a plain error string (does not raise so the agent loop survives).
     """
-    api_key = (
-        os.environ.get("LARGESTACK_VOYAGE_API_KEY")
-        or os.environ.get("VOYAGE_API_KEY", "")
-    )
+    api_key = os.environ.get("LARGESTACK_VOYAGE_API_KEY") or os.environ.get("VOYAGE_API_KEY", "")
     if not api_key:
         return "error: LARGESTACK_VOYAGE_API_KEY (or VOYAGE_API_KEY) not set"
     if not text or not isinstance(text, str):
@@ -78,7 +81,7 @@ async def voyage_embed(
     if model not in _VALID_MODELS:
         return f"error: unknown model {model!r}; valid: {sorted(_VALID_MODELS)}"
     if input_type is not None and input_type not in {"query", "document"}:
-        return f"error: input_type must be None, 'query', or 'document'"
+        return "error: input_type must be None, 'query', or 'document'"
     if output_dimension is not None:
         if model not in _DIM_SUPPORTED:
             return f"error: model {model} doesn't support custom dimensions"
@@ -122,14 +125,16 @@ async def voyage_embed(
             return f"error: no embedding returned: {data}"
         vec = items[0].get("embedding") or []
         if not vec:
-            return f"error: empty embedding in response"
+            return "error: empty embedding in response"
         tokens = data.get("usage", {}).get("total_tokens", 0)
     except (KeyError, IndexError, TypeError) as e:
         return f"error: malformed Voyage response: {e}"
 
-    return json.dumps({
-        "model": model,
-        "dim": len(vec),
-        "tokens": tokens,
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec),
+            "tokens": tokens,
+            "embedding": vec,
+        }
+    )

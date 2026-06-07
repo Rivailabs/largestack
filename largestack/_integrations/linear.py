@@ -3,6 +3,7 @@
 Auth: env var ``LARGESTACK_LINEAR_API_KEY`` (a Personal API key from Linear
 Settings → API → Personal API keys).
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -92,9 +93,7 @@ async def linear_list_issues(team_key: str = "", limit: int = 20) -> str:
 
     if not nodes:
         return "No issues found."
-    return "\n".join(
-        f"{n['identifier']}  {n['title']}  [{n['state']['name']}]" for n in nodes
-    )
+    return "\n".join(f"{n['identifier']}  {n['title']}  [{n['state']['name']}]" for n in nodes)
 
 
 @tool(timeout=15)

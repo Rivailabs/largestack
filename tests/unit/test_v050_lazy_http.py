@@ -5,6 +5,7 @@ and that the HTTP client is created on first access. This is the Agno
 "10000x faster" trick — but we're honest: the SSL setup still happens,
 just on the first real request.
 """
+
 from __future__ import annotations
 
 import time
@@ -15,6 +16,7 @@ import pytest
 def test_openai_provider_no_eager_http_client():
     """After __init__, the HTTP client must NOT exist yet."""
     from largestack._core.providers.openai_prov import OpenAIProvider
+
     p = OpenAIProvider(api_key="sk-test")
     assert p._client is None, "HTTP client should not be created eagerly"
 
@@ -22,6 +24,7 @@ def test_openai_provider_no_eager_http_client():
 def test_openai_provider_lazy_init_creates_on_access():
     """First access to _c triggers client creation; second access reuses it."""
     from largestack._core.providers.openai_prov import OpenAIProvider
+
     p = OpenAIProvider(api_key="sk-test")
     c1 = p._c
     c2 = p._c
@@ -36,6 +39,7 @@ def test_openai_provider_instantiation_is_fast():
     allow 1000μs (1ms) of headroom for slow CI runners.
     """
     from largestack._core.providers.openai_prov import OpenAIProvider
+
     t0 = time.perf_counter_ns()
     for _ in range(100):
         OpenAIProvider(api_key="sk-test")
@@ -50,6 +54,7 @@ def test_azure_provider_lazy_init_with_correct_headers():
     self._c.headers in __init__, which would defeat the lazy init.
     """
     from largestack._core.providers.azure_prov import AzureOpenAIProvider
+
     p = AzureOpenAIProvider(
         api_key="sk-azure-test",
         endpoint="https://example.openai.azure.com",
@@ -68,6 +73,7 @@ def test_azure_provider_lazy_init_with_correct_headers():
 async def test_openai_provider_aclose_resets_client():
     """aclose() must close the HTTP client and reset state."""
     from largestack._core.providers.openai_prov import OpenAIProvider
+
     p = OpenAIProvider(api_key="sk-test")
     _ = p._c  # trigger init
     assert p._client is not None

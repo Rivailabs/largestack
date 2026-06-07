@@ -4,11 +4,12 @@ Production-grade replacement for local subprocess execution.
 
 Usage:
     from largestack._core.e2b_sandbox import E2BSandbox
-    
+
     sandbox = E2BSandbox(api_key="e2b_...")
     result = await sandbox.run_python("print(2+2)")
     print(result.stdout)  # "4"
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -35,15 +36,17 @@ async def _terminate_process_safely(proc):
     with contextlib.suppress(Exception):
         await asyncio.wait_for(proc.wait(), timeout=2)
 
+
 @dataclass
 class SandboxResult:
     """Result of a sandboxed execution."""
+
     stdout: str = ""
     stderr: str = ""
     exit_code: int = 0
     error: str | None = None
     artifacts: list[dict] = None
-    
+
     def __post_init__(self):
         if self.artifacts is None:
             self.artifacts = []
@@ -51,37 +54,40 @@ class SandboxResult:
 
 class E2BSandbox:
     """E2B-backed Python execution sandbox.
-    
+
     Falls back to local subprocess if E2B not installed (with warning).
     """
-    
+
     def __init__(self, api_key: str | None = None, template: str = "code-interpreter-v1"):
-        self.api_key = api_key or os.environ.get("E2B_API_KEY") or os.environ.get("LARGESTACK_E2B_API_KEY")
+        self.api_key = (
+            api_key or os.environ.get("E2B_API_KEY") or os.environ.get("LARGESTACK_E2B_API_KEY")
+        )
         self.template = template
         self._sandbox = None
         self._available = False
         try:
             from e2b_code_interpreter import Sandbox
+
             self._Sandbox = Sandbox
             self._available = True
         except ImportError:
             log.warning("e2b-code-interpreter not installed. pip install e2b-code-interpreter")
-    
+
     async def __aenter__(self):
         if self._available and self.api_key:
             self._sandbox = self._Sandbox.create(api_key=self.api_key, template=self.template)
         return self
-    
+
     async def __aexit__(self, *args):
         if self._sandbox:
             self._sandbox.kill()
-    
+
     async def run_python(self, code: str, timeout: int = 30) -> SandboxResult:
         """Execute Python in isolated sandbox."""
         if self._available and self.api_key:
             return await self._run_e2b(code, timeout)
         return await self._run_local(code, timeout)
-    
+
     async def _run_e2b(self, code: str, timeout: int) -> SandboxResult:
         try:
             if not self._sandbox:
@@ -96,7 +102,7 @@ class E2BSandbox:
         except Exception as e:
             log.error(f"E2B execution failed: {e}")
             return SandboxResult(error=str(e), exit_code=1)
-    
+
     async def _run_local(self, code: str, timeout: int) -> SandboxResult:
         """Local fallback (less secure).
 
@@ -169,7 +175,7 @@ class E2BSandbox:
                     os.unlink(path)
                 except OSError:
                     pass
-    
+
     @property
     def available(self) -> bool:
         return self._available and bool(self.api_key)

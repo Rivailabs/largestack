@@ -11,6 +11,7 @@ to assess each project. It is intentionally strict about classification:
 The generated projects are deliberately small, because the Jarvis capstone
 showed that giant one-shot autonomous builds are slow and brittle.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -42,7 +43,9 @@ from largestack.observability import Monitor
 
 
 MODEL = "deepseek/deepseek-chat"
-RUN_ID = os.environ.get("LARGESTACK_REAL_PROJECTS_RUN_ID") or datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+RUN_ID = os.environ.get("LARGESTACK_REAL_PROJECTS_RUN_ID") or datetime.now(timezone.utc).strftime(
+    "%Y%m%d-%H%M%S"
+)
 OUTDIR = ROOT / "release_evidence" / "real_projects_capstone" / RUN_ID
 PROJECTS_DIR = OUTDIR / "projects"
 
@@ -81,7 +84,16 @@ def run_cmd(cmd: list[str], cwd: Path, timeout: int = 60) -> dict[str, Any]:
     env = dict(os.environ)
     env["PYTHONPATH"] = str(cwd)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
-    p = subprocess.run(cmd, cwd=cwd, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=timeout, check=False)
+    p = subprocess.run(
+        cmd,
+        cwd=cwd,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        timeout=timeout,
+        check=False,
+    )
     return {"returncode": p.returncode, "stdout": p.stdout[-5000:]}
 
 
@@ -122,7 +134,9 @@ def safe_review_text(text: str) -> str:
 
 
 def create_jarvis_core(path: Path) -> list[str]:
-    write(path / "jarvis_core.py", r'''
+    write(
+        path / "jarvis_core.py",
+        r"""
 import json
 import sqlite3
 from pathlib import Path
@@ -161,8 +175,11 @@ class JarvisCore:
                 con.execute("insert into approvals(action,payload,status) values (?,?,?)", (action, json.dumps(payload), "pending"))
             return {"decision": "require_approval", "executed": False}
         return {"decision": "allow", "executed": True}
-''')
-    write(path / "tests" / "test_jarvis_core.py", r'''
+""",
+    )
+    write(
+        path / "tests" / "test_jarvis_core.py",
+        r"""
 from jarvis_core import JarvisCore
 
 def test_memory_and_planning(tmp_path):
@@ -175,12 +192,15 @@ def test_risky_action_requires_approval(tmp_path):
     j = JarvisCore(tmp_path / "m.sqlite")
     decision = j.decide_tool("send_email", {"to": "x@example.com"})
     assert decision == {"decision": "require_approval", "executed": False}
-''')
+""",
+    )
     return ["persistent sqlite memory", "approval queue", "daily planner"]
 
 
 def create_support_ticket_api(path: Path) -> list[str]:
-    write(path / "support_ticket.py", r'''
+    write(
+        path / "support_ticket.py",
+        r"""
 RISKY_CATEGORIES = {"refund", "billing", "security", "data"}
 SOPS = {
     "refund": "Check duplicate payment and require approval before refund.",
@@ -205,8 +225,11 @@ def handle_ticket(text):
         "approval_required": category in RISKY_CATEGORIES,
         "response": f"We classified this as {category}. Next step: {SOPS.get(category, SOPS['general'])}",
     }
-''')
-    write(path / "tests" / "test_support_ticket.py", r'''
+""",
+    )
+    write(
+        path / "tests" / "test_support_ticket.py",
+        r"""
 from support_ticket import handle_ticket
 
 def test_refund_requires_approval():
@@ -217,14 +240,23 @@ def test_refund_requires_approval():
 def test_login_safe_response():
     r = handle_ticket("login reset not working")
     assert "Verify identity" in r["response"]
-''')
+""",
+    )
     return ["classification", "SOP lookup", "approval gating"]
 
 
 def create_rag_assistant(path: Path) -> list[str]:
-    write(path / "docs" / "refund_policy.md", "Refunds within 14 days are eligible. Duplicate payments require approval before refund.")
-    write(path / "docs" / "security_policy.md", "API keys must be rotated after suspicious access. Never send secrets externally.")
-    write(path / "rag_assistant.py", r'''
+    write(
+        path / "docs" / "refund_policy.md",
+        "Refunds within 14 days are eligible. Duplicate payments require approval before refund.",
+    )
+    write(
+        path / "docs" / "security_policy.md",
+        "API keys must be rotated after suspicious access. Never send secrets externally.",
+    )
+    write(
+        path / "rag_assistant.py",
+        r"""
 from pathlib import Path
 import re
 
@@ -247,8 +279,11 @@ def answer(query, docs_dir="docs"):
     if not hits:
         return {"answer": "Insufficient evidence in provided documents.", "citations": []}
     return {"answer": hits[0]["text"], "citations": [h["source"] for h in hits]}
-''')
-    write(path / "tests" / "test_rag_assistant.py", r'''
+""",
+    )
+    write(
+        path / "tests" / "test_rag_assistant.py",
+        r"""
 from rag_assistant import answer
 
 def test_grounded_answer_with_citation():
@@ -259,27 +294,36 @@ def test_grounded_answer_with_citation():
 def test_unknown_refuses():
     r = answer("equity refresh policy", "docs")
     assert "Insufficient evidence" in r["answer"]
-''')
+""",
+    )
     return ["local docs", "retrieval", "citations", "insufficient evidence"]
 
 
 def create_website_builder(path: Path) -> list[str]:
     html = """<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>AI Security Gateway</title></head><body><main><section id='hero'><h1>AI Security Gateway</h1><p>Enterprise approval-safe automation.</p><a href='#contact'>Request demo</a></section><section id='trust'><h2>Trust</h2><p>Guardrails, audit logs, and HITL approvals.</p></section><section id='features'><h2>Features</h2><ul><li>RAG</li><li>Monitoring</li><li>Approval workflows</li></ul></section></main></body></html>"""
     write(path / "index.html", html)
-    write(path / "README.md", "# AI Security Gateway Website\n\nStatic generated site with hero, trust, features, and CTA.\n")
-    write(path / "tests" / "test_static.py", r'''
+    write(
+        path / "README.md",
+        "# AI Security Gateway Website\n\nStatic generated site with hero, trust, features, and CTA.\n",
+    )
+    write(
+        path / "tests" / "test_static.py",
+        r"""
 from pathlib import Path
 
 def test_site_has_required_sections():
     html = Path("index.html").read_text()
     for item in ["AI Security Gateway", "hero", "trust", "Request demo"]:
         assert item in html
-''')
+""",
+    )
     return ["real HTML", "static validation"]
 
 
 def create_app_builder(path: Path) -> list[str]:
-    write(path / "backend" / "app.py", r'''
+    write(
+        path / "backend" / "app.py",
+        r"""
 TASKS = []
 
 def create_task(title, owner="user"):
@@ -294,9 +338,15 @@ def list_tasks(owner=None):
 
 def health():
     return {"status": "ok", "tasks": len(TASKS)}
-''')
-    write(path / "frontend" / "index.html", "<!doctype html><h1>Task Manager</h1><form><input name='title'><button>Add</button></form>")
-    write(path / "tests" / "test_app.py", r'''
+""",
+    )
+    write(
+        path / "frontend" / "index.html",
+        "<!doctype html><h1>Task Manager</h1><form><input name='title'><button>Add</button></form>",
+    )
+    write(
+        path / "tests" / "test_app.py",
+        r"""
 from backend.app import create_task, list_tasks, health
 
 def test_create_and_list_task():
@@ -305,12 +355,15 @@ def test_create_and_list_task():
     assert task["id"] >= 1
     assert len(list_tasks("qa")) >= 1
     assert health()["tasks"] == before + 1
-''')
+""",
+    )
     return ["backend module", "frontend shell", "tests"]
 
 
 def create_resume_builder(path: Path) -> list[str]:
-    write(path / "resume_builder.py", r'''
+    write(
+        path / "resume_builder.py",
+        r"""
 KEYWORDS = {
     "data analyst": ["SQL", "Excel", "dashboards", "statistics"],
     "devops engineer": ["CI/CD", "Docker", "monitoring", "automation"],
@@ -326,8 +379,11 @@ def build_resume(profile):
     else:
         lines.append("- No employment history provided; do not fabricate employers.")
     return "\n".join(lines), {"ats_score": min(95, 60 + len(keywords) * 7), "keywords": keywords}
-''')
-    write(path / "tests" / "test_resume_builder.py", r'''
+""",
+    )
+    write(
+        path / "tests" / "test_resume_builder.py",
+        r"""
 from resume_builder import build_resume
 
 def test_no_fabrication():
@@ -335,12 +391,15 @@ def test_no_fabrication():
     assert "do not fabricate" in md
     assert "SQL" in md
     assert meta["ats_score"] > 0
-''')
+""",
+    )
     return ["resume markdown", "ATS estimate", "no fabrication"]
 
 
 def create_hr_interview(path: Path) -> list[str]:
-    write(path / "hr_interview.py", r'''
+    write(
+        path / "hr_interview.py",
+        r"""
 def generate_questions(role):
     return [f"Describe a {role} project.", "How do you handle ambiguity?", "Describe a quality or security tradeoff."]
 
@@ -348,8 +407,11 @@ def score_answer(answer):
     rubric = {"technical": 40, "communication": 30, "judgment": 30}
     score = 80 if len(answer.split()) > 6 else 55
     return {"rubric": rubric, "score": score, "recommendation": "recommend for next round; final hiring requires human approval", "fairness_warning": True}
-''')
-    write(path / "tests" / "test_hr_interview.py", r'''
+""",
+    )
+    write(
+        path / "tests" / "test_hr_interview.py",
+        r"""
 from hr_interview import generate_questions, score_answer
 
 def test_hr_requires_human_final():
@@ -357,12 +419,15 @@ def test_hr_requires_human_final():
     r = score_answer("I tested APIs, documented risks, and improved automation.")
     assert "next round" in r["recommendation"]
     assert r["fairness_warning"] is True
-''')
+""",
+    )
     return ["questions", "rubric", "fairness", "human final approval"]
 
 
 def create_code_reviewer(path: Path) -> list[str]:
-    write(path / "code_reviewer.py", r'''
+    write(
+        path / "code_reviewer.py",
+        r"""
 def find_issues(source):
     issues = []
     if "password = '" in source.lower() or 'password = "' in source.lower():
@@ -373,20 +438,26 @@ def find_issues(source):
 
 def patch_secret(source):
     return source.replace("PASSWORD = 'changeme'", "PASSWORD_ENV = 'APP_PASSWORD'\nPASSWORD = ''")
-''')
-    write(path / "tests" / "test_code_reviewer.py", r'''
+""",
+    )
+    write(
+        path / "tests" / "test_code_reviewer.py",
+        r"""
 from code_reviewer import find_issues, patch_secret
 
 def test_detect_and_patch_secret():
     src = "PASSWORD = 'changeme'"
     assert "hardcoded_secret" in find_issues("password = 'changeme'")
     assert "APP_PASSWORD" in patch_secret(src)
-''')
+""",
+    )
     return ["scanner", "patcher", "security issue detection"]
 
 
 def create_ml_automation(path: Path) -> list[str]:
-    write(path / "ml_automation.py", r'''
+    write(
+        path / "ml_automation.py",
+        r"""
 import csv
 import statistics
 
@@ -407,8 +478,11 @@ def baseline(rows, target):
         return {"task": task, "mae": statistics.mean(abs(v - pred) for v in nums)}
     majority = max(set(vals), key=vals.count)
     return {"task": task, "accuracy": sum(v == majority for v in vals) / len(vals)}
-''')
-    write(path / "tests" / "test_ml_automation.py", r'''
+""",
+    )
+    write(
+        path / "tests" / "test_ml_automation.py",
+        r"""
 from ml_automation import baseline
 
 def test_classification_baseline():
@@ -416,12 +490,15 @@ def test_classification_baseline():
     r = baseline(rows, "label")
     assert r["task"] == "classification"
     assert "accuracy" in r
-''')
+""",
+    )
     return ["task detection", "baseline metrics"]
 
 
 def create_video_social(path: Path) -> list[str]:
-    write(path / "video_social.py", r'''
+    write(
+        path / "video_social.py",
+        r"""
 def make_script(prompt):
     return {"script": f"Hook: {prompt}. Demo the workflow. End with approval-safe CTA.", "storyboard": ["hook", "demo", "cta"]}
 
@@ -430,15 +507,19 @@ def route_model(prompt):
 
 def publish_decision():
     return {"decision": "require_approval", "executed": False}
-''')
-    write(path / "tests" / "test_video_social.py", r'''
+""",
+    )
+    write(
+        path / "tests" / "test_video_social.py",
+        r"""
 from video_social import make_script, route_model, publish_decision
 
 def test_video_pipeline_requires_publish_approval():
     assert len(make_script("product short")["storyboard"]) == 3
     assert route_model("instagram reel") == "mock-video-fast"
     assert publish_decision()["executed"] is False
-''')
+""",
+    )
     return ["script", "storyboard", "model route", "publish approval"]
 
 
@@ -456,7 +537,9 @@ CREATORS = {
 }
 
 
-async def review_project(agent: Agent, name: str, project: Path, features: list[str], validation: str) -> Any:
+async def review_project(
+    agent: Agent, name: str, project: Path, features: list[str], validation: str
+) -> Any:
     files = []
     for p in sorted(project.rglob("*")):
         if p.is_file() and p.suffix in {".py", ".md", ".html"}:
@@ -537,7 +620,9 @@ async def main_async() -> int:
             results.append(result)
             write_json(OUTDIR / f"{name}.json", asdict(result))
             write(OUTDIR / f"{name}.md", project_markdown(result))
-            print(f"[{len(results):02d}] {'PASS' if passed else 'FAIL'} {name} tokens={review.total_tokens}")
+            print(
+                f"[{len(results):02d}] {'PASS' if passed else 'FAIL'} {name} tokens={review.total_tokens}"
+            )
     finally:
         await reviewer.aclose()
 
@@ -577,8 +662,14 @@ def generic_missing_for(name: str) -> list[str]:
         "no production deployment hardening",
     ]
     specific = {
-        "jarvis_core": ["memory is sqlite prototype, not multi-tenant encrypted memory", "HITL queue has no UI"],
-        "rag_assistant": ["keyword retrieval, not vector DB or hybrid search", "no document parser pipeline for PDF/DOCX"],
+        "jarvis_core": [
+            "memory is sqlite prototype, not multi-tenant encrypted memory",
+            "HITL queue has no UI",
+        ],
+        "rag_assistant": [
+            "keyword retrieval, not vector DB or hybrid search",
+            "no document parser pipeline for PDF/DOCX",
+        ],
         "website_builder": ["static validation only, no browser screenshot/a11y audit"],
         "app_builder": ["stdlib prototype, no real FastAPI/React build"],
         "ml_automation": ["deterministic baseline only, no sklearn model persistence"],
@@ -627,7 +718,9 @@ def summary_markdown(summary: dict[str, Any]) -> str:
         "## Project Results",
     ]
     for item in summary["projects"]:
-        lines.append(f"- `{'PASS' if item['passed'] else 'FAIL'}` {item['name']} -> `{item['project_path']}`")
+        lines.append(
+            f"- `{'PASS' if item['passed'] else 'FAIL'}` {item['name']} -> `{item['project_path']}`"
+        )
     lines.extend(["", "## Still Missing Or Weak"])
     lines.extend(f"- {m}" for m in summary["missing_or_weak"])
     lines.extend(

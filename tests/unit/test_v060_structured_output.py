@@ -3,6 +3,7 @@
 Tests both the validator subset (no jsonschema dep) and the auto-retry
 ``parse_with_retry`` flow.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -16,6 +17,7 @@ from largestack._core.structured_output import (
 
 
 # -------------------- Validator --------------------
+
 
 def test_validate_simple_object_ok():
     schema = {
@@ -96,9 +98,7 @@ def test_validate_additional_properties_false():
         "properties": {"name": {"type": "string"}},
         "additionalProperties": False,
     }
-    ok, errors = validate_json_against_schema(
-        {"name": "x", "extra": 1}, schema
-    )
+    ok, errors = validate_json_against_schema({"name": "x", "extra": 1}, schema)
     assert ok is False
     assert any("unexpected field 'extra'" in e for e in errors)
 
@@ -123,6 +123,7 @@ def test_validate_nested_object():
 
 # -------------------- Code fence stripping --------------------
 
+
 def test_strip_code_fences_with_json_lang():
     text = '```json\n{"a": 1}\n```'
     assert _strip_code_fences(text) == '{"a": 1}'
@@ -139,6 +140,7 @@ def test_strip_code_fences_plain_fence():
 
 # -------------------- parse_with_retry --------------------
 
+
 class _MockAgent:
     """Minimal agent stub that returns a sequence of preset responses."""
 
@@ -152,6 +154,7 @@ class _MockAgent:
 
         class _R:
             content = text
+
         return _R()
 
 
@@ -171,10 +174,12 @@ async def test_parse_with_retry_succeeds_first_try():
 @pytest.mark.asyncio
 async def test_parse_with_retry_recovers_from_bad_json():
     """First attempt returns broken JSON, second attempt is clean."""
-    agent = _MockAgent([
-        "not valid json at all",
-        '{"name": "alice", "age": 30}',
-    ])
+    agent = _MockAgent(
+        [
+            "not valid json at all",
+            '{"name": "alice", "age": 30}',
+        ]
+    )
     schema = {
         "type": "object",
         "properties": {"name": {"type": "string"}, "age": {"type": "integer"}},
@@ -190,10 +195,12 @@ async def test_parse_with_retry_recovers_from_bad_json():
 @pytest.mark.asyncio
 async def test_parse_with_retry_recovers_from_schema_violation():
     """First attempt parses but violates schema, second attempt is correct."""
-    agent = _MockAgent([
-        '{"name": "alice"}',  # missing age
-        '{"name": "alice", "age": 30}',
-    ])
+    agent = _MockAgent(
+        [
+            '{"name": "alice"}',  # missing age
+            '{"name": "alice", "age": 30}',
+        ]
+    )
     schema = {
         "type": "object",
         "properties": {"name": {"type": "string"}, "age": {"type": "integer"}},
@@ -245,6 +252,7 @@ async def test_parse_with_retry_forwards_kwargs():
 
             class _R:
                 content = "{}"
+
             return _R()
 
     schema = {"type": "object"}

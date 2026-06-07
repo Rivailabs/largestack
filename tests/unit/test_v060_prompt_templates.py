@@ -1,4 +1,5 @@
 """v0.6.0: Prompt template system tests."""
+
 from __future__ import annotations
 
 import json
@@ -10,6 +11,7 @@ from largestack._core.prompt_templates import PromptRegistry, PromptTemplateErro
 
 
 # -------------------- Registration --------------------
+
 
 def test_register_and_render_simple_template():
     reg = PromptRegistry()
@@ -67,6 +69,7 @@ def test_list_versions_and_templates():
 
 # -------------------- Rendering --------------------
 
+
 def test_render_explicit_version_pins_correctly():
     reg = PromptRegistry()
     reg.register("greet", "Hello {who} v1", version="v1")
@@ -119,6 +122,7 @@ def test_render_handles_user_var_named_version():
 
 # -------------------- A/B split --------------------
 
+
 def test_render_with_split_picks_only_v1_at_100_percent():
     """Deterministic with rng — full weight on v1 always picks v1."""
     reg = PromptRegistry()
@@ -168,6 +172,7 @@ def test_render_with_split_returns_version_used():
 
 # -------------------- Usage counters --------------------
 
+
 def test_usage_counts_track_renders():
     reg = PromptRegistry()
     reg.register("g", "X", version="v1")
@@ -186,6 +191,7 @@ def test_usage_counts_unknown_template_returns_empty():
 
 
 # -------------------- Persistence --------------------
+
 
 def test_persist_to_disk_and_reload(tmp_path):
     path = str(tmp_path / "prompts.json")

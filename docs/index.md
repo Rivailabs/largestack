@@ -40,4 +40,6 @@ SaaS or regulated-enterprise claims.
 - [Tool Concepts](concepts/tools.md)
 - [Workflow Concepts](concepts/workflows.md)
 - [Guardrails](concepts/guardrails.md)
-- [API Reference](api/agent.md)
+- [API Reference](api_reference.md)
+- [CLI Reference](cli-reference.md)
+- [Secure RAG Agent](guides/secure_rag.md)

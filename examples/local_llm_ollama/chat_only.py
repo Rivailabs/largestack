@@ -12,6 +12,7 @@ Setup:
   export # no API key needed for local Ollama
   python chat_only.py
 """
+
 from __future__ import annotations
 import asyncio
 import os
@@ -21,7 +22,7 @@ from largestack import Agent
 
 async def main():
     os.environ.setdefault("LARGESTACK_OLLAMA_BASE_URL", "http://localhost:11434")
-    
+
     agent = Agent(
         name="local-chat",
         instructions="You are a concise assistant. Reply in 1-3 sentences.",

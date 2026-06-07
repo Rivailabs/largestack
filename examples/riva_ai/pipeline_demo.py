@@ -17,6 +17,7 @@ Models the actual RIVA AI v5.0 architecture from Sachith's portfolio:
 Runs end-to-end on LARGESTACK, emits a single self-contained HTML showing the
 pipeline graph, audit timeline, memory state, and India-compliance markers.
 """
+
 from __future__ import annotations
 import asyncio
 import time
@@ -25,7 +26,11 @@ from pathlib import Path
 from largestack import Agent, Workflow, tool, create_guardrails
 from largestack.testing import TestModel
 from largestack._studio import (
-    StudioBuilder, NodeSpec, EdgeSpec, MemorySnapshot, ComplianceMarker,
+    StudioBuilder,
+    NodeSpec,
+    EdgeSpec,
+    MemorySnapshot,
+    ComplianceMarker,
 )
 from largestack._integrations.litellm_bridge import FallbackRouter, ProviderRoute
 
@@ -33,6 +38,7 @@ from largestack._integrations.litellm_bridge import FallbackRouter, ProviderRout
 # ============================================================
 # RIVA AI tools — 21-layer validation pipeline
 # ============================================================
+
 
 @tool
 def riva_intake(request_text: str, mode: str = "build_for_me") -> dict:
@@ -73,8 +79,7 @@ def riva_hybrid_rag(query: str, top_k: int = 5) -> dict:
         "vector_hits": 8,
         "bm25_hits": 12,
         "fused_top_k": top_k,
-        "sources": ["RBI_MD-NBFC-D.pdf", "DPDP_Act_2023.pdf",
-                    "PMLA_Rule_9.pdf"],
+        "sources": ["RBI_MD-NBFC-D.pdf", "DPDP_Act_2023.pdf", "PMLA_Rule_9.pdf"],
     }
 
 
@@ -123,6 +128,7 @@ def riva_eval_score(reference: str, generated: str) -> dict:
 # RIVA AI agents — 15-agent crew
 # ============================================================
 
+
 def make_intake_agent():
     return Agent(
         name="riva-intake",
@@ -157,21 +163,25 @@ def make_kyc_specialist():
     # In production this uses the FallbackRouter for compliance-grade
     # India-residency LLM routing
     from largestack._integrations.litellm_bridge import LiteLLMProvider
-    router = FallbackRouter([
-        ProviderRoute(
-            provider=LiteLLMProvider(
-                model="bedrock/anthropic.claude-3-haiku-20240307-v1:0",
-                region="ap-south-1",
+
+    router = FallbackRouter(
+        [
+            ProviderRoute(
+                provider=LiteLLMProvider(
+                    model="bedrock/anthropic.claude-3-haiku-20240307-v1:0",
+                    region="ap-south-1",
+                ),
+                label="bedrock-mumbai",
             ),
-            label="bedrock-mumbai",
-        ),
-        ProviderRoute(
-            provider=LiteLLMProvider(
-                model="azure/gpt-4o-mini", region="centralindia",
+            ProviderRoute(
+                provider=LiteLLMProvider(
+                    model="azure/gpt-4o-mini",
+                    region="centralindia",
+                ),
+                label="azure-india-central",
             ),
-            label="azure-india-central",
-        ),
-    ])
+        ]
+    )
     return Agent(
         name="riva-kyc-specialist",
         instructions=(
@@ -182,11 +192,13 @@ def make_kyc_specialist():
             "Generate the agent code and the agent.yaml."
         ),
         llm=router,
-        tools=[riva_hybrid_rag, riva_llm_call, riva_validate_layer,
-               riva_assemble_output],
+        tools=[riva_hybrid_rag, riva_llm_call, riva_validate_layer, riva_assemble_output],
         guardrails=create_guardrails(
-            pii=True, injection=True, toxicity=True,
-            pii_action="redact", injection_sensitivity="high",
+            pii=True,
+            injection=True,
+            toxicity=True,
+            pii_action="redact",
+            injection_sensitivity="high",
         ),
         cost_budget=0.40,
         max_turns=12,
@@ -225,8 +237,7 @@ def make_billing_agent():
     return Agent(
         name="riva-billing",
         instructions=(
-            "Charge the customer for the completed work via Razorpay. "
-            "Emit hash-chain audit event."
+            "Charge the customer for the completed work via Razorpay. Emit hash-chain audit event."
         ),
         llm="openai/gpt-4o-mini",
         tools=[riva_razorpay_charge, riva_audit_emit],
@@ -238,6 +249,7 @@ def make_billing_agent():
 # ============================================================
 # Pipeline runner — exercises the agents and records audit events
 # ============================================================
+
 
 async def run_riva_pipeline(builder: StudioBuilder, request_text: str):
     """Run the full RIVA pipeline and emit Studio audit events for each step."""
@@ -256,11 +268,17 @@ async def run_riva_pipeline(builder: StudioBuilder, request_text: str):
     with intake.override(model=TestModel(call_tools=["riva_intake"])):
         r = await intake.run(request_text)
     builder.add_audit_event(
-        agent="riva-intake", event="intake.classified",
-        payload={"mode": "build_for_me", "intent": "build_kyc_agent_for_nbfc",
-                 "language": "en", "customer_tier": "pro",
-                 "trace_id": r.trace_id[:8]},
-        duration_ms=(time.time()-t0)*1000, tenant_id=tenant,
+        agent="riva-intake",
+        event="intake.classified",
+        payload={
+            "mode": "build_for_me",
+            "intent": "build_kyc_agent_for_nbfc",
+            "language": "en",
+            "customer_tier": "pro",
+            "trace_id": r.trace_id[:8],
+        },
+        duration_ms=(time.time() - t0) * 1000,
+        tenant_id=tenant,
     )
 
     # Step 2: Router
@@ -268,38 +286,52 @@ async def run_riva_pipeline(builder: StudioBuilder, request_text: str):
     with router.override(model=TestModel(call_tools=["riva_router"])):
         r = await router.run("intent=build_kyc_agent_for_nbfc")
     builder.add_audit_event(
-        agent="riva-router", event="router.selected",
-        payload={"selected": "riva-kyc-specialist", "confidence": 0.94,
-                 "alt_count": 2},
-        duration_ms=(time.time()-t0)*1000, tenant_id=tenant,
+        agent="riva-router",
+        event="router.selected",
+        payload={"selected": "riva-kyc-specialist", "confidence": 0.94, "alt_count": 2},
+        duration_ms=(time.time() - t0) * 1000,
+        tenant_id=tenant,
     )
 
     # Step 3: Hybrid RAG retrieval
     t0 = time.time()
     builder.add_audit_event(
-        agent="riva-rag", event="rag.hybrid_search",
-        payload={"vector_hits": 8, "bm25_hits": 12, "fused_top_k": 5,
-                 "sources": ["RBI_MD-NBFC-D.pdf", "DPDP_Act_2023.pdf",
-                             "PMLA_Rule_9.pdf"]},
-        duration_ms=145.0, tenant_id=tenant,
+        agent="riva-rag",
+        event="rag.hybrid_search",
+        payload={
+            "vector_hits": 8,
+            "bm25_hits": 12,
+            "fused_top_k": 5,
+            "sources": ["RBI_MD-NBFC-D.pdf", "DPDP_Act_2023.pdf", "PMLA_Rule_9.pdf"],
+        },
+        duration_ms=145.0,
+        tenant_id=tenant,
     )
 
     # Step 4: KYC specialist generates the agent
     t0 = time.time()
-    with kyc.override(model=TestModel(
-            call_tools=["riva_validate_layer", "riva_llm_call",
-                        "riva_assemble_output"],
+    with kyc.override(
+        model=TestModel(
+            call_tools=["riva_validate_layer", "riva_llm_call", "riva_assemble_output"],
             custom_output_text=(
-                "Generated NBFC KYC agent: 312 lines Python, "
-                "agent.yaml with DPDP/RBI/PMLA markers."))):
+                "Generated NBFC KYC agent: 312 lines Python, agent.yaml with DPDP/RBI/PMLA markers."
+            ),
+        )
+    ):
         r = await kyc.run("Build me a KYC agent for Sri Rajeshwari NBFC")
     builder.add_audit_event(
-        agent="riva-kyc-specialist", event="specialist.generated",
-        payload={"output_format": "python+yaml", "lines": 312,
-                 "tokens_in": 1820, "tokens_out": 4220,
-                 "cost_usd": 0.0073, "provider": "bedrock-ap-south-1",
-                 "verified": True},
-        duration_ms=(time.time()-t0)*1000 + 1820,  # simulated LLM latency
+        agent="riva-kyc-specialist",
+        event="specialist.generated",
+        payload={
+            "output_format": "python+yaml",
+            "lines": 312,
+            "tokens_in": 1820,
+            "tokens_out": 4220,
+            "cost_usd": 0.0073,
+            "provider": "bedrock-ap-south-1",
+            "verified": True,
+        },
+        duration_ms=(time.time() - t0) * 1000 + 1820,  # simulated LLM latency
         tenant_id=tenant,
     )
 
@@ -313,18 +345,25 @@ async def run_riva_pipeline(builder: StudioBuilder, request_text: str):
     ]
     for layer_num, layer_name, dur, ok in layer_specs:
         builder.add_audit_event(
-            agent="riva-validator", event=f"validation.layer_{layer_num}",
-            payload={"layer": layer_num, "name": layer_name, "passed": ok,
-                     "warnings": []},
-            duration_ms=dur, tenant_id=tenant,
+            agent="riva-validator",
+            event=f"validation.layer_{layer_num}",
+            payload={"layer": layer_num, "name": layer_name, "passed": ok, "warnings": []},
+            duration_ms=dur,
+            tenant_id=tenant,
         )
 
     # One layer with a warning
     builder.add_audit_event(
-        agent="riva-validator", event="validation.layer_15",
-        payload={"layer": 15, "name": "language_consistency", "passed": True,
-                 "warning": "mixed Hindi/English in 2 sections — acceptable"},
-        duration_ms=18.0, tenant_id=tenant,
+        agent="riva-validator",
+        event="validation.layer_15",
+        payload={
+            "layer": 15,
+            "name": "language_consistency",
+            "passed": True,
+            "warning": "mixed Hindi/English in 2 sections — acceptable",
+        },
+        duration_ms=18.0,
+        tenant_id=tenant,
     )
 
     # Step 6: Eval
@@ -332,39 +371,56 @@ async def run_riva_pipeline(builder: StudioBuilder, request_text: str):
     with evaler.override(model=TestModel(call_tools=["riva_eval_score"])):
         r = await evaler.run("evaluate generated output")
     builder.add_audit_event(
-        agent="riva-eval", event="eval.scored",
-        payload={"similarity": 0.91, "rubric_score": 8.4, "passed": True,
-                 "threshold_similarity": 0.85, "threshold_rubric": 7.0},
-        duration_ms=(time.time()-t0)*1000, tenant_id=tenant,
+        agent="riva-eval",
+        event="eval.scored",
+        payload={
+            "similarity": 0.91,
+            "rubric_score": 8.4,
+            "passed": True,
+            "threshold_similarity": 0.85,
+            "threshold_rubric": 7.0,
+        },
+        duration_ms=(time.time() - t0) * 1000,
+        tenant_id=tenant,
     )
 
     # Step 7: Billing (Razorpay)
     t0 = time.time()
-    with billing.override(model=TestModel(
-            call_tools=["riva_razorpay_charge", "riva_audit_emit"])):
+    with billing.override(model=TestModel(call_tools=["riva_razorpay_charge", "riva_audit_emit"])):
         r = await billing.run("charge customer for completed agent build")
     builder.add_audit_event(
-        agent="riva-billing", event="billing.captured",
-        payload={"amount_inr": 4999, "customer_id": tenant,
-                 "payment_id": "pay_QkLm9pXr2N", "status": "captured",
-                 "razorpay_settlement": "T+2"},
-        duration_ms=(time.time()-t0)*1000 + 850,  # Razorpay API latency
+        agent="riva-billing",
+        event="billing.captured",
+        payload={
+            "amount_inr": 4999,
+            "customer_id": tenant,
+            "payment_id": "pay_QkLm9pXr2N",
+            "status": "captured",
+            "razorpay_settlement": "T+2",
+        },
+        duration_ms=(time.time() - t0) * 1000 + 850,  # Razorpay API latency
         tenant_id=tenant,
     )
 
     # Step 8: Final hash-chain audit emit
     builder.add_audit_event(
-        agent="riva-audit", event="audit.chain_sealed",
-        payload={"hash_chain_position": 4127,
-                 "merkle_root": "0x9f4e2c1a8b7d3f0e",
-                 "events_in_run": 14, "tenant": tenant},
-        duration_ms=6.0, tenant_id=tenant,
+        agent="riva-audit",
+        event="audit.chain_sealed",
+        payload={
+            "hash_chain_position": 4127,
+            "merkle_root": "0x9f4e2c1a8b7d3f0e",
+            "events_in_run": 14,
+            "tenant": tenant,
+        },
+        duration_ms=6.0,
+        tenant_id=tenant,
     )
 
 
 # ============================================================
 # Build the visualisation
 # ============================================================
+
 
 def build_studio() -> StudioBuilder:
     b = StudioBuilder(
@@ -379,16 +435,16 @@ def build_studio() -> StudioBuilder:
 
     # ---- Graph nodes ----
     nodes = [
-        ("intake",      "Intake",                "start"),
-        ("router",      "Router",                "agent"),
-        ("rag",         "Hybrid RAG",            "tool"),
-        ("kyc",         "KYC Specialist",        "agent"),
-        ("validator",   "21-Layer Validator",    "agent"),
-        ("eval",        "Eval Agent",            "agent"),
-        ("decision",    "Pass / Fail",           "decision"),
-        ("billing",     "Razorpay Billing",      "tool"),
-        ("audit",       "Hash-Chain Audit",      "tool"),
-        ("ship",        "Deliver Agent",         "end"),
+        ("intake", "Intake", "start"),
+        ("router", "Router", "agent"),
+        ("rag", "Hybrid RAG", "tool"),
+        ("kyc", "KYC Specialist", "agent"),
+        ("validator", "21-Layer Validator", "agent"),
+        ("eval", "Eval Agent", "agent"),
+        ("decision", "Pass / Fail", "decision"),
+        ("billing", "Razorpay Billing", "tool"),
+        ("audit", "Hash-Chain Audit", "tool"),
+        ("ship", "Deliver Agent", "end"),
     ]
     for nid, label, kind in nodes:
         b.add_node(NodeSpec(id=nid, label=label, kind=kind))
@@ -410,35 +466,43 @@ def build_studio() -> StudioBuilder:
         b.add_edge(EdgeSpec(source=s, target=t))
 
     # ---- Memory state (Letta 3-tier, RIVA's persona + customer prefs) ----
-    b.set_memory_snapshot(MemorySnapshot(
-        tenant_id="rivai-customer-srn-nbfc-001",
-        user_id="riva-orchestrator",
-        core_count=3,
-        recall_count=18,
-        archival_count=247,
-        core_block_preview=(
-            "[persona] You are RIVA AI — Real Intelligence, Volitional "
-            "Agents. Tagline: Not just intelligent. Intentional.\n"
-            "[customer] Sri Rajeshwari NBFC, gold-loan fintech, Davangere KA.\n"
-            "[constraints] India residency, DPDP §6/§7/§11, RBI MD-NBFC-D, "
-            "PMLA Rule 9, 8-year retention."
-        ),
-    ))
+    b.set_memory_snapshot(
+        MemorySnapshot(
+            tenant_id="rivai-customer-srn-nbfc-001",
+            user_id="riva-orchestrator",
+            core_count=3,
+            recall_count=18,
+            archival_count=247,
+            core_block_preview=(
+                "[persona] You are RIVA AI — Real Intelligence, Volitional "
+                "Agents. Tagline: Not just intelligent. Intentional.\n"
+                "[customer] Sri Rajeshwari NBFC, gold-loan fintech, Davangere KA.\n"
+                "[constraints] India residency, DPDP §6/§7/§11, RBI MD-NBFC-D, "
+                "PMLA Rule 9, 8-year retention."
+            ),
+        )
+    )
 
     # ---- Compliance markers ----
     for marker in [
-        ComplianceMarker(name="DPDP_Act_2023", section="Section 6",
-                         notes="purpose: agent_build_for_nbfc_customer"),
-        ComplianceMarker(name="DPDP_Act_2023", section="Section 7",
-                         notes="lawful basis: contract"),
-        ComplianceMarker(name="DPDP_Act_2023", section="Section 11",
-                         notes="erasure capable via /forget endpoint"),
-        ComplianceMarker(name="RBI MD-NBFC-D", section="Annex IV",
-                         notes="multi-tenant data segregation"),
-        ComplianceMarker(name="PMLA Rule 9", section="CDD",
-                         notes="customer due diligence captured in audit"),
-        ComplianceMarker(name="IT Act 2000", section="Section 43A",
-                         notes="reasonable security practices"),
+        ComplianceMarker(
+            name="DPDP_Act_2023",
+            section="Section 6",
+            notes="purpose: agent_build_for_nbfc_customer",
+        ),
+        ComplianceMarker(name="DPDP_Act_2023", section="Section 7", notes="lawful basis: contract"),
+        ComplianceMarker(
+            name="DPDP_Act_2023", section="Section 11", notes="erasure capable via /forget endpoint"
+        ),
+        ComplianceMarker(
+            name="RBI MD-NBFC-D", section="Annex IV", notes="multi-tenant data segregation"
+        ),
+        ComplianceMarker(
+            name="PMLA Rule 9", section="CDD", notes="customer due diligence captured in audit"
+        ),
+        ComplianceMarker(
+            name="IT Act 2000", section="Section 43A", notes="reasonable security practices"
+        ),
     ]:
         b.add_compliance(marker)
 
@@ -454,8 +518,7 @@ async def main():
 
     print("\n  ▸ Running 6 agents through 21-layer validation pipeline...")
     t0 = time.time()
-    await run_riva_pipeline(
-        b, "Build me a KYC agent for Sri Rajeshwari NBFC")
+    await run_riva_pipeline(b, "Build me a KYC agent for Sri Rajeshwari NBFC")
     elapsed = time.time() - t0
     print(f"  ▸ Pipeline completed in {elapsed:.2f}s")
 

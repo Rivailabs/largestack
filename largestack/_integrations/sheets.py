@@ -7,6 +7,7 @@ sheet with the service account's email.
 Uses the Sheets v4 REST API directly via httpx after minting a JWT —
 no google-api-python-client / gspread dependency.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -53,8 +54,7 @@ async def _get_access_token(sa: dict) -> str | None:
         import base64
     except ImportError:
         log.warning(
-            "Sheets integration needs: pip install cryptography "
-            "(for service-account JWT signing)"
+            "Sheets integration needs: pip install cryptography (for service-account JWT signing)"
         )
         return None
 
@@ -71,23 +71,26 @@ async def _get_access_token(sa: dict) -> str | None:
     def b64url(d: bytes) -> str:
         return base64.urlsafe_b64encode(d).rstrip(b"=").decode()
 
-    msg = (
-        b64url(json.dumps(header).encode()) + "." +
-        b64url(json.dumps(payload).encode())
-    )
+    msg = b64url(json.dumps(header).encode()) + "." + b64url(json.dumps(payload).encode())
     private_key = serialization.load_pem_private_key(
-        sa["private_key"].encode(), password=None,
+        sa["private_key"].encode(),
+        password=None,
     )
     sig = private_key.sign(
-        msg.encode(), padding.PKCS1v15(), hashes.SHA256(),
+        msg.encode(),
+        padding.PKCS1v15(),
+        hashes.SHA256(),
     )
     jwt = msg + "." + b64url(sig)
 
     async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.post(_TOKEN_URI, data={
-            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
-            "assertion": jwt,
-        })
+        r = await c.post(
+            _TOKEN_URI,
+            data={
+                "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                "assertion": jwt,
+            },
+        )
     if r.status_code != 200:
         log.warning(f"Google token mint failed: {r.text[:200]}")
         return None

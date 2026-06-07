@@ -1,4 +1,5 @@
 """v0.5.0: Pluggable session store (in-memory + Redis backends)."""
+
 from __future__ import annotations
 
 import time
@@ -8,9 +9,11 @@ import pytest
 
 # -------------------- in-memory backend --------------------
 
+
 def test_inmemory_session_store_basic():
     from largestack._enterprise.session_store import InMemorySessionStore
     from largestack._enterprise.sso import Session
+
     store = InMemorySessionStore()
 
     s = Session(session_id="abc", user_info={"user_id": "alice"}, ttl=3600)
@@ -25,6 +28,7 @@ def test_inmemory_session_store_basic():
 def test_inmemory_session_store_delete():
     from largestack._enterprise.session_store import InMemorySessionStore
     from largestack._enterprise.sso import Session
+
     store = InMemorySessionStore()
 
     s = Session(session_id="abc", user_info={"user_id": "alice"})
@@ -39,6 +43,7 @@ def test_inmemory_session_store_expired_session_returns_none():
     """A session past its TTL must not be returned."""
     from largestack._enterprise.session_store import InMemorySessionStore
     from largestack._enterprise.sso import Session
+
     store = InMemorySessionStore()
 
     s = Session(session_id="abc", user_info={"u": "x"}, ttl=0.01)
@@ -50,6 +55,7 @@ def test_inmemory_session_store_expired_session_returns_none():
 def test_inmemory_session_store_cleanup_expired():
     from largestack._enterprise.session_store import InMemorySessionStore
     from largestack._enterprise.sso import Session
+
     store = InMemorySessionStore()
 
     # 3 sessions, mix of TTLs
@@ -67,6 +73,7 @@ def test_inmemory_session_store_cleanup_expired():
 def test_inmemory_session_store_all_returns_all():
     from largestack._enterprise.session_store import InMemorySessionStore
     from largestack._enterprise.sso import Session
+
     store = InMemorySessionStore()
     for sid in ("a", "b", "c"):
         store.put(Session(sid, {"u": sid}, ttl=3600))
@@ -77,15 +84,18 @@ def test_inmemory_session_store_all_returns_all():
 
 def test_inmemory_session_store_backend_name():
     from largestack._enterprise.session_store import InMemorySessionStore
+
     assert InMemorySessionStore().backend_name() == "inmemory"
 
 
 # -------------------- Redis backend (with fallback) --------------------
 
+
 def test_redis_session_store_falls_back_when_redis_missing():
     """When Redis URL is unreachable, fall back to in-memory.
     Tests with intentionally broken URL."""
     from largestack._enterprise.session_store import RedisSessionStore
+
     store = RedisSessionStore(redis_url="redis://nonexistent.invalid:6379/0")
     # Should not crash
     assert store._redis is None
@@ -94,6 +104,7 @@ def test_redis_session_store_falls_back_when_redis_missing():
 
     # Operations still work via fallback
     from largestack._enterprise.sso import Session
+
     s = Session("test", {"u": "alice"}, ttl=60)
     store.put(s)
     got = store.get("test")
@@ -103,9 +114,11 @@ def test_redis_session_store_falls_back_when_redis_missing():
 
 # -------------------- Factory --------------------
 
+
 def test_create_session_store_default_inmemory(monkeypatch):
     monkeypatch.delenv("LARGESTACK_SESSION_BACKEND", raising=False)
     from largestack._enterprise.session_store import create_session_store, InMemorySessionStore
+
     store = create_session_store()
     assert isinstance(store, InMemorySessionStore)
 
@@ -114,16 +127,19 @@ def test_create_session_store_redis_with_unreachable_falls_back(monkeypatch):
     monkeypatch.setenv("LARGESTACK_SESSION_BACKEND", "redis")
     monkeypatch.setenv("LARGESTACK_REDIS_URL", "redis://nowhere.invalid:6379/0")
     from largestack._enterprise.session_store import create_session_store, RedisSessionStore
+
     store = create_session_store()
     assert isinstance(store, RedisSessionStore)
     # Even though redis is unreachable, the store works via fallback
     from largestack._enterprise.sso import Session
+
     s = Session("x", {"u": "y"}, ttl=60)
     store.put(s)
     assert store.get("x") is not None
 
 
 # -------------------- SSO integration --------------------
+
 
 @pytest.mark.asyncio
 async def test_sso_provider_uses_session_store(monkeypatch):

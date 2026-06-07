@@ -6,6 +6,7 @@ Used directly as a tool, but more typically called from RAG pipelines.
 This is a thin wrapper that returns embeddings as a JSON-encoded list
 of floats — agents can consume it for similarity search, clustering, etc.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -43,7 +44,9 @@ async def openai_embed(text: str, model: str = "text-embedding-3-small") -> str:
         return "Error: text too long (>32KB). Chunk it first."
 
     if model not in ("text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"):
-        return f"Error: unknown model {model!r}. Use text-embedding-3-small or text-embedding-3-large."
+        return (
+            f"Error: unknown model {model!r}. Use text-embedding-3-small or text-embedding-3-large."
+        )
 
     async with httpx.AsyncClient(timeout=25) as c:
         r = await c.post(
@@ -68,9 +71,11 @@ async def openai_embed(text: str, model: str = "text-embedding-3-small") -> str:
     except (KeyError, IndexError, ValueError) as e:
         return f"OpenAI returned malformed response: {e}"
 
-    return json.dumps({
-        "model": model,
-        "dim": len(emb),
-        "embedding": emb,
-        "tokens": usage.get("total_tokens", 0),
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(emb),
+            "embedding": emb,
+            "tokens": usage.get("total_tokens", 0),
+        }
+    )

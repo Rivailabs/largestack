@@ -30,6 +30,7 @@ Usage::
     )
     Path("kyc_demo.html").write_text(html)
 """
+
 from __future__ import annotations
 import html as _html
 import json
@@ -40,14 +41,12 @@ from typing import Any
 
 # Pyodide CDN — pinned for reproducibility
 PYODIDE_VERSION = "0.26.4"
-PYODIDE_BASE_URL = (
-    f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full/"
-)
+PYODIDE_BASE_URL = f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE_VERSION}/full/"
 
 
 # A minimal pure-Python eval runner that runs inside Pyodide.
 # Implements: contains, equals, similarity (cosine on hash embeddings).
-_INLINE_RUNNER_PY = '''
+_INLINE_RUNNER_PY = """
 import math, hashlib, json
 
 def _hash_embed(text, dim=128):
@@ -117,12 +116,13 @@ def run_suite(suite, agent_outputs):
         "pass_rate": (n_passed / n_total) if n_total else 0.0,
         "cases": results,
     }
-'''
+"""
 
 
 @dataclass
 class PyodideEvalConfig:
     """Configuration for the Pyodide-embedded eval HTML."""
+
     suite_yaml: str
     title: str = "LARGESTACK Studio — Eval Demo"
     agent_outputs: dict[str, str] = field(default_factory=dict)
@@ -156,7 +156,8 @@ def render_pyodide_eval_html(
     # Embed YAML + outputs as JSON (XSS-safe via </script> escape)
     suite_payload = json.dumps({"yaml": suite_yaml}).replace("</", "<\\/")
     outputs_payload = json.dumps(
-        agent_outputs or {}, indent=2,
+        agent_outputs or {},
+        indent=2,
     ).replace("</", "<\\/")
     runner_payload = json.dumps(_INLINE_RUNNER_PY).replace("</", "<\\/")
     fail_under_str = f"{fail_under:.2f}"

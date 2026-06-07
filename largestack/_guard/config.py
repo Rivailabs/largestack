@@ -1,4 +1,5 @@
 """Guardrail configuration resolved from environment variables."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -8,6 +9,21 @@ import os
 from largestack._guard.policy import GuardrailAction, GuardrailMode
 
 log = logging.getLogger("largestack.guard.config")
+
+_TRUE = ("1", "true", "yes")
+
+
+def ml_guards_enabled(specific_env: str) -> bool:
+    """Whether an optional ML guard should load.
+
+    True if its specific flag is set OR the umbrella ``LARGESTACK_ENABLE_ML_GUARDS=1``
+    is set (one switch turns on PromptGuard 2 / ML PII / NLI together). The optional
+    deps must still be installed; otherwise each guard logs and falls back to its
+    regex/heuristic default.
+    """
+    if os.environ.get(specific_env, "").lower() in _TRUE:
+        return True
+    return os.environ.get("LARGESTACK_ENABLE_ML_GUARDS", "").lower() in _TRUE
 
 
 @dataclass(frozen=True)
@@ -41,7 +57,9 @@ def _parse_mode(value: str | None, default: GuardrailMode = GuardrailMode.PROTEC
     try:
         return GuardrailMode(value.strip().lower())
     except ValueError:
-        log.warning("Invalid LARGESTACK_GUARDRAIL_MODE=%r; falling back to %s", value, default.value)
+        log.warning(
+            "Invalid LARGESTACK_GUARDRAIL_MODE=%r; falling back to %s", value, default.value
+        )
         return default
 
 
@@ -79,5 +97,7 @@ def get_guardrail_config() -> GuardrailConfig:
         tool_write_action=_parse_action("LARGESTACK_TOOL_WRITE_ACTION"),
         external_upload_action=_parse_action("LARGESTACK_EXTERNAL_UPLOAD_ACTION"),
         critical_risk_action=_parse_action("LARGESTACK_CRITICAL_RISK_ACTION"),
-        bfsi_approved_providers=_parse_providers(os.environ.get("LARGESTACK_BFSI_APPROVED_PROVIDERS")),
+        bfsi_approved_providers=_parse_providers(
+            os.environ.get("LARGESTACK_BFSI_APPROVED_PROVIDERS")
+        ),
     )

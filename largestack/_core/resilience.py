@@ -13,6 +13,7 @@ Two production patterns every external API call needs:
 Both are battle-tested patterns for any agent that calls flaky APIs
 (LLMs, vector stores, third-party SDKs).
 """
+
 from __future__ import annotations
 import asyncio
 import functools
@@ -29,8 +30,10 @@ T = TypeVar("T")
 
 # -------------------- Retry --------------------
 
+
 class RetryError(Exception):
     """Raised when all retry attempts are exhausted."""
+
     def __init__(self, message: str, last_exception: BaseException | None = None):
         super().__init__(message)
         self.last_exception = last_exception
@@ -39,13 +42,14 @@ class RetryError(Exception):
 @dataclass
 class RetryConfig:
     """Retry configuration."""
-    max_attempts: int = 3              # total attempts including the first
-    initial_delay: float = 0.5          # seconds before first retry
-    max_delay: float = 30.0             # cap on backoff
-    backoff_multiplier: float = 2.0     # exponential factor
-    jitter: bool = True                 # randomize ±50%
-    retry_on: tuple = (Exception,)      # which exceptions trigger retry
-    do_not_retry_on: tuple = ()         # exceptions that bypass retry
+
+    max_attempts: int = 3  # total attempts including the first
+    initial_delay: float = 0.5  # seconds before first retry
+    max_delay: float = 30.0  # cap on backoff
+    backoff_multiplier: float = 2.0  # exponential factor
+    jitter: bool = True  # randomize ±50%
+    retry_on: tuple = (Exception,)  # which exceptions trigger retry
+    do_not_retry_on: tuple = ()  # exceptions that bypass retry
 
     def delay_for_attempt(self, attempt: int) -> float:
         """Compute backoff for attempt N (1-indexed)."""
@@ -106,7 +110,7 @@ def retry_with(config: RetryConfig):
             for attempt in range(1, config.max_attempts + 1):
                 try:
                     return await fn(*args, **kwargs)
-                except config.do_not_retry_on as e:
+                except config.do_not_retry_on:
                     # Don't retry these
                     raise
                 except config.retry_on as e:
@@ -115,19 +119,21 @@ def retry_with(config: RetryConfig):
                         break
                     delay = config.delay_for_attempt(attempt)
                     log.debug(
-                        f"{fn.__name__} attempt {attempt} failed: {e}; "
-                        f"retrying in {delay:.2f}s"
+                        f"{fn.__name__} attempt {attempt} failed: {e}; retrying in {delay:.2f}s"
                     )
                     await asyncio.sleep(delay)
             raise RetryError(
                 f"{fn.__name__} failed after {config.max_attempts} attempts",
                 last_exception=last_exc,
             )
+
         return wrapper
+
     return decorator
 
 
 # -------------------- Circuit Breaker --------------------
+
 
 class CircuitOpenError(Exception):
     """Raised when calling a circuit that is currently OPEN."""
@@ -228,16 +234,13 @@ class CircuitBreaker:
             self.half_open_attempts = 0
         elif self.state == "CLOSED" and self.failures >= self.failure_threshold:
             log.warning(
-                f"breaker {self.name}: CLOSED → OPEN "
-                f"({self.failures} consecutive failures)"
+                f"breaker {self.name}: CLOSED → OPEN ({self.failures} consecutive failures)"
             )
             self.state = "OPEN"
 
     async def __aenter__(self):
         if not self._allow():
-            raise CircuitOpenError(
-                f"breaker {self.name!r} is OPEN — failing fast"
-            )
+            raise CircuitOpenError(f"breaker {self.name!r} is OPEN — failing fast")
         return self
 
     async def __aexit__(self, exc_type, exc_val, tb):
@@ -249,10 +252,12 @@ class CircuitBreaker:
 
     def protect(self, fn: Callable[..., Any]) -> Callable[..., Any]:
         """Decorator that wraps an async function with this breaker."""
+
         @functools.wraps(fn)
         async def wrapper(*args, **kwargs):
             async with self:
                 return await fn(*args, **kwargs)
+
         return wrapper
 
     def reset(self):
@@ -266,6 +271,7 @@ class CircuitBreaker:
 
 # -------------------- Combined: retry + circuit breaker --------------------
 
+
 def resilient(
     *,
     max_attempts: int = 3,
@@ -276,6 +282,7 @@ def resilient(
 
     Trips breaker on persistent failure, retries within breaker.
     """
+
     def decorator(fn):
         @functools.wraps(fn)
         async def wrapper(*args, **kwargs):
@@ -283,9 +290,7 @@ def resilient(
             last_exc: BaseException | None = None
             for attempt in range(1, cfg.max_attempts + 1):
                 if breaker is not None and not breaker._allow():
-                    raise CircuitOpenError(
-                        f"breaker {breaker.name!r} is OPEN"
-                    )
+                    raise CircuitOpenError(f"breaker {breaker.name!r} is OPEN")
                 try:
                     result = await fn(*args, **kwargs)
                     if breaker is not None:
@@ -302,5 +307,7 @@ def resilient(
                 f"{fn.__name__} failed after {cfg.max_attempts} attempts",
                 last_exception=last_exc,
             )
+
         return wrapper
+
     return decorator

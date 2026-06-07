@@ -22,6 +22,7 @@ Usage::
     agent = Agent(name="kyc", model="openai/gpt-4o-mini")
     register_memory_tools(agent, manager)
 """
+
 from __future__ import annotations
 import logging
 import time
@@ -29,7 +30,9 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from largestack._memory.long_term import (
-    LongTermMemoryEntry, LongTermMemoryManager, MemoryScope,
+    LongTermMemoryEntry,
+    LongTermMemoryManager,
+    MemoryScope,
 )
 
 log = logging.getLogger("largestack.memory.tools")
@@ -38,6 +41,7 @@ log = logging.getLogger("largestack.memory.tools")
 @dataclass
 class MemoryEditEvent:
     """Trace of a self-edit operation. Emitted to audit logs."""
+
     timestamp: float
     operation: str
     tenant_id: str
@@ -47,6 +51,7 @@ class MemoryEditEvent:
 
 
 # -------------------- Tool implementations --------------------
+
 
 async def core_memory_replace(
     manager: LongTermMemoryManager,
@@ -118,8 +123,10 @@ async def core_memory_append(
         return f"Appended to core memory entry tagged '{tag}'"
     else:
         entry = await manager.add_core(
-            content_to_append, tag=tag,
-            purpose=purpose, lawful_basis=lawful_basis,
+            content_to_append,
+            tag=tag,
+            purpose=purpose,
+            lawful_basis=lawful_basis,
         )
         return f"Created core memory entry tagged '{tag}'"
 
@@ -143,7 +150,8 @@ async def archival_insert(
 
     entry = await manager.add_archival(
         content,
-        scope=scope, tag=tag,
+        scope=scope,
+        tag=tag,
         source="self_edit",
         purpose=purpose,
         lawful_basis=lawful_basis,
@@ -203,6 +211,7 @@ async def recall_search(
 
 # -------------------- Registration helper --------------------
 
+
 def memory_tool_specs(
     manager: LongTermMemoryManager,
 ) -> list[dict[str, Any]]:
@@ -214,19 +223,29 @@ def memory_tool_specs(
 
     async def _replace(*, tag: str, new_content: str) -> str:
         return await core_memory_replace(
-            manager, tag=tag, new_content=new_content,
+            manager,
+            tag=tag,
+            new_content=new_content,
         )
 
     async def _append(*, tag: str, content_to_append: str) -> str:
         return await core_memory_append(
-            manager, tag=tag, content_to_append=content_to_append,
+            manager,
+            tag=tag,
+            content_to_append=content_to_append,
         )
 
     async def _insert(
-        *, content: str, scope: str = "semantic", tag: str = "",
+        *,
+        content: str,
+        scope: str = "semantic",
+        tag: str = "",
     ) -> str:
         return await archival_insert(
-            manager, content=content, scope=scope, tag=tag,
+            manager,
+            content=content,
+            scope=scope,
+            tag=tag,
         )
 
     async def _arch_search(*, query: str, limit: int = 5):
@@ -260,9 +279,7 @@ def memory_tool_specs(
         },
         {
             "name": "core_memory_append",
-            "description": (
-                "Append text to a tagged core memory block."
-            ),
+            "description": ("Append text to a tagged core memory block."),
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -275,9 +292,7 @@ def memory_tool_specs(
         },
         {
             "name": "archival_insert",
-            "description": (
-                "Store a long-term fact in archival memory."
-            ),
+            "description": ("Store a long-term fact in archival memory."),
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -294,9 +309,7 @@ def memory_tool_specs(
         },
         {
             "name": "archival_search",
-            "description": (
-                "Search archival (long-term) memory by query."
-            ),
+            "description": ("Search archival (long-term) memory by query."),
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -309,9 +322,7 @@ def memory_tool_specs(
         },
         {
             "name": "recall_search",
-            "description": (
-                "Search recent conversation memory by query."
-            ),
+            "description": ("Search recent conversation memory by query."),
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -337,7 +348,8 @@ def register_memory_tools(agent, manager: LongTermMemoryManager) -> int:
         # Try common registration APIs
         if hasattr(agent, "register_tool"):
             agent.register_tool(
-                spec["name"], spec["callable"],
+                spec["name"],
+                spec["callable"],
                 schema=spec["parameters"],
                 description=spec["description"],
             )
@@ -346,10 +358,7 @@ def register_memory_tools(agent, manager: LongTermMemoryManager) -> int:
             agent.tools.append(spec)
             count += 1
         else:
-            log.warning(
-                f"agent has no tool registration API; "
-                f"skipping {spec['name']}"
-            )
+            log.warning(f"agent has no tool registration API; skipping {spec['name']}")
     return count
 
 

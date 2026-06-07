@@ -37,6 +37,7 @@ The output is JSON-extracted from the LLM response and validated
 against ``output_model``. If validation fails after N retries, raises
 ``OutputValidationError``.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -88,7 +89,8 @@ def _extract_json_from_response(text: str) -> dict[str, Any] | None:
     # Code-fence pattern: ```json ... ``` or ``` ... ```
     fence_match = re.search(
         r"```(?:json)?\s*(\{.*?\})\s*```",
-        text, re.DOTALL,
+        text,
+        re.DOTALL,
     )
     if fence_match:
         try:
@@ -101,7 +103,8 @@ def _extract_json_from_response(text: str) -> dict[str, Any] | None:
     # XML-style tag pattern
     tag_match = re.search(
         r"<json>\s*(\{.*?\})\s*</json>",
-        text, re.DOTALL | re.IGNORECASE,
+        text,
+        re.DOTALL | re.IGNORECASE,
     )
     if tag_match:
         try:
@@ -139,6 +142,7 @@ class TypedAgent(Generic[InputT, OutputT]):
     The fields are populated at construction; ``run()`` produces an
     instance of ``output_model``.
     """
+
     name: str
     model: str
     input_model: type
@@ -163,7 +167,7 @@ class TypedAgent(Generic[InputT, OutputT]):
         if hasattr(input_data, "model_dump"):
             input_dict = input_data.model_dump()  # pydantic v2
         elif hasattr(input_data, "dict"):
-            input_dict = input_data.dict()        # pydantic v1
+            input_dict = input_data.dict()  # pydantic v1
         elif hasattr(input_data, "__dict__"):
             input_dict = dict(input_data.__dict__)
         elif isinstance(input_data, dict):
@@ -182,19 +186,14 @@ class TypedAgent(Generic[InputT, OutputT]):
                 )
             except Exception:
                 schema_hint = (
-                    f"\nReturn a JSON object matching the "
-                    f"{self.output_model.__name__} schema.\n"
+                    f"\nReturn a JSON object matching the {self.output_model.__name__} schema.\n"
                 )
 
         system = (
-            self.instructions
-            + "\n\nRespond ONLY with a valid JSON object that matches "
-            "the output schema. No prose, no code fences, just the JSON."
-            + schema_hint
+            self.instructions + "\n\nRespond ONLY with a valid JSON object that matches "
+            "the output schema. No prose, no code fences, just the JSON." + schema_hint
         )
-        user = (
-            f"Input:\n{json.dumps(input_dict, indent=2, default=str)}"
-        )
+        user = f"Input:\n{json.dumps(input_dict, indent=2, default=str)}"
         return [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
@@ -212,8 +211,8 @@ class TypedAgent(Generic[InputT, OutputT]):
             if hasattr(self.output_model, "model_validate"):
                 return self.output_model.model_validate(data)  # v2
             if hasattr(self.output_model, "parse_obj"):
-                return self.output_model.parse_obj(data)        # v1
-            return self.output_model(**data)                    # plain
+                return self.output_model.parse_obj(data)  # v1
+            return self.output_model(**data)  # plain
         except Exception as e:
             raise OutputValidationError(
                 f"validation failed: {e}",
@@ -245,16 +244,21 @@ class TypedAgent(Generic[InputT, OutputT]):
             except OutputValidationError as e:
                 last_error = e
                 # On retry, append the error so the LLM can self-correct
-                messages.append({
-                    "role": "assistant", "content": last_raw,
-                })
-                messages.append({
-                    "role": "user",
-                    "content": (
-                        f"Your previous response failed validation: {e}. "
-                        f"Please retry with a strictly-valid JSON object."
-                    ),
-                })
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": last_raw,
+                    }
+                )
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Your previous response failed validation: {e}. "
+                            f"Please retry with a strictly-valid JSON object."
+                        ),
+                    }
+                )
 
         if isinstance(last_error, OutputValidationError):
             raise last_error
@@ -264,7 +268,8 @@ class TypedAgent(Generic[InputT, OutputT]):
         )
 
     async def run_with_dict(
-        self, input_dict: dict[str, Any],
+        self,
+        input_dict: dict[str, Any],
     ) -> OutputT:
         """Convenience: hydrate ``input_model`` from a dict and run."""
         if hasattr(self.input_model, "model_validate"):
@@ -277,6 +282,8 @@ class TypedAgent(Generic[InputT, OutputT]):
 
 
 __all__ = [
-    "TypedAgent", "OutputValidationError",
-    "InputT", "OutputT",
+    "TypedAgent",
+    "OutputValidationError",
+    "InputT",
+    "OutputT",
 ]

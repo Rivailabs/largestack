@@ -7,6 +7,7 @@ Permissions" → "Bot Token Scopes": at minimum ``chat:write`` and
 
 Uses the Slack Web API directly via httpx — no slack_sdk dependency.
 """
+
 from __future__ import annotations
 import logging
 import os

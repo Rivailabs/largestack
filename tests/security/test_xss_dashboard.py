@@ -3,6 +3,7 @@
 Each test injects a known XSS payload into a DB row that the dashboard
 will render, then confirms the payload appears in escaped form (not raw).
 """
+
 import os
 import sqlite3
 import importlib
@@ -54,9 +55,11 @@ def _seed_trace(tmp_path, agent: str, task: str = "task"):
 def _client(monkeypatch_path_change=False):
     """Reload dashboard so SQLite paths re-read HOME if monkeypatched."""
     import largestack._dashboard.app as mod
+
     if monkeypatch_path_change:
         importlib.reload(mod)
     from fastapi.testclient import TestClient
+
     return TestClient(mod.create_app()), mod
 
 
@@ -103,7 +106,7 @@ def test_csp_header_is_strict(auth_env):
 def test_no_inline_event_handler_in_html(auth_env):
     """Dashboard HTML output must not contain on* event-handler attributes
     on user-controlled data (defense in depth alongside CSP).
-    
+
     The check: the user payload `<div onclick=alert(1)>` must be escaped to
     `&lt;div onclick=alert(1)&gt;`. The escaped form is harmless because it
     renders as inert text — the browser does NOT parse it as an HTML element.

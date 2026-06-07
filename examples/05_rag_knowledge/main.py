@@ -1,4 +1,5 @@
 """RAG/tool-backed knowledge example using the configured provider."""
+
 from pathlib import Path
 import sys
 
@@ -16,12 +17,24 @@ KB = {
 async def search_kb(query: str) -> str:
     """Search the small example knowledge base."""
     q = query.lower()
-    hits = [value for key, value in KB.items() if key in q or any(word in value.lower() for word in q.split())]
+    hits = [
+        value
+        for key, value in KB.items()
+        if key in q or any(word in value.lower() for word in q.split())
+    ]
     return "\n".join(hits) if hits else "Not found."
 
 
 async def main():
-    agent = Agent(name="kb", instructions="Use search_kb before answering. Include exact prices when found.", tools=[search_kb], llm=select_model(), guardrails=False, cost_budget=0.10, max_turns=5)
+    agent = Agent(
+        name="kb",
+        instructions="Use search_kb before answering. Include exact prices when found.",
+        tools=[search_kb],
+        llm=select_model(),
+        guardrails=False,
+        cost_budget=0.10,
+        max_turns=5,
+    )
     try:
         result = await agent.run("How much does LARGESTACK Professional cost?", timeout=90)
         print(f"Answer: {result.content}")

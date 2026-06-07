@@ -8,6 +8,7 @@
 - known-limitations.md: stale RBAC/Vault/Helm claims removed.
 - Helm chart versions bumped to 1.0.0.
 """
+
 from __future__ import annotations
 import asyncio
 from pathlib import Path
@@ -22,6 +23,7 @@ from largestack.workflow import WorkflowResult
 # ---------------------------------------------------------------------------
 # WorkflowResult: behaves as both dict and object
 # ---------------------------------------------------------------------------
+
 
 def test_workflow_run_returns_workflow_result():
     a = Agent(name="extr", instructions="…", llm="openai/gpt-4o-mini")
@@ -115,21 +117,25 @@ def test_workflow_result_error_status():
 # LangfuseTracer.attach() — context manager
 # ---------------------------------------------------------------------------
 
+
 def test_langfuse_attach_method_exists():
     from largestack._integrations.langfuse_adapter import LangfuseTracer
+
     assert hasattr(LangfuseTracer, "attach")
 
 
 def test_langfuse_attach_works_as_context_manager():
     from largestack._integrations.langfuse_adapter import (
-        LangfuseTracer, LangfuseConfig,
+        LangfuseTracer,
+        LangfuseConfig,
     )
+
     cfg = LangfuseConfig(
         public_key="pk-test",
         secret_key="sk-test",
         host="https://cloud.langfuse.com",
         environment="test",
-        enable=False,                # disabled — no real network
+        enable=False,  # disabled — no real network
         allow_non_india_host=True,
     )
     tracer = LangfuseTracer(cfg)
@@ -145,13 +151,16 @@ def test_langfuse_attach_swaps_global_tracer_for_block():
     """Inside attach() block, the module-level global is set."""
     import largestack._integrations.langfuse_adapter as mod
     from largestack._integrations.langfuse_adapter import (
-        LangfuseTracer, LangfuseConfig,
+        LangfuseTracer,
+        LangfuseConfig,
     )
 
     before = mod._global_tracer
     cfg = LangfuseConfig(
-        public_key="pk-x", secret_key="sk-x",
-        environment="test", enable=False,
+        public_key="pk-x",
+        secret_key="sk-x",
+        environment="test",
+        enable=False,
         allow_non_india_host=True,
     )
     tracer = LangfuseTracer(cfg)
@@ -166,13 +175,19 @@ def test_langfuse_attach_swaps_global_tracer_for_block():
 def test_langfuse_attach_works_without_agent_arg():
     """Attach should work whether or not an agent is passed."""
     from largestack._integrations.langfuse_adapter import (
-        LangfuseTracer, LangfuseConfig,
+        LangfuseTracer,
+        LangfuseConfig,
     )
-    tracer = LangfuseTracer(LangfuseConfig(
-        public_key="pk", secret_key="sk",
-        environment="test", enable=False,
-        allow_non_india_host=True,
-    ))
+
+    tracer = LangfuseTracer(
+        LangfuseConfig(
+            public_key="pk",
+            secret_key="sk",
+            environment="test",
+            enable=False,
+            allow_non_india_host=True,
+        )
+    )
     with tracer.attach():
         pass
 
@@ -181,30 +196,35 @@ def test_langfuse_attach_works_without_agent_arg():
 # known-limitations.md is no longer stale
 # ---------------------------------------------------------------------------
 
+
 def test_known_limitations_no_stale_helm_claim():
     repo_root = Path(__file__).resolve().parents[2]
     text = (repo_root / "docs" / "known-limitations.md").read_text(encoding="utf-8")
-    assert "No published Helm chart" not in text, \
+    assert "No published Helm chart" not in text, (
         "known-limitations.md still claims no Helm chart, but charts exist in deploy/helm/"
+    )
 
 
 def test_known_limitations_no_stale_kms_claim():
     repo_root = Path(__file__).resolve().parents[2]
     text = (repo_root / "docs" / "known-limitations.md").read_text(encoding="utf-8")
-    assert "no KMS / cloud secret-manager integration" not in text, \
+    assert "no KMS / cloud secret-manager integration" not in text, (
         "known-limitations.md still claims no KMS — but vault.py supports AWS/Azure/Vault"
+    )
 
 
 def test_known_limitations_no_stale_rbac_claim():
     repo_root = Path(__file__).resolve().parents[2]
     text = (repo_root / "docs" / "known-limitations.md").read_text(encoding="utf-8")
-    assert "in-memory, no tenant isolation" not in text, \
+    assert "in-memory, no tenant isolation" not in text, (
         "known-limitations.md still claims RBAC has no tenant isolation, but check_for_tenant() exists"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Helm chart version matches package version
 # ---------------------------------------------------------------------------
+
 
 def test_helm_chart_version_matches_package():
     repo_root = Path(__file__).resolve().parents[2]
@@ -235,9 +255,11 @@ def test_helm_no_legacy_versions_remain():
 # Bug fix: WorkflowResult derived attrs reflect dict mutations (not cached)
 # ---------------------------------------------------------------------------
 
+
 def test_workflow_result_steps_reflect_dict_mutation():
     """Mutating the result dict after construction must update derived attrs."""
     from largestack.workflow import WorkflowResult
+
     wr = WorkflowResult.from_state({"a_output": "x", "_total_cost": 0.1})
     assert [s["name"] for s in wr.steps] == ["a"]
     wr["new_output"] = "y"
@@ -250,6 +272,7 @@ def test_workflow_result_steps_reflect_dict_mutation():
 
 def test_workflow_result_total_cost_reflects_mutation():
     from largestack.workflow import WorkflowResult
+
     wr = WorkflowResult.from_state({"_total_cost": 1.0})
     assert wr.total_cost == 1.0
     wr["_total_cost"] = 5.5
@@ -260,6 +283,7 @@ def test_workflow_result_pickle_round_trip():
     """Pickling must preserve trace_id and produce a working WorkflowResult."""
     import pickle
     from largestack.workflow import WorkflowResult
+
     wr = WorkflowResult.from_state({"a_output": "x", "_total_cost": 0.1})
     original_trace = wr.trace_id
 
@@ -269,13 +293,14 @@ def test_workflow_result_pickle_round_trip():
     assert isinstance(restored, WorkflowResult)
     assert restored["a_output"] == "x"
     assert restored.trace_id == original_trace  # not regenerated
-    assert restored.steps == wr.steps           # derived attr still works
+    assert restored.steps == wr.steps  # derived attr still works
     assert restored.final_output == "x"
 
 
 def test_workflow_result_deepcopy_preserves_attrs():
     import copy
     from largestack.workflow import WorkflowResult
+
     wr = WorkflowResult.from_state({"a_output": "x"})
     wr2 = copy.deepcopy(wr)
     # deepcopy returns a plain dict because dict subclasses don't deepcopy their __dict__ by default

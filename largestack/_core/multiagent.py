@@ -9,6 +9,7 @@ Two production multi-agent orchestration patterns:
 
 Both are async, stateless, and integrate with LARGESTACK Agent objects.
 """
+
 from __future__ import annotations
 import logging
 import re
@@ -42,6 +43,7 @@ FINISHED_TOKEN = "FINAL_ANSWER"
 @dataclass
 class SupervisorStep:
     """One step in a supervisor's routing trace."""
+
     iteration: int
     agent_name: str
     task_summary: str
@@ -51,6 +53,7 @@ class SupervisorStep:
 @dataclass
 class SupervisorResult:
     """Result of a Supervisor.run() call."""
+
     final_answer: str
     steps: list[SupervisorStep] = field(default_factory=list)
     iterations: int = 0
@@ -90,16 +93,11 @@ class Supervisor:
             raise ValueError("agents dict cannot be empty")
         self.supervisor = supervisor_agent
         self.agents = agents
-        self.descriptions = agent_descriptions or {
-            n: f"the {n} agent" for n in agents
-        }
+        self.descriptions = agent_descriptions or {n: f"the {n} agent" for n in agents}
         self.max_iterations = max_iterations
 
     def _format_agent_list(self) -> str:
-        return "\n".join(
-            f"- {name}: {self.descriptions.get(name, '')}"
-            for name in self.agents
-        )
+        return "\n".join(f"- {name}: {self.descriptions.get(name, '')}" for name in self.agents)
 
     async def run(self, task: str, **kw) -> SupervisorResult:
         steps: list[SupervisorStep] = []
@@ -134,12 +132,14 @@ class Supervisor:
 
             if agent_name not in self.agents:
                 last_result = f"supervisor chose unknown agent: {agent_name!r}"
-                steps.append(SupervisorStep(
-                    iteration=iteration,
-                    agent_name=agent_name,
-                    task_summary=task_summary,
-                    result=last_result,
-                ))
+                steps.append(
+                    SupervisorStep(
+                        iteration=iteration,
+                        agent_name=agent_name,
+                        task_summary=task_summary,
+                        result=last_result,
+                    )
+                )
                 # Try one more time with hint
                 current_context = (
                     f"{task}\n\n"
@@ -155,12 +155,14 @@ class Supervisor:
             except Exception as e:
                 last_result = f"specialist {agent_name} failed: {e}"
 
-            steps.append(SupervisorStep(
-                iteration=iteration,
-                agent_name=agent_name,
-                task_summary=task_summary,
-                result=last_result,
-            ))
+            steps.append(
+                SupervisorStep(
+                    iteration=iteration,
+                    agent_name=agent_name,
+                    task_summary=task_summary,
+                    result=last_result,
+                )
+            )
 
             # Update context for next routing decision
             current_context = (
@@ -199,6 +201,7 @@ HANDOFF_PATTERN = re.compile(r"HANDOFF:\s*(\w+)", re.IGNORECASE)
 @dataclass
 class SwarmStep:
     """One step in a swarm execution."""
+
     iteration: int
     from_agent: str
     to_agent: str = ""
@@ -209,6 +212,7 @@ class SwarmStep:
 @dataclass
 class SwarmResult:
     """Result of a Swarm.run() call."""
+
     final_answer: str
     final_agent: str
     steps: list[SwarmStep] = field(default_factory=list)
@@ -247,11 +251,14 @@ class Swarm:
 
     def _wrap_prompt(self, agent_name: str, task: str) -> str:
         peers = [n for n in self.agents if n != agent_name]
-        return SWARM_PROMPT.format(
-            self_name=agent_name,
-            instructions=self.instructions.get(agent_name, ""),
-            peers=", ".join(peers) or "(none)",
-        ) + f"\n\nTask: {task}"
+        return (
+            SWARM_PROMPT.format(
+                self_name=agent_name,
+                instructions=self.instructions.get(agent_name, ""),
+                peers=", ".join(peers) or "(none)",
+            )
+            + f"\n\nTask: {task}"
+        )
 
     async def run(self, task: str, **kw) -> SwarmResult:
         current_agent = self.starting_agent
@@ -273,23 +280,27 @@ class Swarm:
                 # Validate target
                 if target == current_agent or target not in self.agents:
                     # Invalid handoff — treat as final answer
-                    steps.append(SwarmStep(
-                        iteration=iteration,
-                        from_agent=current_agent,
-                        content=content,
-                        handed_off=False,
-                    ))
+                    steps.append(
+                        SwarmStep(
+                            iteration=iteration,
+                            from_agent=current_agent,
+                            content=content,
+                            handed_off=False,
+                        )
+                    )
                     last_content = content
                     break
                 # Strip the HANDOFF line; pass rest as context
                 context_for_next = HANDOFF_PATTERN.sub("", content).strip()
-                steps.append(SwarmStep(
-                    iteration=iteration,
-                    from_agent=current_agent,
-                    to_agent=target,
-                    content=content,
-                    handed_off=True,
-                ))
+                steps.append(
+                    SwarmStep(
+                        iteration=iteration,
+                        from_agent=current_agent,
+                        to_agent=target,
+                        content=content,
+                        handed_off=True,
+                    )
+                )
                 current_task = (
                     f"You're picking up work from {current_agent}.\n"
                     f"Original task: {task}\n"
@@ -299,12 +310,14 @@ class Swarm:
                 last_content = context_for_next or content
             else:
                 # Final answer (no handoff)
-                steps.append(SwarmStep(
-                    iteration=iteration,
-                    from_agent=current_agent,
-                    content=content,
-                    handed_off=False,
-                ))
+                steps.append(
+                    SwarmStep(
+                        iteration=iteration,
+                        from_agent=current_agent,
+                        content=content,
+                        handed_off=False,
+                    )
+                )
                 last_content = content
                 break
 
@@ -335,6 +348,7 @@ Question: {input}"""
 @dataclass
 class StructuredChatResult:
     """Result of a StructuredChatAgent.run() call."""
+
     final_answer: str
     steps: list[dict] = field(default_factory=list)
     iterations: int = 0
@@ -373,14 +387,15 @@ class StructuredChatAgent:
         steps: list[dict] = []
         # Build tool registry for execution
         tool_map: dict = {}
-        for t in (getattr(self.agent, "tools", None) or []):
+        for t in getattr(self.agent, "tools", None) or []:
             sch = getattr(t, "_tool_schema", None) or {}
             name = sch.get("name") or getattr(t, "__name__", "")
             if name:
                 tool_map[name] = t
 
         prompt = STRUCTURED_CHAT_PROMPT.format(
-            tools=self._format_tools(), input=task,
+            tools=self._format_tools(),
+            input=task,
         )
         scratchpad = ""
 
@@ -429,10 +444,7 @@ class StructuredChatAgent:
                     "error": f"unknown tool: {action}",
                 }
                 steps.append(step)
-                scratchpad += (
-                    f"\n\nTool {action!r} not found. "
-                    f"Available: {list(tool_map.keys())}"
-                )
+                scratchpad += f"\n\nTool {action!r} not found. Available: {list(tool_map.keys())}"
                 continue
 
             # Execute tool
@@ -454,11 +466,13 @@ class StructuredChatAgent:
                     f"\n\nThought: now I have new info; respond with next action JSON."
                 )
             except Exception as e:
-                steps.append({
-                    "iteration": iteration,
-                    "action": action,
-                    "error": str(e),
-                })
+                steps.append(
+                    {
+                        "iteration": iteration,
+                        "action": action,
+                        "error": str(e),
+                    }
+                )
                 scratchpad += f"\n\nTool {action} raised: {e}"
 
         return StructuredChatResult(

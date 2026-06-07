@@ -6,6 +6,7 @@ Usage:
     largestack new my-agent --type workflow
     largestack new my-agent --type mcp-server
 """
+
 from __future__ import annotations
 import os
 from pathlib import Path
@@ -45,7 +46,7 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ''',
-        "pyproject.toml": '''[project]
+        "pyproject.toml": """[project]
 name = "{{ project_name }}"
 version = "0.1.0"
 description = "{{ project_name }} agent built with Largestack AI"
@@ -66,20 +67,20 @@ type = "agent"
 include = ["app*"]
 exclude = ["tests*", "deploy*", "scripts*"]
 
-''',
-        ".env.example": '''# Copy to .env and fill in your keys
+""",
+        ".env.example": """# Copy to .env and fill in your keys
 LARGESTACK_OPENAI_API_KEY=<openai-api-key>
 LARGESTACK_DEEPSEEK_API_KEY=<deepseek-api-key>
 LARGESTACK_ANTHROPIC_API_KEY=<anthropic-api-key>
-''',
-        ".gitignore": '''__pycache__/
+""",
+        ".gitignore": """__pycache__/
 *.pyc
 .env
 .venv/
 .pytest_cache/
 .largestack/
-''',
-        "README.md": '''# {{ display_name }}
+""",
+        "README.md": """# {{ display_name }}
 
 A Largestack AI project with beginner YAML controls and advanced Python edit points.
 
@@ -118,8 +119,8 @@ largestack test
 largestack dev
 # Opens http://localhost:4111 with playground
 ```
-''',
-        "AGENTS.md": '''# {{ project_name }} — Agent Coding Rules
+""",
+        "AGENTS.md": """# {{ project_name }} — Agent Coding Rules
 
 This project uses Largestack AI.
 
@@ -131,7 +132,7 @@ This project uses Largestack AI.
 - Use `@agent.tool_plain` for stateless tools
 - Use `@agent.output_validator` with `ModelRetry()` for retry-on-fail
 - Test with `TestModel` and `FunctionModel` from `largestack.testing`
-''',
+""",
     },
     "crew": {
         "main.py": '''"""{{ project_name }} — Largestack AI multi-agent crew."""
@@ -162,7 +163,7 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ''',
-        "pyproject.toml": '''[project]
+        "pyproject.toml": """[project]
 name = "{{ project_name }}"
 version = "0.1.0"
 requires-python = ">=3.11"
@@ -180,7 +181,7 @@ type = "crew"
 include = ["app*"]
 exclude = ["tests*", "deploy*", "scripts*"]
 
-''',
+""",
     },
     "workflow": {
         "main.py": '''"""{{ project_name }} — LARGESTACK workflow."""
@@ -215,7 +216,7 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ''',
-        "pyproject.toml": '''[project]
+        "pyproject.toml": """[project]
 name = "{{ project_name }}"
 version = "0.1.0"
 requires-python = ">=3.11"
@@ -233,7 +234,7 @@ type = "workflow"
 include = ["app*"]
 exclude = ["tests*", "deploy*", "scripts*"]
 
-''',
+""",
     },
     "mcp-server": {
         "main.py": '''"""{{ project_name }} — MCP server."""
@@ -267,7 +268,7 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ''',
-        "pyproject.toml": '''[project]
+        "pyproject.toml": """[project]
 name = "{{ project_name }}"
 version = "0.1.0"
 requires-python = ">=3.11"
@@ -284,7 +285,7 @@ type = "mcp-server"
 include = ["app*"]
 exclude = ["tests*", "deploy*", "scripts*"]
 
-''',
+""",
     },
 }
 
@@ -464,6 +465,7 @@ PROVIDER_ENV = {
 def _normalise_package_name(value: str) -> str:
     """Return a valid PEP 621-ish project name from a path or display name."""
     import re
+
     base = Path(value).name or "largestack-agent"
     name = re.sub(r"[^A-Za-z0-9._-]+", "-", base).strip("-._").lower()
     return name or "largestack-agent"
@@ -486,17 +488,26 @@ def _agent_yaml(agents: list[tuple[str, str]], *, model: str = "deepseek/deepsee
         "agents:",
     ]
     for agent_id, role in agents:
-        lines.extend([
-            f"  - id: {agent_id}",
-            f"    role: {role}",
-            f"    model: {model}",
-            "    max_retries: 2",
-            "    cost_budget: 1.0",
-        ])
+        lines.extend(
+            [
+                f"  - id: {agent_id}",
+                f"    role: {role}",
+                f"    model: {model}",
+                "    max_retries: 2",
+                "    cost_budget: 1.0",
+            ]
+        )
     return "\n".join(lines) + "\n"
 
 
-def _workflow_yaml(workflow_id: str, mode: str, agents: list[tuple[str, str]], *, input_key: str = "task", output_key: str = "result") -> str:
+def _workflow_yaml(
+    workflow_id: str,
+    mode: str,
+    agents: list[tuple[str, str]],
+    *,
+    input_key: str = "task",
+    output_key: str = "result",
+) -> str:
     agent_ids = "\n".join(f"    - {agent_id}" for agent_id, _ in agents)
     return f"""# Beginner file: choose how agents run.
 # Supported modes: sequential, parallel, router, supervisor, debate.
@@ -516,7 +527,7 @@ def _workflow_graph(workflow_id: str, agents: list[tuple[str, str]]) -> str:
     for (left, _), (right, _) in zip(agents, agents[1:]):
         lines.append(f"  {left} --> {right}")
     lines.append(f"  {agents[-1][0]} --> finish([finish])")
-    lines.append(f"  classDef agent fill:#eef6ff,stroke:#2f5597,color:#111827")
+    lines.append("  classDef agent fill:#eef6ff,stroke:#2f5597,color:#111827")
     for agent_id, _ in agents:
         lines.append(f"  class {agent_id} agent")
     lines.append(f"  %% workflow: {workflow_id}")
@@ -540,11 +551,15 @@ groups:
 
 def _providers_yaml(provider: str) -> str:
     model = PROVIDER_MODELS[provider]
-    fallback = ["openai/gpt-4o-mini"] if provider != "multi" else [
-        "openai/gpt-4o-mini",
-        "anthropic/claude-3-5-sonnet-latest",
-        "groq/llama-3.1-70b-versatile",
-    ]
+    fallback = (
+        ["openai/gpt-4o-mini"]
+        if provider != "multi"
+        else [
+            "openai/gpt-4o-mini",
+            "anthropic/claude-3-5-sonnet-latest",
+            "groq/llama-3.1-70b-versatile",
+        ]
+    )
     fallback_yaml = "\n".join(f"    - {item}" for item in fallback)
     keys_yaml = "\n".join(f"    {name}: {env}" for name, env in PROVIDER_ENV.items())
     return f"""# Beginner file: choose the default model and safe fallbacks.
@@ -710,7 +725,9 @@ Risky write, delete, send, and payment tools require approval by default.
         "guardrails.yaml": _guardrails_yaml(
             spec["context"],
             strict=bool(spec.get("strict")),
-            mode_override=("strict" if spec.get("strict") and guardrails == "protect" else guardrails),
+            mode_override=(
+                "strict" if spec.get("strict") and guardrails == "protect" else guardrails
+            ),
             approved_provider=model,
         ),
         "mcp.yaml": _mcp_yaml(),
@@ -796,38 +813,42 @@ def scaffold(
     if rag not in RAG_CHOICES:
         raise ValueError(f"Unknown rag mode: {rag}. Choose from: {sorted(RAG_CHOICES)}")
     if guardrails not in GUARDRAIL_CHOICES:
-        raise ValueError(f"Unknown guardrails mode: {guardrails}. Choose from: {sorted(GUARDRAIL_CHOICES)}")
+        raise ValueError(
+            f"Unknown guardrails mode: {guardrails}. Choose from: {sorted(GUARDRAIL_CHOICES)}"
+        )
     requested_template = template_type
     template_type = template_type.replace("_", "-")
     product_template = PRODUCT_TEMPLATE_ALIASES.get(template_type, template_type)
-    template_key = "agent" if product_template in {"support-ticket", *PRODUCT_TEMPLATES.keys()} else product_template
+    template_key = (
+        "agent"
+        if product_template in {"support-ticket", *PRODUCT_TEMPLATES.keys()}
+        else product_template
+    )
     if template_key not in TEMPLATES:
         choices = available_templates()
         raise ValueError(f"Unknown template: {requested_template}. Choose from: {choices}")
-    
+
     project_path = Path(project_name)
     if project_path.exists():
         raise FileExistsError(f"Directory already exists: {project_path}")
-    
+
     project_path.mkdir(parents=True)
     package_name = _normalise_package_name(project_name)
     display_name = project_path.name or package_name
-    
+
     template = TEMPLATES[template_key]
     files_created = []
     model = PROVIDER_MODELS[provider]
-    
+
     for filename, content in template.items():
-        rendered = (
-            content
-            .replace("{{ project_name }}", package_name)
-            .replace("{{ display_name }}", display_name)
+        rendered = content.replace("{{ project_name }}", package_name).replace(
+            "{{ display_name }}", display_name
         )
         file_path = project_path / filename
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_text(rendered)
         files_created.append(str(file_path))
-    
+
     # Production-shaped common scaffold for agent projects. Keep legacy root
     # main.py/AGENTS.md while adding the app/tests/deploy layout documented for
     # largestack init.
@@ -917,7 +938,9 @@ flowchart TD
   class planner,executor,reviewer agent
 """,
             "rag.yaml": _rag_yaml({"rag_mode": "hybrid", "graph_rag": False}, rag),
-            "guardrails.yaml": _guardrails_yaml("general", mode_override=guardrails, approved_provider=model),
+            "guardrails.yaml": _guardrails_yaml(
+                "general", mode_override=guardrails, approved_provider=model
+            ),
             "mcp.yaml": _mcp_yaml(),
             "app/__init__.py": "",
             "app/agents/__init__.py": "",
@@ -1163,7 +1186,9 @@ flowchart TD
   class triage,resolver,qa agent
 """,
             "rag.yaml": _rag_yaml({"rag_mode": "hybrid", "graph_rag": True}, rag),
-            "guardrails.yaml": _guardrails_yaml("customer_support", mode_override=guardrails, approved_provider=model),
+            "guardrails.yaml": _guardrails_yaml(
+                "customer_support", mode_override=guardrails, approved_provider=model
+            ),
             "app/agents/triage.py": f"""from largestack import Agent
 
 triage = Agent(
@@ -1247,7 +1272,7 @@ def test_draft_reply_does_not_need_provider():
             file_path.write_text(content)
             if str(file_path) not in files_created:
                 files_created.append(str(file_path))
-    
+
     return {
         "project_name": package_name,
         "project_path": str(project_path),
@@ -1255,7 +1280,9 @@ def test_draft_reply_does_not_need_provider():
         "files_created": files_created,
         "next_steps": [
             f"cd {project_path}",
-            "cp .env.example .env  # add API keys" if template_key == "agent" else "# Configure project",
+            "cp .env.example .env  # add API keys"
+            if template_key == "agent"
+            else "# Configure project",
             "pip install -e .\\[dev]",
             "largestack doctor",
             "largestack explain",

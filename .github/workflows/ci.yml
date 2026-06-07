@@ -16,6 +16,40 @@ jobs:
       - run: pytest tests/ -q
       - run: bash scripts/check_changelog.sh
 
+  coverage:
+    name: Wedge coverage gate (>=75%)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e .[dev]
+      - run: pip install cryptography 'httpx[http2]' pydantic-settings opentelemetry-api opentelemetry-sdk
+      - name: Coverage on the public wedge
+        run: |
+          pytest tests/unit tests/security -q \
+            --cov=largestack.agent --cov=largestack._core.engine --cov=largestack._core.tools \
+            --cov=largestack._core.structured --cov=largestack._core.cost \
+            --cov=largestack._guard --cov=largestack.observability --cov=largestack.team \
+            --cov=largestack._core.loop_guard \
+            --cov-report=term-missing --cov-fail-under=75
+
+  live_e2e:
+    name: Live DeepSeek e2e (runs when secret is set)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e .[dev]
+      - run: pip install cryptography 'httpx[http2]' pydantic-settings
+      # Auto-skips when the secret is absent (forks/PRs); runs for real on the
+      # main repo once LARGESTACK_DEEPSEEK_API_KEY is added in repo settings.
+      - name: Live e2e
+        env:
+          LARGESTACK_DEEPSEEK_API_KEY: ${{ secrets.LARGESTACK_DEEPSEEK_API_KEY }}
+        run: pytest tests/integration/test_live_deepseek_e2e.py -q -rs
+
   lint:
     name: Lint (ruff)
     runs-on: ubuntu-latest

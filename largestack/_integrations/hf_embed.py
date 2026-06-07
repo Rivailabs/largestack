@@ -14,6 +14,7 @@ Note: HF serverless has cold-start latency (~5-30s for unused models)
 and rate limits on the free tier. For production, use HF Inference
 Endpoints (paid, dedicated).
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -107,13 +108,15 @@ async def hf_embed(
     # or list of list of floats (some models return per-token vectors).
     vec = _normalize_embedding(data)
     if vec is None:
-        return f"error: malformed HuggingFace response shape"
+        return "error: malformed HuggingFace response shape"
 
-    return json.dumps({
-        "model": model,
-        "dim": len(vec),
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec),
+            "embedding": vec,
+        }
+    )
 
 
 def _normalize_embedding(data) -> list[float] | None:
@@ -130,14 +133,9 @@ def _normalize_embedding(data) -> list[float] | None:
             if all(isinstance(x, (int, float)) for x in inner):
                 return [float(x) for x in inner]
             # Per-token vectors: take mean (typical for non-pooled outputs)
-            if isinstance(inner[0], list) and all(
-                isinstance(x, (int, float)) for x in inner[0]
-            ):
+            if isinstance(inner[0], list) and all(isinstance(x, (int, float)) for x in inner[0]):
                 # Mean-pool across tokens
                 n_tokens = len(inner)
                 dim = len(inner[0])
-                return [
-                    sum(inner[t][d] for t in range(n_tokens)) / n_tokens
-                    for d in range(dim)
-                ]
+                return [sum(inner[t][d] for t in range(n_tokens)) / n_tokens for d in range(dim)]
     return None

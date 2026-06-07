@@ -1,4 +1,5 @@
 """v0.8.0: Reranker tests (Cohere + RankGPT)."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
@@ -9,6 +10,7 @@ respx = pytest.importorskip("respx")
 
 
 # -------------------- Cohere --------------------
+
 
 @pytest.mark.asyncio
 async def test_cohere_rerank_reorders_by_relevance(monkeypatch):
@@ -45,12 +47,7 @@ async def test_cohere_rerank_top_k_limit(monkeypatch):
     from largestack._rerankers import cohere_rerank
 
     docs = [{"id": f"d{i}", "content": f"text {i}"} for i in range(10)]
-    fake_resp = {
-        "results": [
-            {"index": i, "relevance_score": 1.0 - i * 0.1}
-            for i in range(10)
-        ]
-    }
+    fake_resp = {"results": [{"index": i, "relevance_score": 1.0 - i * 0.1} for i in range(10)]}
     with respx.mock() as mock:
         mock.post("https://api.cohere.com/v2/rerank").respond(200, json=fake_resp)
         out = await cohere_rerank("q", docs, top_k=3)
@@ -106,17 +103,20 @@ async def test_cohere_rerank_api_error_falls_back(monkeypatch):
 @pytest.mark.asyncio
 async def test_cohere_rerank_empty_docs():
     from largestack._rerankers import cohere_rerank
+
     assert await cohere_rerank("q", [], top_k=5) == []
 
 
 @pytest.mark.asyncio
 async def test_cohere_rerank_validates_top_k():
     from largestack._rerankers import cohere_rerank
+
     with pytest.raises(ValueError):
         await cohere_rerank("q", [{"content": "x"}], top_k=0)
 
 
 # -------------------- RankGPT --------------------
+
 
 @pytest.mark.asyncio
 async def test_rankgpt_parses_standard_format():
@@ -145,6 +145,7 @@ async def test_rankgpt_parses_standard_format():
 async def test_rankgpt_handles_alternative_formats():
     """LLM might output '3, 1, 2' or '3 > 1 > 2' — both should parse."""
     from largestack._rerankers import rankgpt_rerank
+
     docs = [{"id": str(i), "content": f"d{i}"} for i in range(3)]
 
     for output in ["3, 1, 2", "3 > 1 > 2", "Ranking: 3, 1, 2"]:
@@ -161,6 +162,7 @@ async def test_rankgpt_handles_alternative_formats():
 async def test_rankgpt_appends_missing_indices():
     """If LLM forgets some docs, append them in original order."""
     from largestack._rerankers import rankgpt_rerank
+
     docs = [{"id": str(i), "content": f"d{i}"} for i in range(5)]
 
     fake_result = MagicMock()
@@ -179,6 +181,7 @@ async def test_rankgpt_appends_missing_indices():
 @pytest.mark.asyncio
 async def test_rankgpt_truncates_long_docs():
     from largestack._rerankers import rankgpt_rerank
+
     long_text = "x" * 5000
     docs = [{"id": "a", "content": long_text}]
 
@@ -198,6 +201,7 @@ async def test_rankgpt_truncates_long_docs():
 @pytest.mark.asyncio
 async def test_rankgpt_handles_llm_failure():
     from largestack._rerankers import rankgpt_rerank
+
     docs = [{"id": "a", "content": "x"}]
     agent = MagicMock()
     agent.run = AsyncMock(side_effect=RuntimeError("boom"))
@@ -210,5 +214,6 @@ async def test_rankgpt_handles_llm_failure():
 @pytest.mark.asyncio
 async def test_rankgpt_validates():
     from largestack._rerankers import rankgpt_rerank
+
     with pytest.raises(ValueError):
         await rankgpt_rerank("q", [{"content": "x"}], agent=MagicMock(), top_k=0)

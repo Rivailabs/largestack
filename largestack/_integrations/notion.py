@@ -5,6 +5,7 @@ get one from <https://www.notion.so/my-integrations>).
 
 Hits the Notion REST API directly via httpx — no notion_client dep.
 """
+
 from __future__ import annotations
 import logging
 import os

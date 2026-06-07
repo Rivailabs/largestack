@@ -26,10 +26,21 @@ def load_docs() -> list[dict]:
 
 
 def load_questions() -> list[dict]:
-    return [json.loads(line) for line in (FIXTURE_ROOT / "questions.jsonl").read_text(encoding="utf-8").splitlines() if line]
+    return [
+        json.loads(line)
+        for line in (FIXTURE_ROOT / "questions.jsonl").read_text(encoding="utf-8").splitlines()
+        if line
+    ]
 
 
-def retrieve(query: str, docs: list[dict] | None = None, *, top_k: int = 3, tenant_id: str | None = None, rerank: bool = False) -> list[dict]:
+def retrieve(
+    query: str,
+    docs: list[dict] | None = None,
+    *,
+    top_k: int = 3,
+    tenant_id: str | None = None,
+    rerank: bool = False,
+) -> list[dict]:
     q_tokens = tokenize(query)
     candidates = []
     for doc in docs or load_docs():
@@ -38,9 +49,13 @@ def retrieve(query: str, docs: list[dict] | None = None, *, top_k: int = 3, tena
         d_tokens = tokenize(doc["content"])
         overlap = sum(1 for token in q_tokens if token in d_tokens)
         phrase_bonus = 3 if query.lower() in doc["content"].lower() else 0
-        rare_bonus = sum(2 for token in q_tokens if token in {"rta", "bom", "dsd", "qp"} and token in d_tokens)
+        rare_bonus = sum(
+            2 for token in q_tokens if token in {"rta", "bom", "dsd", "qp"} and token in d_tokens
+        )
         score = overlap + phrase_bonus + rare_bonus
-        if rerank and any(token in doc["content"].lower() for token in ["citation", "requires", "validation"]):
+        if rerank and any(
+            token in doc["content"].lower() for token in ["citation", "requires", "validation"]
+        ):
             score += 1
         candidates.append({**doc, "score": score})
     return sorted(candidates, key=lambda item: (-item["score"], item["id"]))[:top_k]
@@ -74,5 +89,11 @@ def answer_with_citation(query: str) -> str:
 def build_large_corpus(size: int = 250) -> list[dict]:
     corpus = load_docs()
     for i in range(size):
-        corpus.append({"id": f"noise-{i}.md", "content": f"generic operational note {i} without target vocabulary", "tenant_id": None})
+        corpus.append(
+            {
+                "id": f"noise-{i}.md",
+                "content": f"generic operational note {i} without target vocabulary",
+                "tenant_id": None,
+            }
+        )
     return corpus

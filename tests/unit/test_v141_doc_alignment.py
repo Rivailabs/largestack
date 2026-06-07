@@ -10,6 +10,7 @@ the original LARGESTACK framework spec describe:
 These don't change any existing behaviour — just give developers two ways to
 spell the same thing. Old code keeps working unchanged.
 """
+
 from __future__ import annotations
 import asyncio
 from pathlib import Path
@@ -23,6 +24,7 @@ from largestack.testing import TestModel
 # -----------------------------------------------------------------
 # Workflow.add_agent — alias for add_node when handler is an Agent
 # -----------------------------------------------------------------
+
 
 def test_workflow_add_agent_registers_under_agent_name():
     """add_agent(extractor) should be equivalent to add_node('extractor', extractor)."""
@@ -80,6 +82,7 @@ def test_workflow_add_agent_runs_end_to_end_with_test_model():
 # Guardrails.create() — classmethod alias for create_guardrails
 # -----------------------------------------------------------------
 
+
 def test_guardrails_create_classmethod_exists():
     assert hasattr(Guardrails, "create")
     assert callable(Guardrails.create)
@@ -123,6 +126,7 @@ def test_guardrails_create_does_not_accept_schema_kwarg():
 # examples/local_llm_ollama/ — folder must exist with starter files
 # -----------------------------------------------------------------
 
+
 def test_local_llm_ollama_example_exists():
     """The example folder previously claimed in docs must actually exist."""
     repo_root = Path(__file__).resolve().parents[2]
@@ -136,6 +140,7 @@ def test_local_llm_ollama_example_exists():
 def test_local_llm_ollama_agent_py_imports_cleanly():
     """The example file should at least parse and expose make_agent()."""
     import importlib.util
+
     repo_root = Path(__file__).resolve().parents[2]
     path = repo_root / "examples" / "local_llm_ollama" / "agent.py"
     spec = importlib.util.spec_from_file_location("ollama_agent_example", path)

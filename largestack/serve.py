@@ -14,6 +14,7 @@ Authentication (v0.5.0):
 Both methods are accepted. Cookie-auth requires LARGESTACK_SESSION_BACKEND to be
 configured for multi-worker deployments; defaults to in-memory.
 """
+
 # v0.3.6: do NOT use `from __future__ import annotations` here. It turns all
 # annotations into strings, which breaks FastAPI's request-body detection for
 # Pydantic models defined inside create_api(). We use Python 3.11+ native
@@ -37,6 +38,7 @@ def _get_session_store():
     """Lazy-init session store at first use."""
     if not hasattr(_get_session_store, "_store"):
         from largestack._enterprise.session_store import create_session_store
+
         _get_session_store._store = create_session_store()
     return _get_session_store._store
 
@@ -92,6 +94,7 @@ def _verify_api_key_module(request: Request) -> None:
 def serve(agent, host: str = "127.0.0.1", port: int = 8000, **kw):
     """Start HTTP API server for an agent."""
     import uvicorn
+
     app = create_api(agent)
     uvicorn.run(app, host=host, port=port, **kw)
 
@@ -106,6 +109,7 @@ def create_app(agent: Any | None = None) -> Any:
     """
     if agent is None:
         from largestack import Agent
+
         agent = Agent(
             name=os.environ.get("LARGESTACK_SERVE_AGENT_NAME", "serve"),
             llm=os.environ.get("LARGESTACK_DEFAULT_LLM", "openai/gpt-4o-mini"),
@@ -128,6 +132,7 @@ def create_api(agent) -> Any:
     from fastapi.responses import StreamingResponse, JSONResponse
     from pydantic import BaseModel
     from largestack import __version__
+
     try:
         from sse_starlette.sse import EventSourceResponse
     except ImportError:
@@ -135,12 +140,13 @@ def create_api(agent) -> Any:
         from fastapi.responses import StreamingResponse as EventSourceResponse
 
     app = FastAPI(title=f"Largestack AI — {agent.name}", version=__version__)
-    
+
     # v0.3.7: CORS middleware on serve API. Reuses dashboard's resolver so the
     # same allowlist policy applies (LARGESTACK_CORS_ALLOWED_ORIGINS env, no '*' silently,
     # production deny-by-default).
     from fastapi.middleware.cors import CORSMiddleware
     from largestack._dashboard.api import _resolve_cors_origins
+
     _origins = _resolve_cors_origins()
     app.add_middleware(
         CORSMiddleware,
@@ -150,12 +156,12 @@ def create_api(agent) -> Any:
         allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-User-Id"],
         max_age=600,
     )
-    
+
     verify_api_key = _verify_api_key_module
-    
+
     # Rate limiting on all auth-protected routes
     from largestack._dashboard.rate_limit import rate_limit_dependency
-    
+
     # v0.3.7: optional RBAC wiring on mutation routes. Activate via
     # LARGESTACK_RBAC_ENABLED=1 + supply an RBAC instance via LARGESTACK_RBAC_INSTANCE
     # (or by patching largestack._enterprise.rbac._default_rbac before create_api).
@@ -164,28 +170,31 @@ def create_api(agent) -> Any:
     if os.environ.get("LARGESTACK_RBAC_ENABLED", "").lower() in ("1", "true", "yes"):
         try:
             from largestack._enterprise.rbac import require_permission, get_default_rbac
+
             _rbac_inst = get_default_rbac()
             _rbac_deps_run.append(Depends(require_permission(_rbac_inst, "agent.run")))
             _rbac_deps_read.append(Depends(require_permission(_rbac_inst, "agent.read")))
             log.info("Serve: RBAC enforcement enabled (LARGESTACK_RBAC_ENABLED=1)")
         except Exception as e:
-            log.warning(f"Serve: LARGESTACK_RBAC_ENABLED set but RBAC wiring failed: {e}. Continuing without RBAC.")
-    
+            log.warning(
+                f"Serve: LARGESTACK_RBAC_ENABLED set but RBAC wiring failed: {e}. Continuing without RBAC."
+            )
+
     _protected_deps = _rbac_deps_run  # legacy alias
     _protected_read_deps = _rbac_deps_read
 
     from pydantic import Field
-    
+
     # v0.3.6: bound user-input length to prevent body-size DoS / token bombs.
     # Read at create_api() time. Tunable via LARGESTACK_MAX_TASK_LENGTH env
     # (default 64KB — generous for prompts but not unbounded).
     _MAX_TASK_LEN = int(os.environ.get("LARGESTACK_MAX_TASK_LENGTH", "65536"))
-    
+
     class RunRequest(BaseModel):
         task: str = Field(..., min_length=1, max_length=_MAX_TASK_LEN)
         cost_budget: float | None = Field(None, ge=0, le=10000)
         max_turns: int | None = Field(None, ge=1, le=200)
-    
+
     # Stash on the app for tests/introspection
     app.state.max_task_len = _MAX_TASK_LEN
 
@@ -213,6 +222,7 @@ def create_api(agent) -> Any:
         """
         try:
             from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
             return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
         except Exception:
             total_cost = 0.0
@@ -239,12 +249,12 @@ def create_api(agent) -> Any:
     @app.post("/login")
     async def login(request: Request, response: Response):
         """Exchange X-API-Key for a session cookie.
-        
+
         After this, browser-style clients can use the cookie for subsequent
         requests instead of sending X-API-Key on every call. Sessions persist
         in the configured backend (in-memory by default, Redis if
         LARGESTACK_SESSION_BACKEND=redis).
-        
+
         Returns 401 if X-API-Key invalid. On success, sets `largestack_session`
         cookie (HttpOnly, SameSite=Lax, Secure if LARGESTACK_ENV=production)
         and returns ``{"session_id": "..."}`` (informational only).
@@ -262,6 +272,7 @@ def create_api(agent) -> Any:
         # Create a session
         from largestack._enterprise.sso import Session
         import uuid
+
         sid = str(uuid.uuid4())
         session = Session(
             session_id=sid,
@@ -299,14 +310,21 @@ def create_api(agent) -> Any:
     @app.post("/run", response_model=RunResponse, dependencies=_protected_deps)
     async def run(req: RunRequest):
         kw = {}
-        if req.cost_budget is not None: kw["cost_budget"] = req.cost_budget
-        if req.max_turns is not None: kw["max_turns"] = req.max_turns
+        if req.cost_budget is not None:
+            kw["cost_budget"] = req.cost_budget
+        if req.max_turns is not None:
+            kw["max_turns"] = req.max_turns
         result = await agent.run(req.task, **kw)
         return RunResponse(
-            content=result.content, agent_name=result.agent_name,
-            total_cost=result.total_cost, turns=result.turns,
-            trace_id=result.trace_id, duration_ms=result.duration_ms,
-            tool_calls_made=result.tool_calls_made, status=result.status)
+            content=result.content,
+            agent_name=result.agent_name,
+            total_cost=result.total_cost,
+            turns=result.turns,
+            trace_id=result.trace_id,
+            duration_ms=result.duration_ms,
+            tool_calls_made=result.tool_calls_made,
+            status=result.status,
+        )
 
     @app.post("/stream", dependencies=_protected_deps)
     async def stream(req: RunRequest):
@@ -314,14 +332,16 @@ def create_api(agent) -> Any:
             async for token in agent.stream(req.task):
                 yield {"event": "token", "data": json.dumps({"content": token})}
             yield {"event": "done", "data": "{}"}
+
         return EventSourceResponse(generate())
 
     @app.get("/cost", dependencies=_protected_read_deps)
     async def cost():
-        return {"run_cost": agent._gw.cost_tracker.run_cost,
-                "total_cost": agent._gw.cost_tracker.total_cost}
+        return {
+            "run_cost": agent._gw.cost_tracker.run_cost,
+            "total_cost": agent._gw.cost_tracker.total_cost,
+        }
 
-    
     @app.get("/readyz")
     async def readyz():
         """Kubernetes readiness probe — checks circuit breaker state."""

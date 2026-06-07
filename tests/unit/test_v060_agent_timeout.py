@@ -4,6 +4,7 @@ Verifies the runtime kwarg ``timeout`` propagates to LoopGuard's
 wall-clock check, which raises LoopDetectedError(reason="timeout") on
 the next ``check_turn()`` call.
 """
+
 from __future__ import annotations
 
 import asyncio

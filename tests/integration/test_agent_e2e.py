@@ -108,6 +108,7 @@ async def _run_and_close_team(team, prompt):
 @pytest.mark.skipif(SKIP, reason=reason)
 def test_basic_chat():
     import sys
+
     sys.path.insert(0, ".")
     from largestack import Agent
 
@@ -126,6 +127,7 @@ def test_basic_chat():
 @pytest.mark.skipif(SKIP, reason=reason)
 def test_tool_calling():
     import sys
+
     sys.path.insert(0, ".")
     from largestack import Agent, tool
 
@@ -149,6 +151,7 @@ def test_tool_calling():
 @pytest.mark.skipif(SKIP, reason=reason)
 def test_team_sequential():
     import sys
+
     sys.path.insert(0, ".")
     from largestack import Agent, Team
 
@@ -176,6 +179,7 @@ def test_team_sequential():
 @pytest.mark.skipif(SKIP, reason=reason)
 def test_guardrails_active():
     import sys
+
     sys.path.insert(0, ".")
     from largestack import Agent
 
@@ -192,6 +196,7 @@ def test_guardrails_active():
 @pytest.mark.skipif(SKIP, reason=reason)
 def test_cost_tracked():
     import sys
+
     sys.path.insert(0, ".")
     from largestack import Agent
 
@@ -209,6 +214,7 @@ def test_cost_tracked():
 @pytest.mark.skipif(SKIP, reason=reason)
 def test_metrics_populated():
     import sys
+
     sys.path.insert(0, ".")
     from largestack import Agent
 

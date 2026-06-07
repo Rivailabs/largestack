@@ -1,4 +1,5 @@
 """v0.8.0: Razorpay Toolkit tests."""
+
 from __future__ import annotations
 
 import base64
@@ -14,6 +15,7 @@ def test_toolkit_exposes_8_tools(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "rzp_test_x")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "secret_x")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     tools = tk.get_tools()
     assert len(tools) == 8
@@ -24,6 +26,7 @@ def test_no_creds_warning():
     """Without key_id/secret, calls return a clear error string."""
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
     import os
+
     os.environ.pop("LARGESTACK_RAZORPAY_KEY_ID", None)
     os.environ.pop("LARGESTACK_RAZORPAY_KEY_SECRET", None)
     tk = RazorpayToolkit(key_id="", key_secret="")
@@ -32,15 +35,16 @@ def test_no_creds_warning():
 
 # -------------------- Create order --------------------
 
+
 @pytest.mark.asyncio
 async def test_create_order_success(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     create_order = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_create_order"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_create_order"
     )
 
     fake_resp = {
@@ -50,9 +54,7 @@ async def test_create_order_success(monkeypatch):
         "status": "created",
     }
     with respx.mock() as mock:
-        route = mock.post("https://api.razorpay.com/v1/orders").respond(
-            200, json=fake_resp
-        )
+        route = mock.post("https://api.razorpay.com/v1/orders").respond(200, json=fake_resp)
         out = await create_order(amount_paise=50000, receipt="rcpt_001")
 
     body = json.loads(route.calls.last.request.content)
@@ -68,10 +70,10 @@ async def test_create_order_validates_amount(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     create_order = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_create_order"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_create_order"
     )
     out = await create_order(amount_paise=-100)
     assert "positive integer" in out
@@ -84,10 +86,10 @@ async def test_create_order_validates_receipt(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     create_order = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_create_order"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_create_order"
     )
     # Whitespace is invalid
     out = await create_order(amount_paise=100, receipt="bad receipt!")
@@ -98,13 +100,14 @@ async def test_create_order_validates_receipt(monkeypatch):
 async def test_create_order_no_creds_returns_error():
     """Without env vars, the tool returns a clear error string."""
     import os
+
     os.environ.pop("LARGESTACK_RAZORPAY_KEY_ID", None)
     os.environ.pop("LARGESTACK_RAZORPAY_KEY_SECRET", None)
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit(key_id="", key_secret="")
     create_order = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_create_order"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_create_order"
     )
     out = await create_order(amount_paise=100)
     assert "credentials not set" in out
@@ -112,15 +115,16 @@ async def test_create_order_no_creds_returns_error():
 
 # -------------------- Fetch order/payment --------------------
 
+
 @pytest.mark.asyncio
 async def test_fetch_order(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     fetch_order = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_fetch_order"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_fetch_order"
     )
     with respx.mock() as mock:
         mock.get("https://api.razorpay.com/v1/orders/order_xyz").respond(
@@ -135,10 +139,10 @@ async def test_fetch_order_validates_id(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     fetch_order = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_fetch_order"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_fetch_order"
     )
     out = await fetch_order(order_id="not_an_order")
     assert "must start with" in out
@@ -149,10 +153,10 @@ async def test_fetch_payment(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     fetch_payment = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_fetch_payment"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_fetch_payment"
     )
     with respx.mock() as mock:
         mock.get("https://api.razorpay.com/v1/payments/pay_abc").respond(
@@ -164,16 +168,15 @@ async def test_fetch_payment(monkeypatch):
 
 # -------------------- Refund --------------------
 
+
 @pytest.mark.asyncio
 async def test_refund_payment_partial(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
-    refund = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_refund_payment"
-    )
+    refund = next(t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_refund_payment")
     with respx.mock() as mock:
         route = mock.post("https://api.razorpay.com/v1/payments/pay_x/refund").respond(
             200, json={"id": "rfnd_y", "status": "processed", "amount": 25000}
@@ -191,11 +194,9 @@ async def test_refund_payment_full(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
-    refund = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_refund_payment"
-    )
+    refund = next(t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_refund_payment")
     with respx.mock() as mock:
         route = mock.post("https://api.razorpay.com/v1/payments/pay_x/refund").respond(
             200, json={"id": "rfnd_y", "status": "processed"}
@@ -210,26 +211,25 @@ async def test_refund_validates_speed(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
-    refund = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_refund_payment"
-    )
+    refund = next(t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_refund_payment")
     out = await refund(payment_id="pay_x", speed="instant")
     assert "speed" in out
 
 
 # -------------------- Payment Link --------------------
 
+
 @pytest.mark.asyncio
 async def test_create_payment_link(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     create_link = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_create_payment_link"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_create_payment_link"
     )
     with respx.mock() as mock:
         route = mock.post("https://api.razorpay.com/v1/payment_links").respond(
@@ -252,15 +252,16 @@ async def test_create_payment_link(monkeypatch):
 
 # -------------------- Signature verification --------------------
 
+
 @pytest.mark.asyncio
 async def test_verify_payment_signature_valid(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "secret_test")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     verify = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_verify_payment_signature"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_verify_payment_signature"
     )
     # Compute correct signature
     payload = "order_x|pay_x".encode()
@@ -274,10 +275,10 @@ async def test_verify_payment_signature_invalid(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "secret_test")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     verify = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_verify_payment_signature"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_verify_payment_signature"
     )
     out = await verify(order_id="order_x", payment_id="pay_x", signature="badsig")
     assert out == "invalid"
@@ -288,10 +289,10 @@ async def test_verify_webhook_signature_valid(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "x")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     verify = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_verify_webhook_signature"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_verify_webhook_signature"
     )
     body = '{"event":"payment.captured"}'
     secret = "wh_secret_xyz"
@@ -305,10 +306,10 @@ async def test_verify_webhook_signature_invalid(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "x")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     verify = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_verify_webhook_signature"
+        t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_verify_webhook_signature"
     )
     out = await verify(body="x", signature="wrong", webhook_secret="s")
     assert out == "invalid"
@@ -316,16 +317,15 @@ async def test_verify_webhook_signature_invalid(monkeypatch):
 
 # -------------------- List payments --------------------
 
+
 @pytest.mark.asyncio
 async def test_list_payments(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
-    list_p = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_list_payments"
-    )
+    list_p = next(t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_list_payments")
     with respx.mock() as mock:
         route = mock.get("https://api.razorpay.com/v1/payments").respond(
             200, json={"items": [], "count": 0}
@@ -341,11 +341,9 @@ async def test_list_payments_validates(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "k")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "s")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
-    list_p = next(
-        t for t in tk.get_tools()
-        if t._tool_schema["name"] == "razorpay_list_payments"
-    )
+    list_p = next(t for t in tk.get_tools() if t._tool_schema["name"] == "razorpay_list_payments")
     out = await list_p(count=200)
     assert "count" in out
     out = await list_p(skip=-1)
@@ -354,10 +352,12 @@ async def test_list_payments_validates(monkeypatch):
 
 # -------------------- Auth header --------------------
 
+
 def test_auth_header_uses_basic_auth(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_ID", "rzp_test_xyz")
     monkeypatch.setenv("LARGESTACK_RAZORPAY_KEY_SECRET", "secret_value")
     from largestack._integrations.razorpay_toolkit import RazorpayToolkit
+
     tk = RazorpayToolkit()
     expected = "Basic " + base64.b64encode(b"rzp_test_xyz:secret_value").decode()
     assert tk._auth_header["Authorization"] == expected

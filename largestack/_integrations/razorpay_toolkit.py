@@ -27,6 +27,7 @@ Usage:
     rzp = RazorpayToolkit()  # reads env vars
     agent = Agent(name="payments", llm="...", tools=rzp.get_tools())
 """
+
 from __future__ import annotations
 import base64
 import hashlib
@@ -65,9 +66,7 @@ class RazorpayToolkit:
         timeout: float = 20.0,
     ):
         self.key_id = key_id or os.environ.get("LARGESTACK_RAZORPAY_KEY_ID", "")
-        self.key_secret = key_secret or os.environ.get(
-            "LARGESTACK_RAZORPAY_KEY_SECRET", ""
-        )
+        self.key_secret = key_secret or os.environ.get("LARGESTACK_RAZORPAY_KEY_SECRET", "")
         self.timeout = timeout
         self._tools: list[Callable] = self._build_tools()
 
@@ -225,9 +224,7 @@ class RazorpayToolkit:
                 body["amount"] = amount_paise
             if notes:
                 body["notes"] = notes
-            return await tk._request(
-                "POST", f"/payments/{payment_id}/refund", json_body=body
-            )
+            return await tk._request("POST", f"/payments/{payment_id}/refund", json_body=body)
 
         @tool(timeout=int(self.timeout) + 5)
         async def razorpay_create_payment_link(
@@ -297,9 +294,7 @@ class RazorpayToolkit:
             if not (order_id and payment_id and signature):
                 return "error: order_id, payment_id, signature all required"
             payload = f"{order_id}|{payment_id}".encode()
-            expected = hmac.new(
-                tk.key_secret.encode(), payload, hashlib.sha256
-            ).hexdigest()
+            expected = hmac.new(tk.key_secret.encode(), payload, hashlib.sha256).hexdigest()
             ok = hmac.compare_digest(expected, signature)
             return "valid" if ok else "invalid"
 
@@ -321,9 +316,7 @@ class RazorpayToolkit:
             if not (body and signature and webhook_secret):
                 return "error: body, signature, webhook_secret all required"
             payload = body.encode() if isinstance(body, str) else body
-            expected = hmac.new(
-                webhook_secret.encode(), payload, hashlib.sha256
-            ).hexdigest()
+            expected = hmac.new(webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
             ok = hmac.compare_digest(expected, signature)
             return "valid" if ok else "invalid"
 
@@ -342,9 +335,7 @@ class RazorpayToolkit:
                 return "error: count must be in [1, 100]"
             if skip < 0:
                 return "error: skip must be >= 0"
-            return await tk._request(
-                "GET", "/payments", params={"count": count, "skip": skip}
-            )
+            return await tk._request("GET", "/payments", params={"count": count, "skip": skip})
 
         return [
             razorpay_create_order,

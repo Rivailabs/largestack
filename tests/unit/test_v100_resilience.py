@@ -1,4 +1,5 @@
 """v0.10.0: Tests for retry + circuit breaker utilities."""
+
 from __future__ import annotations
 
 import asyncio
@@ -9,6 +10,7 @@ import pytest
 
 
 # -------------------- retry decorator --------------------
+
 
 @pytest.mark.asyncio
 async def test_retry_succeeds_first_try():
@@ -69,7 +71,9 @@ async def test_retry_only_specific_exceptions():
     from largestack._core.resilience import retry
 
     @retry(
-        max_attempts=3, initial_delay=0.01, jitter=False,
+        max_attempts=3,
+        initial_delay=0.01,
+        jitter=False,
         retry_on=(ValueError,),
     )
     async def fn():
@@ -86,7 +90,9 @@ async def test_retry_do_not_retry_takes_precedence():
     calls = 0
 
     @retry(
-        max_attempts=5, initial_delay=0.01, jitter=False,
+        max_attempts=5,
+        initial_delay=0.01,
+        jitter=False,
         retry_on=(Exception,),
         do_not_retry_on=(ValueError,),
     )
@@ -123,8 +129,10 @@ def test_retry_config_delay_grows_exponentially():
     from largestack._core.resilience import RetryConfig
 
     cfg = RetryConfig(
-        initial_delay=1.0, max_delay=100.0,
-        backoff_multiplier=2.0, jitter=False,
+        initial_delay=1.0,
+        max_delay=100.0,
+        backoff_multiplier=2.0,
+        jitter=False,
     )
     assert cfg.delay_for_attempt(1) == 1.0
     assert cfg.delay_for_attempt(2) == 2.0
@@ -134,9 +142,11 @@ def test_retry_config_delay_grows_exponentially():
 
 # -------------------- CircuitBreaker --------------------
 
+
 @pytest.mark.asyncio
 async def test_breaker_starts_closed():
     from largestack._core.resilience import CircuitBreaker
+
     cb = CircuitBreaker(name="test")
     assert cb.is_closed
     assert not cb.is_open
@@ -145,6 +155,7 @@ async def test_breaker_starts_closed():
 @pytest.mark.asyncio
 async def test_breaker_opens_after_threshold_failures():
     from largestack._core.resilience import CircuitBreaker, CircuitOpenError
+
     cb = CircuitBreaker(name="t", failure_threshold=3, recovery_timeout=10)
 
     for i in range(3):
@@ -169,6 +180,7 @@ async def test_breaker_opens_after_threshold_failures():
 @pytest.mark.asyncio
 async def test_breaker_resets_failures_on_success():
     from largestack._core.resilience import CircuitBreaker
+
     cb = CircuitBreaker(name="t", failure_threshold=3)
 
     # Two failures
@@ -190,8 +202,11 @@ async def test_breaker_resets_failures_on_success():
 @pytest.mark.asyncio
 async def test_breaker_half_open_after_recovery_timeout():
     from largestack._core.resilience import CircuitBreaker, CircuitOpenError
+
     cb = CircuitBreaker(
-        name="t", failure_threshold=2, recovery_timeout=0.05,
+        name="t",
+        failure_threshold=2,
+        recovery_timeout=0.05,
     )
     # Trip the breaker
     for _ in range(2):
@@ -214,8 +229,11 @@ async def test_breaker_half_open_after_recovery_timeout():
 @pytest.mark.asyncio
 async def test_breaker_half_open_failure_reopens():
     from largestack._core.resilience import CircuitBreaker
+
     cb = CircuitBreaker(
-        name="t", failure_threshold=2, recovery_timeout=0.05,
+        name="t",
+        failure_threshold=2,
+        recovery_timeout=0.05,
     )
     for _ in range(2):
         try:
@@ -239,6 +257,7 @@ async def test_breaker_half_open_failure_reopens():
 @pytest.mark.asyncio
 async def test_breaker_decorator():
     from largestack._core.resilience import CircuitBreaker, CircuitOpenError
+
     cb = CircuitBreaker(name="t", failure_threshold=2)
 
     @cb.protect
@@ -262,6 +281,7 @@ async def test_breaker_decorator():
 @pytest.mark.asyncio
 async def test_breaker_reset():
     from largestack._core.resilience import CircuitBreaker
+
     cb = CircuitBreaker(name="t", failure_threshold=1)
     try:
         async with cb:
@@ -276,6 +296,7 @@ async def test_breaker_reset():
 
 
 # -------------------- resilient (combined) --------------------
+
 
 @pytest.mark.asyncio
 async def test_resilient_retries_and_succeeds():
@@ -299,7 +320,10 @@ async def test_resilient_retries_and_succeeds():
 @pytest.mark.asyncio
 async def test_resilient_with_breaker_trips_after_persistent_failure():
     from largestack._core.resilience import (
-        resilient, CircuitBreaker, RetryError, CircuitOpenError,
+        resilient,
+        CircuitBreaker,
+        RetryError,
+        CircuitOpenError,
     )
 
     cb = CircuitBreaker(name="t", failure_threshold=2)

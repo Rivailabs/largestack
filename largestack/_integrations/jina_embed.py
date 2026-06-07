@@ -10,6 +10,7 @@ Jina offers state-of-the-art multilingual embeddings:
 API: ``POST https://api.jina.ai/v1/embeddings``
 Format: OpenAI-compatible.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -67,10 +68,7 @@ async def jina_embed(
         JSON string with: ``{"model", "dim", "tokens", "embedding"}``
         OR a plain error string.
     """
-    api_key = (
-        os.environ.get("LARGESTACK_JINA_API_KEY")
-        or os.environ.get("JINA_API_KEY", "")
-    )
+    api_key = os.environ.get("LARGESTACK_JINA_API_KEY") or os.environ.get("JINA_API_KEY", "")
     if not api_key:
         return "error: LARGESTACK_JINA_API_KEY (or JINA_API_KEY) not set"
     if not text or not isinstance(text, str):
@@ -83,7 +81,7 @@ async def jina_embed(
         return f"error: invalid task {task!r}; valid: {sorted(_VALID_TASKS)}"
     if output_dimension is not None:
         if model != "jina-embeddings-v3":
-            return f"error: output_dimension only supported on jina-embeddings-v3"
+            return "error: output_dimension only supported on jina-embeddings-v3"
         if not (256 <= output_dimension <= 1024):
             return "error: output_dimension must be in [256, 1024]"
 
@@ -129,9 +127,11 @@ async def jina_embed(
     except (KeyError, IndexError, TypeError) as e:
         return f"error: malformed Jina response: {e}"
 
-    return json.dumps({
-        "model": model,
-        "dim": len(vec),
-        "tokens": tokens,
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec),
+            "tokens": tokens,
+            "embedding": vec,
+        }
+    )

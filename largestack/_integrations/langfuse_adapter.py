@@ -31,6 +31,7 @@ Usage::
 
     # Now LARGESTACK spans flow to Langfuse automatically
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -49,6 +50,7 @@ class LangfuseConfig:
     - ``LANGFUSE_SECRET_KEY``
     - ``LANGFUSE_HOST``
     """
+
     public_key: str = ""
     secret_key: str = ""
     host: str = "https://cloud.langfuse.com"
@@ -74,7 +76,11 @@ class LangfuseConfig:
         # India-residency check
         if not self.allow_non_india_host:
             india_markers = (
-                "ap-south", "mumbai", ".in/", ".in:", ".in",
+                "ap-south",
+                "mumbai",
+                ".in/",
+                ".in:",
+                ".in",
             )
             if not any(m in self.host.lower() for m in india_markers):
                 raise ValueError(
@@ -87,6 +93,7 @@ class LangfuseConfig:
 def _have_langfuse() -> bool:
     try:
         import langfuse  # noqa
+
         return True
     except ImportError:
         return False
@@ -95,12 +102,14 @@ def _have_langfuse() -> bool:
 def _have_opentelemetry() -> bool:
     try:
         import opentelemetry  # noqa
+
         return True
     except ImportError:
         return False
 
 
 # -------------------- Configuration --------------------
+
 
 class LangfuseTracer:
     """Wraps LARGESTACK spans with Langfuse-flavored attributes.
@@ -118,10 +127,9 @@ class LangfuseTracer:
         if self._client is not None:
             return self._client
         if not _have_langfuse():
-            raise ImportError(
-                "langfuse required. Install: pip install langfuse"
-            )
+            raise ImportError("langfuse required. Install: pip install langfuse")
         from langfuse import Langfuse
+
         self._client = Langfuse(
             public_key=self.config.public_key,
             secret_key=self.config.secret_key,
@@ -143,7 +151,13 @@ class LangfuseTracer:
         tags: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
     ):
-        """Start a Langfuse trace. Returns the langfuse trace object."""
+        """Start a Langfuse trace. Returns the langfuse trace/span object.
+
+        v1.1.1: support both Langfuse SDK v2 (``client.trace(...)``) and v3 (which
+        removed ``trace()`` in favour of ``start_span(...)``). The OTEL export path
+        (``configure_otel_export_to_langfuse``) is the recommended integration and
+        is unaffected by this.
+        """
         client = self.get_client()
         kwargs: dict[str, Any] = {"name": name}
         if user_id:
@@ -154,7 +168,14 @@ class LangfuseTracer:
             kwargs["tags"] = tags
         if metadata:
             kwargs["metadata"] = metadata
-        return client.trace(**kwargs)
+        if hasattr(client, "trace"):  # Langfuse SDK v2
+            return client.trace(**kwargs)
+        if hasattr(client, "start_span"):  # Langfuse SDK v3
+            return client.start_span(**kwargs)
+        raise RuntimeError(
+            "Unsupported Langfuse SDK: no trace()/start_span(). Use the OTEL export "
+            "path (configure_otel_export_to_langfuse) or pin a supported langfuse."
+        )
 
     def flush(self) -> None:
         if self._client is not None:
@@ -217,10 +238,7 @@ def configure_langfuse(config: LangfuseConfig) -> LangfuseTracer:
     """Configure the global Langfuse tracer."""
     global _global_tracer
     if not config.public_key:
-        raise ValueError(
-            "public_key required. Set LANGFUSE_PUBLIC_KEY env var or "
-            "pass explicitly."
-        )
+        raise ValueError("public_key required. Set LANGFUSE_PUBLIC_KEY env var or pass explicitly.")
     if not config.secret_key:
         raise ValueError("secret_key required.")
 
@@ -236,6 +254,7 @@ def get_tracer() -> LangfuseTracer | None:
 
 # -------------------- OTEL bridge --------------------
 
+
 def configure_otel_export_to_langfuse(
     config: LangfuseConfig,
 ) -> bool:
@@ -245,16 +264,14 @@ def configure_otel_export_to_langfuse(
     Returns True if OTEL setup succeeded.
     """
     if not _have_opentelemetry():
-        log.warning(
-            "opentelemetry not installed; "
-            "skipping OTEL export to Langfuse"
-        )
+        log.warning("opentelemetry not installed; skipping OTEL export to Langfuse")
         return False
 
     try:
         from opentelemetry import trace
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
         try:
             from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
                 OTLPSpanExporter,
@@ -270,9 +287,8 @@ def configure_otel_export_to_langfuse(
         return False
 
     import base64
-    auth = base64.b64encode(
-        f"{config.public_key}:{config.secret_key}".encode()
-    ).decode()
+
+    auth = base64.b64encode(f"{config.public_key}:{config.secret_key}".encode()).decode()
     endpoint = f"{config.host.rstrip('/')}/api/public/otel/v1/traces"
 
     exporter = OTLPSpanExporter(
@@ -292,6 +308,7 @@ def configure_otel_export_to_langfuse(
 
 
 # -------------------- LARGESTACK-unique attribute helpers --------------------
+
 
 def langfuse_attributes_for_dpdp(
     *,

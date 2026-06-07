@@ -33,6 +33,7 @@ For A/B testing:
     text = reg.render_with_split("greeting", split={"v1": 50, "v2": 50},
                                  name="Sachith", company="RivaiLabs")
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -118,9 +119,7 @@ class PromptRegistry:
             if name not in self._templates:
                 raise PromptTemplateError(f"unknown template {name!r}")
             if version not in self._templates[name]:
-                raise PromptTemplateError(
-                    f"version {version!r} not registered for {name!r}"
-                )
+                raise PromptTemplateError(f"version {version!r} not registered for {name!r}")
             self._active[name] = version
         if self.persist_path:
             self._save()
@@ -160,9 +159,7 @@ class PromptRegistry:
                 raise PromptTemplateError(f"unknown template {name!r}")
             v = version or self._active[name]
             if v not in self._templates[name]:
-                raise PromptTemplateError(
-                    f"version {v!r} not registered for {name!r}"
-                )
+                raise PromptTemplateError(f"version {v!r} not registered for {name!r}")
             tmpl = self._templates[name][v]
             self._counters[name][v] += 1
 
@@ -203,9 +200,7 @@ class PromptRegistry:
             available = self._templates[name]
             for v in split:
                 if v not in available:
-                    raise PromptTemplateError(
-                        f"version {v!r} not registered for {name!r}"
-                    )
+                    raise PromptTemplateError(f"version {v!r} not registered for {name!r}")
         total = sum(split.values())
         if total <= 0:
             raise PromptTemplateError("split weights must sum to > 0")
@@ -256,6 +251,7 @@ class PromptRegistry:
             with open(tmp, "w") as f:
                 json.dump(payload, f, indent=2)
             import os
+
             os.replace(tmp, self.persist_path)
         except Exception as e:
             log.warning(f"PromptRegistry save failed: {e}")

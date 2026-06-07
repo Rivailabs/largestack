@@ -12,6 +12,7 @@ Now a background `watchfiles.awatch()` task fans events out to every
 connected SSE client. If `watchfiles` is not installed we log an honest
 "hot-reload disabled" message instead of pretending it works.
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -28,6 +29,7 @@ def watchfiles_available() -> bool:
     honest "enabled" / "disabled" status rather than always claiming enabled."""
     try:
         import watchfiles  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -128,8 +130,7 @@ es.onerror = () => {
 </html>"""
 
 
-def create_dev_app(*, watch_path: str | None = None,
-                   enable_hot_reload: bool | None = None):
+def create_dev_app(*, watch_path: str | None = None, enable_hot_reload: bool | None = None):
     """Create dev FastAPI app with playground + (optional) real hot-reload.
 
     Args:
@@ -176,9 +177,16 @@ def create_dev_app(*, watch_path: str | None = None,
 
         log.info(f"largestack dev: watching {watch_path} for changes (hot-reload ON)")
         ignored = (
-            "__pycache__", ".git", ".venv", "node_modules",
-            ".pytest_cache", ".mypy_cache", ".ruff_cache",
-            ".largestack", "dist", "build",
+            "__pycache__",
+            ".git",
+            ".venv",
+            "node_modules",
+            ".pytest_cache",
+            ".mypy_cache",
+            ".ruff_cache",
+            ".largestack",
+            "dist",
+            "build",
         )
 
         def _snapshot() -> dict[str, int]:
@@ -245,9 +253,13 @@ def create_dev_app(*, watch_path: str | None = None,
             "This server is for local development only — do not expose to the internet."
         )
     _dev_origins = [
-        "http://localhost:3000", "http://localhost:5173", "http://localhost:8080",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:8080",
         "http://localhost:4111",
-        "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:8080",
         "http://127.0.0.1:4111",
     ]
     app.add_middleware(
@@ -284,6 +296,7 @@ def create_dev_app(*, watch_path: str | None = None,
 
         try:
             from largestack import Agent
+
             agent = Agent(name="dev", llm=model, cost_budget=0.05)
             result = await agent.run(prompt)
             return {
@@ -303,6 +316,7 @@ def create_dev_app(*, watch_path: str | None = None,
         explicitly), the first event is `hot-reload-disabled` so the client
         shows an honest status instead of a green "● Connected" lie.
         """
+
         async def event_gen():
             queue: asyncio.Queue = asyncio.Queue()
             refresh_subscribers.append(queue)

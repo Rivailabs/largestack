@@ -4,6 +4,7 @@ Auth: env vars ``LARGESTACK_JIRA_URL`` (e.g. https://yourorg.atlassian.net),
 ``LARGESTACK_JIRA_EMAIL``, and ``LARGESTACK_JIRA_API_TOKEN`` (from
 https://id.atlassian.com/manage-profile/security/api-tokens).
 """
+
 from __future__ import annotations
 import base64
 import logging

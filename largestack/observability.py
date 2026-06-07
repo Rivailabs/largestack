@@ -4,6 +4,7 @@ The lower-level package already has traces, metrics, OTEL helpers, adapters,
 and dashboard APIs. This facade gives developers one stable, self-hosted API
 for run summaries, feedback capture, and lightweight evaluations.
 """
+
 from __future__ import annotations
 import json
 import os
@@ -66,7 +67,19 @@ class Monitor:
         args.append(int(limit))
         with self._connect() as conn:
             rows = conn.execute(sql, args).fetchall()
-        keys = ["trace_id", "timestamp", "agent", "task", "model", "error", "duration_ms", "cost", "tokens", "turns", "finish_reason"]
+        keys = [
+            "trace_id",
+            "timestamp",
+            "agent",
+            "task",
+            "model",
+            "error",
+            "duration_ms",
+            "cost",
+            "tokens",
+            "turns",
+            "finish_reason",
+        ]
         return [dict(zip(keys, row)) for row in rows]
 
     def get_trace(self, trace_id: str) -> dict[str, Any] | None:
@@ -77,7 +90,20 @@ class Monitor:
             ).fetchone()
         if not row:
             return None
-        keys = ["trace_id", "timestamp", "agent", "task", "model", "output", "error", "duration_ms", "cost", "tokens", "turns", "finish_reason"]
+        keys = [
+            "trace_id",
+            "timestamp",
+            "agent",
+            "task",
+            "model",
+            "output",
+            "error",
+            "duration_ms",
+            "cost",
+            "tokens",
+            "turns",
+            "finish_reason",
+        ]
         return dict(zip(keys, row))
 
     def record_feedback(
@@ -102,7 +128,14 @@ class Monitor:
         with self._connect() as conn:
             conn.execute(
                 "INSERT INTO feedback (trace_id, rating, comment, label, metadata, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-                (rec.trace_id, rec.rating, rec.comment, rec.label, json.dumps(rec.metadata), rec.created_at),
+                (
+                    rec.trace_id,
+                    rec.rating,
+                    rec.comment,
+                    rec.label,
+                    json.dumps(rec.metadata),
+                    rec.created_at,
+                ),
             )
             conn.commit()
         return rec
@@ -119,14 +152,16 @@ class Monitor:
             rows = conn.execute(sql, args).fetchall()
         out = []
         for trace_id, rating, comment, label, metadata, created_at in rows:
-            out.append({
-                "trace_id": trace_id,
-                "rating": rating,
-                "comment": comment or "",
-                "label": label or "",
-                "metadata": json.loads(metadata or "{}"),
-                "created_at": created_at,
-            })
+            out.append(
+                {
+                    "trace_id": trace_id,
+                    "rating": rating,
+                    "comment": comment or "",
+                    "label": label or "",
+                    "metadata": json.loads(metadata or "{}"),
+                    "created_at": created_at,
+                }
+            )
         return out
 
     def evaluate_trace(self, trace_id: str) -> dict[str, Any]:
@@ -157,7 +192,11 @@ class Monitor:
             "errors": len(errors),
             "error_rate": (len(errors) / len(traces)) if traces else 0.0,
             "total_cost": total_cost,
-            "avg_latency_ms": (sum(float(t.get("duration_ms") or 0.0) for t in traces) / len(traces)) if traces else 0.0,
+            "avg_latency_ms": (
+                sum(float(t.get("duration_ms") or 0.0) for t in traces) / len(traces)
+            )
+            if traces
+            else 0.0,
             "agents": sorted({t.get("agent") for t in traces if t.get("agent")}),
         }
 

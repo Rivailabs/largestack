@@ -1,10 +1,13 @@
 """White-labeling — custom branding for enterprise customers."""
+
 from __future__ import annotations
 from dataclasses import dataclass, field
+
 
 @dataclass
 class WhiteLabelConfig:
     """Custom branding configuration."""
+
     company_name: str = "Largestack AI"
     logo_url: str = ""
     primary_color: str = "#7c6cf0"
@@ -20,8 +23,9 @@ class WhiteLabelConfig:
         if self.error_prefix != "LARGESTACK":
             return error_msg.replace("LARGESTACK", self.error_prefix)
         return error_msg
-    
+
     def get_dashboard_css(self) -> str:
         css = f":root {{ --primary: {self.primary_color}; }}"
-        if self.custom_css: css += f"\n{self.custom_css}"
+        if self.custom_css:
+            css += f"\n{self.custom_css}"
         return css

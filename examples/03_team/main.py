@@ -1,4 +1,5 @@
 """Multi-agent team using the configured provider."""
+
 from pathlib import Path
 import sys
 
@@ -9,8 +10,20 @@ from largestack import Agent, Team
 
 async def main():
     model = select_model()
-    researcher = Agent(name="researcher", instructions="Find two concise facts.", llm=model, guardrails=False, cost_budget=0.08)
-    writer = Agent(name="writer", instructions="Write a one-sentence summary from the facts.", llm=model, guardrails=False, cost_budget=0.08)
+    researcher = Agent(
+        name="researcher",
+        instructions="Find two concise facts.",
+        llm=model,
+        guardrails=False,
+        cost_budget=0.08,
+    )
+    writer = Agent(
+        name="writer",
+        instructions="Write a one-sentence summary from the facts.",
+        llm=model,
+        guardrails=False,
+        cost_budget=0.08,
+    )
     team = Team(agents=[researcher, writer], strategy="sequential", cost_budget=0.20)
     try:
         result = await team.run("AI agent trends 2026", timeout=90)
