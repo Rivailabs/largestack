@@ -275,7 +275,7 @@ async def main():
     print(f"  Tenant isolation:    verified")
     print(f"  Studio export:       OK")
     if success:
-        print("\n  ✅ RAG PIPELINE: VERIFIED PRODUCTION-READY")
+        print("\n  ✅ RAG PIPELINE: scenario smoke test passed (beta)")
     else:
         print("\n  ⚠️  RAG accuracy below 80% — tune embedder/chunking")
     return 0 if success else 1

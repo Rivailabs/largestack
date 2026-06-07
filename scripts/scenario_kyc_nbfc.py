@@ -381,7 +381,7 @@ tools:
         and size > 5000
     )
     if success:
-        print("\n  ✅ END-TO-END KYC PIPELINE: VERIFIED PRODUCTION-READY")
+        print("\n  ✅ END-TO-END KYC PIPELINE: scenario smoke test passed (beta)")
     else:
         print("\n  ❌ FAILURES DETECTED")
     return 0 if success else 1

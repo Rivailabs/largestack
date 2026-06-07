@@ -1,4 +1,4 @@
-"""Tests for the v1.1.1 Phase-1 gap-closing work (REVIEW_2026-06-06 ⚠️/❌ items)."""
+"""Tests for the v1.1.1 Phase-1 gap-closing work (see release_evidence/)."""
 from __future__ import annotations
 import asyncio
 import os

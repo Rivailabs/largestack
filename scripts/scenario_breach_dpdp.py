@@ -177,7 +177,7 @@ async def main():
     print(f"  DPB notification ready:   ✓")
     print(f"  Principal notification:   ✓ (plain language)")
     print(f"  72hr deadline tracked:    ✓")
-    print("\n  ✅ DPDP §8 BREACH FLOW: VERIFIED PRODUCTION-READY")
+    print("\n  ✅ DPDP §8 BREACH FLOW: scenario smoke test passed (beta)")
     return 0
 
 

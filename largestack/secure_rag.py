@@ -16,7 +16,7 @@ Chains the building blocks largestack already ships into a single, tested flow f
       → citation validation       (CitationEngine maps sentences → sources)
       → SecureRagResult
 
-NOT included by design (add when a real deployment needs them — see REVIEW_2026-06-06.md):
+NOT included by design (add when a real deployment needs them — see the Secure RAG guide):
   - A specific vector DB (Qdrant/etc.): pass dense=True (local) or your own embed_fn;
     swap the store via largestack._vectorstores when you outgrow in-memory/BM25.
   - SIEM export: the run already writes an audit row (~/.largestack/audit.db); add a

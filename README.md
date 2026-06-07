@@ -279,7 +279,7 @@ author exercised this path on their own machine."
 
 | Check | What it means |
 |---|---|
-| Unit + security test suite | 2,551 tests run in CI on Python 3.11–3.13; coverage gated ≥75% on the core wedge |
+| Unit + security test suite | Full suite runs in CI on Python 3.11–3.13; coverage gated ≥75% on the core wedge |
 | Live DeepSeek e2e | Typed output, cost tracking, and tool calling run against the real DeepSeek API in CI (when the API-key secret is set; auto-skips otherwise) |
 | Provider support matrix | Present, with explicit verified/partial adapter statuses |
 | Offline provider flow demo | Runs deterministically with `TestModel`, no API key |

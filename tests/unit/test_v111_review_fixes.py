@@ -1,4 +1,4 @@
-"""Regression tests for the v1.1.1 review remediation (REVIEW_2026-06-06.md).
+"""Regression tests for the v1.1.1 review remediation (see release_evidence/).
 
 Each test pins a specific bug fix so it can't silently regress. All are fast and
 offline (no real LLM, no model downloads).

@@ -36,3 +36,30 @@ async def test_decorator_str_output_unchanged():
     with agent.override(model=FunctionModel(lambda m, i: {"content": "plain text"})):
         r = await agent.run("hi")
     assert r.output == "plain text"
+
+
+def test_decorator_late_tool_registration_invalidates_cache():
+    """A tool registered AFTER the underlying agent is materialized must be picked up
+    (regression: _underlying_agent was cached and ignored later tool registrations)."""
+    agent = Agent("deepseek/deepseek-chat", instructions="x")
+
+    @agent.tool_plain
+    def first(x: int) -> int:
+        "first tool"
+        return x
+
+    u1 = agent._get_underlying()          # materialize the underlying agent
+    assert u1 is not None
+    assert agent._underlying_agent is u1  # cached
+
+    @agent.tool_plain
+    def second(y: int) -> int:
+        "second tool registered AFTER materialization"
+        return y
+
+    assert agent._underlying_agent is None  # registration invalidated the cache
+    u2 = agent._get_underlying()
+    assert u2 is not u1                      # rebuilt
+    # the late tool is now actually in the underlying agent's registry
+    assert u2._tool_registry.get("second") is not None
+    assert u2._tool_registry.get("first") is not None

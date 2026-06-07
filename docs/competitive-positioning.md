@@ -46,9 +46,9 @@ Use:
 
 > LARGESTACK gives teams a governed, observable, self-hostable agentic AI framework with batteries included.
 
-Avoid:
-
-> LARGESTACK replaces every existing agent framework.
+Avoid absolute supersession claims — do not position LARGESTACK as a wholesale
+substitute that makes established agent frameworks obsolete. Frame it as a
+lightweight, governance-first alternative that complements and integrates with them.
 
 ## Improvement priority to become stronger
 

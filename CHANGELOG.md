@@ -6,9 +6,11 @@ A complete review across all subsystems (providers, engine, orchestration, memor
 guardrails/security/sandbox, observability, serving, integrations) plus live local-LLM
 verification (Ollama: chat, tools, guardrails, sandbox, structured-fallback). Fixes the
 real bugs found, implements several claimed-but-missing capabilities, and corrects
-over-claims so docs match behavior. See `REVIEW_2026-06-06.md` for the full findings.
+over-claims so docs match behavior. See
+[`release_evidence/RELEASE_REVIEW_2026-06-07.md`](release_evidence/RELEASE_REVIEW_2026-06-07.md)
+for the full release-gate evidence (real command outputs).
 
-- **2609 passing** (tests/, canonical CI environment, all extras installed).
+- **2610 passing** (tests/, canonical CI environment, all extras installed).
 
 **Documentation cleanup:** removed ~60 internal/point-in-time/duplicate doc files
 (release-ops reports, `FINAL_*`/`*_READINESS`/archive, marketing copy, the broken India

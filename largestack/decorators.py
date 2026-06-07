@@ -239,8 +239,11 @@ class Agent(Generic[DepsT, OutputT]):
                 name=tool_name, description=doc,
                 parameters_schema=schema, function=fn, takes_ctx=takes_ctx,
             )
+            # v1.1.1: invalidate the cached underlying agent so a tool registered
+            # AFTER the first run is actually picked up (was silently ignored).
+            self._underlying_agent = None
             return fn
-        
+
         if func is not None:
             return decorator(func)
         return decorator
@@ -255,8 +258,9 @@ class Agent(Generic[DepsT, OutputT]):
             name=tool_name, description=doc,
             parameters_schema=schema, function=func, takes_ctx=False,
         )
+        self._underlying_agent = None  # v1.1.1: pick up late-registered tools (see .tool())
         return func
-    
+
     def output_validator(self, func: Callable) -> Callable:
         """Register output validator. Raise ModelRetry to request retry with hint.
         
