@@ -16,15 +16,15 @@ over-claims so docs match behavior. See `REVIEW_2026-06-06.md` for the full find
 - **ML-guard ergonomics** — one umbrella switch `LARGESTACK_ENABLE_ML_GUARDS=1` turns on PromptGuard 2 / ML-PII / NLI together (regex stays the zero-dep default). (`_guard/config.py`)
 - **SIEM export (LLM03/audit seam)** — `SiemExporter` + `largestack siem-export` streams the audit trail as JSON-lines / CEF / LEEF to file / syslog / webhook. (`_enterprise/siem.py`)
 - **Supply chain (LLM03 → partial)** — `largestack sbom` (CycloneDX/SPDX) + CI SBOM artifact + red-team CI gate (bandit/pip-audit/trivy already present); releases use PyPI Trusted Publishing.
-- **Output handling (LLM05 → covered)** — public `OutputSanitizer` neutralizes XSS/script/JS-URI/SQL/shell-meta in model output. (`_guard/output_sanitizer.py`)
+- **Output handling (LLM05)** — public `OutputSanitizer` neutralizes XSS/script/JS-URI/SQL/shell-meta; auto-applied by `SecureRAGAgent`, opt-in for plain Agents (LLM05 stays honestly **partial**). (`_guard/output_sanitizer.py`)
 - **SSO** — OIDC ID-token verification (JWKS signature, production-refuses-unsigned, claims/role mapping) is now **behaviorally tested** (RS256 round-trip). (`_enterprise/sso.py`, tests)
-- **Load-test harness** (`scripts/load_test.py`) + **Anthropic live-test** (`tests/integration/test_live_anthropic.py`, skips without a key) + pentest-prep doc. OWASP matrix now **11 covered / 6 partial / 0 not-covered**.
+- **Load-test harness** (`scripts/load_test.py`) + **Anthropic live-test** (`tests/integration/test_live_anthropic.py`, skips without a key) + pentest-prep doc. OWASP matrix: **9 covered / 8 partial / 0 not-covered** (LLM05 + ASI07 are honestly *partial* — OutputSanitizer/InterAgentAuth exist but are opt-in, not in the default paths).
 - **Test-suite hardening:** per-test `timeout = 120` (pytest-timeout) in `[tool.pytest.ini_options]` — a deadlocked / blocking-network test now FAILS instead of hanging the suite. Requires Python ≥3.11 (declared); running the tests on 3.10 is unsupported.
 
 **New — OWASP coverage matrix + guardrail red-team (the wedge, validated):**
 - `largestack.owasp` — a programmatic, honest **OWASP LLM Top 10 (2025) + Agentic (ASI)
-  coverage matrix** (`owasp_coverage()` / `owasp_coverage_summary()`; 10 covered / 6 partial /
-  1 not-covered of 17 mapped risks, gaps stated plainly). Docs page `owasp-coverage.md`; CLI
+  coverage matrix** (`owasp_coverage()` / `owasp_coverage_summary()`; 9 covered / 8 partial /
+  0 not-covered of 17 mapped risks, gaps stated plainly). Docs page `owasp-coverage.md`; CLI
   `largestack owasp`.
 - `largestack._test.redteam` — an offline, deterministic **red-team eval** that probes the
   guards directly (injection / jailbreak / system-prompt-leak / PII / benign false-positive

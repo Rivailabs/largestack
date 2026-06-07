@@ -39,10 +39,13 @@ async def test_postgres_blocks_insert(monkeypatch):
 @pytest.mark.asyncio
 async def test_postgres_allows_with_cte(monkeypatch):
     """WITH (CTE) is also allowed — common pattern in real queries."""
-    monkeypatch.setenv("LARGESTACK_POSTGRES_URL", "postgresql://invalid:9999/db")
+    # v1.1.1: localhost:1 → instant connection-refused, NO external DNS lookup (the
+    # previous 'invalid' host could trigger a real getaddrinfo on hosts with a
+    # wildcard/search-domain resolver). Keeps this gate test hermetic.
+    monkeypatch.setenv("LARGESTACK_POSTGRES_URL", "postgresql://localhost:1/db")
     from largestack._integrations.postgres import postgres_query
     out = await postgres_query("WITH x AS (SELECT 1) SELECT * FROM x")
-    # Will fail at connection (intentionally bad URL) but NOT at validation
+    # Fails at connection (refused) but NOT at validation — CTE must pass the SQL guard.
     assert "blocked" not in out.lower() or "connection" in out.lower()
 
 

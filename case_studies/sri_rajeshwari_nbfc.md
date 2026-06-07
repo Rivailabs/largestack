@@ -79,16 +79,18 @@ collapsed into a configuration step.**
 | `KYCToolkit.kyc_aml_check` | PMLA-compliant AML / sanctions screening |
 | `UPIToolkit.upi_validate_vpa` | Cross-check VPA before disbursement |
 | `UPIToolkit.upi_create_payment_intent` | Razorpay UPI integration |
-| Hash-chain audit log | RBI-grade tamper-evident audit trail |
+| Hash-chain audit log | HMAC hash-chain audit trail (tamper-evident; DB-only tampering detectable) |
 | Per-tenant fail-loud scoping | Branch-A staff cannot see Branch-B data |
 | `PII scan` CLI | Pre-deployment scan caught 3 hardcoded PANs in test fixtures |
-| Auto-Aadhaar redaction | All logs ship to ELK with `XXXX XXXX 1234` masked |
+| Auto-Aadhaar redaction | Standard 4-4-4 Aadhaar masked in logs (`XXXX XXXX 1234`) |
 | YAML compliance markers | `compliance: [DPDP_Act_2023, RBI_PA_PG_2024, PMLA_2002]` |
 
 ## Outcomes (operational)
 
-- **Aadhaar handling** — 100% of Aadhaar references in logs are
-  automatically masked. Zero raw Aadhaar in any persistent log.
+- **Aadhaar handling** — Aadhaar numbers in standard 4-4-4 format are
+  automatically masked by the built-in PII guardrail; enable Presidio
+  (`LARGESTACK_ENABLE_PRESIDIO_PII=1`) for separator-free/edge-case coverage.
+  Validate masking against your own log formats before relying on it.
 - **Audit chain** — Every privileged operation (loan sanction, KYC
   override, manual disbursement) is in the hash-chain audit log,
   exportable for RBI inspection.

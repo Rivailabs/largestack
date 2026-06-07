@@ -129,4 +129,4 @@ esign:
 
 - **No printer/scanner**: rural customers can sign on a feature phone via SMS-based OTP
 - **Legally equivalent to wet signature**: IT Act §3A
-- **Tamper-proof**: every signature has a hash chain entry — modify the PDF and the hash mismatch is provable
+- **Tamper-evident**: every signature has a hash chain entry — modify the PDF and the hash mismatch is detectable

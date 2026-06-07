@@ -136,8 +136,8 @@ Recommended website wording:
 
 Important honesty:
 
-- OpenAI, DeepSeek, and Anthropic are the strongest primary paths in the current
-  messaging.
+- OpenAI and DeepSeek are the strongest (live-verified) primary paths. The Anthropic
+  adapter is implemented but not yet live-verified (adapter-only in the matrix).
 - DeepSeek has live difficult-project validation evidence.
 - LiteLLM opens access to many providers, but downstream capability depends on
   the provider and model.

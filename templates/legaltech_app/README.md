@@ -25,9 +25,9 @@ largestack run agent.yaml --task "Draft a service agreement between XYZ Pvt Ltd 
 ```
 
 ## Compliance notes
-This template enforces:
+This template provides scaffolding/patterns for (not certified compliance — legal review required):
 - Citation of specific Indian Acts and sections
 - Indian English usage
 - Stamp duty + registration awareness
 - Hallucination guardrail (critical for legal accuracy)
-- DPDP-compliant client data handling
+- DPDP-aligned client-data-handling patterns

@@ -1,7 +1,8 @@
 # LARGESTACK Cookbook — India-Fintech Recipes
 
-Production-ready patterns for building agents on LARGESTACK for the Indian
-fintech, legaltech, and regulated-industry market.
+Reference/starter patterns for building agents on LARGESTACK for the Indian
+fintech, legaltech, and regulated-industry market. (Beta — patterns and scaffolding,
+not certified for regulated production use; see the security/compliance notes.)
 
 Each recipe is **self-contained**: copy the code, install LARGESTACK, run.
 

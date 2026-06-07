@@ -172,10 +172,11 @@ specific provider/model you depend on.
 | DeepSeek | `deepseek/deepseek-chat` | `LARGESTACK_DEEPSEEK_API_KEY` | Live E2E validated |
 | LiteLLM gateway | `litellm/<provider>/<model>` | Provider-specific LiteLLM env vars | Partial; downstream capability varies |
 | Local OpenAI-compatible | `local/<model>` | `LARGESTACK_OPENAI_COMPATIBLE_BASE_URL` | Partial; gateway/model capability varies |
-| Ollama native | `ollama/<model>` | `LARGESTACK_OLLAMA_BASE_URL` optional | Partial; chat path first |
+| Ollama native | `ollama/<model>` | `LARGESTACK_OLLAMA_BASE_URL` optional | Verified (local); native chat — tools via `ollama_openai/` |
 | Azure OpenAI | `azure/<deployment>` | `LARGESTACK_AZURE_OPENAI_KEY`, `LARGESTACK_AZURE_OPENAI_ENDPOINT` | Partial; deployment-specific |
 | Groq, Mistral, OpenRouter, xAI, Cerebras, SambaNova, NVIDIA | `<provider>/<model>` | `LARGESTACK_<PROVIDER>_API_KEY` | Partial/OpenAI-compatible; verify live |
-| Google/Gemini, Cohere, Bedrock | `<provider>/<model>` | Provider env/credentials | Partial; feature support differs |
+| Google/Gemini | `google/<model>` | `LARGESTACK_GOOGLE_API_KEY` | Verified (chat + tools + structured live) |
+| Cohere, Bedrock | `<provider>/<model>` | Provider env/credentials | Partial/adapter-only; feature support differs |
 
 Inspect the runtime matrix:
 
@@ -243,8 +244,9 @@ What the demo proves:
 - DAG dependencies control execution order,
 - each agent can use the same model string or provider family,
 - offline `TestModel` validation requires no API key,
-- live mode works with GPT, Claude, DeepSeek, LiteLLM, or local-compatible
-  providers when credentials are configured.
+- live mode works with GPT, DeepSeek, Gemini, LiteLLM, or local-compatible providers
+  when credentials are configured (the Claude/Anthropic adapter is implemented but not
+  yet live-verified — see the provider table).
 
 ---
 

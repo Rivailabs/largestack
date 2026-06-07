@@ -44,8 +44,8 @@ OWASP_COVERAGE: tuple[OwaspControl, ...] = (
         "LLM01", "Prompt Injection", LLM_TOP_10, COVERED,
         ("InjectionGuard (pattern)", "PromptGuard 2 (optional ML)", "SecureRAGAgent pre-retrieval input guard"),
         ("_guard/injection.py", "_guard/prompt_guard.py", "secure_rag.py"),
-        "Regex/heuristic by default (PROTECT blocks on >=2 patterns); enable the 86M ML "
-        "model via LARGESTACK_ENABLE_PROMPT_GUARD_ML=1 for stronger recall.",
+        "Regex/heuristic by default (PROTECT blocks on a single high-confidence pattern, or "
+        ">=2 patterns); enable the 86M ML model via LARGESTACK_ENABLE_PROMPT_GUARD_ML=1 for stronger recall.",
     ),
     OwaspControl(
         "LLM02", "Sensitive Information Disclosure", LLM_TOP_10, COVERED,
@@ -71,13 +71,15 @@ OWASP_COVERAGE: tuple[OwaspControl, ...] = (
         "your corpus upstream. Training-data poisoning is out of scope.",
     ),
     OwaspControl(
-        "LLM05", "Improper Output Handling", LLM_TOP_10, COVERED,
-        ("OutputSanitizer (HTML-escape / strip script / scan)", "Output guardrails (check_output)",
+        "LLM05", "Improper Output Handling", LLM_TOP_10, PARTIAL,
+        ("OutputSanitizer (opt-in helper)", "Output guardrails (check_output)",
          "CodeSandbox for generated code", "typed/structured output"),
         ("_guard/output_sanitizer.py", "_core/engine.py", "_security/code_sandbox.py", "_core/structured.py"),
-        "`OutputSanitizer` neutralizes XSS/script/JS-URI/SQL/shell-meta in model output before "
-        "downstream use; output guards + typed validation run on responses; sandbox isolates "
-        "generated code. You must still apply context-appropriate escaping at the final sink.",
+        "`OutputSanitizer` neutralizes XSS/script/JS-URI/SQL/shell-meta but is OPT-IN: it is NOT in "
+        "create_guardrails or the default Agent output path; it is applied automatically only by "
+        "SecureRAGAgent (sanitize_output=True) or when you call it yourself. Output guardrails + typed "
+        "validation do run on responses, and CodeSandbox isolates generated code. You must apply "
+        "context-appropriate escaping at the final sink.",
     ),
     OwaspControl(
         "LLM06", "Excessive Agency", LLM_TOP_10, COVERED,
@@ -136,11 +138,13 @@ OWASP_COVERAGE: tuple[OwaspControl, ...] = (
         "provenance system.",
     ),
     OwaspControl(
-        "ASI07", "Insecure Inter-Agent Communication", AGENTIC, COVERED,
-        ("InterAgentAuth (HMAC-signed messages, nonce replay-protection)",),
+        "ASI07", "Insecure Inter-Agent Communication", AGENTIC, PARTIAL,
+        ("InterAgentAuth (HMAC-signed messages, nonce replay-protection) — OPT-IN primitive",),
         ("_guard/inter_agent_auth.py",),
-        "HMAC-SHA256 message signing; v1.1.1 removed the public default secret and bounds the "
-        "nonce set. Set LARGESTACK_INTER_AGENT_SECRET (shared) in production.",
+        "HMAC-SHA256 message signing is available (public default secret removed, nonce set bounded), "
+        "but it is NOT wired into the default multi-agent handoff path (Team/Swarm pass plain "
+        "messages) — you must adopt it explicitly and set LARGESTACK_INTER_AGENT_SECRET. Partial "
+        "until it's the default transport.",
     ),
     OwaspControl(
         "ASI-SSRF", "Server-Side Request Forgery (agent tools)", AGENTIC, COVERED,

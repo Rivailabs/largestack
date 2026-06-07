@@ -1,6 +1,6 @@
 # Largestack AI
 
-> v1.0 release-candidate Python framework for governed agentic AI.
+> Beta (v1.1) Python framework for governed agentic AI.
 
 Largestack AI is an open-source (Apache 2.0) Python framework for building AI agents with typed dependency injection, guardrails, native MCP/A2A/AG-UI protocols, and built-in observability.
 

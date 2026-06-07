@@ -32,7 +32,7 @@ def test_owasp_summary_counts_add_up():
     s = owasp_coverage_summary()
     assert s["total"] == len(OWASP_COVERAGE)
     assert s[COVERED] + s[PARTIAL] + s[NOT_COVERED] == s["total"]
-    assert s[COVERED] >= 10  # the wedge: most risks have a real control
+    assert s[COVERED] >= s[PARTIAL]  # at least as many fully-covered as partial (honest balance)
 
 
 def test_owasp_coverage_is_serializable():

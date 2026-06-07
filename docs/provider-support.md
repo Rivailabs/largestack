@@ -37,9 +37,9 @@ This table is the public claim source. Keep it aligned with
 | Anthropic | adapter-only | Native adapter + tool-mapping tests; **not** live-verified (no key tested) | Run a live E2E with a real `sk-ant-` key to reach "validated" |
 | LiteLLM | compatible | Gateway integration present | Per-downstream-provider live E2E |
 | local OpenAI-compatible | compatible | Generic OpenAI-compatible path | Validate target runtime/model tool behavior |
-| Ollama native | compatible | Native chat path | Tool/structured output proof via compatible path |
-| Ollama OpenAI-compatible | experimental | `/v1` compatible path present | Model/runtime tool-call validation |
-| Google/Gemini | compatible | Chat adapter present | First-class tools/structured-output E2E |
+| Ollama native | verified | Live-verified local chat (qwen2.5/llama3.2); tools via `ollama_openai/` | — |
+| Ollama OpenAI-compatible | verified | Live-verified `/v1` chat + function-calling locally | — |
+| Google/Gemini | verified | Live-verified chat + tools + structured output | — |
 | Groq | compatible | OpenAI-compatible path | Model-specific tool/structured-output E2E |
 | Mistral | compatible | OpenAI-compatible path | Model-specific tool/structured-output E2E |
 | Cohere | compatible | Chat/embedding adapter present | Tool parsing and streaming proof |

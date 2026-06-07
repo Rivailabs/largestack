@@ -9,7 +9,7 @@ The same data is available programmatically:
 
 ```python
 from largestack.owasp import owasp_coverage, owasp_coverage_summary
-owasp_coverage_summary()   # {'covered': 10, 'partial': 6, 'not_covered': 1, 'total': 17}
+owasp_coverage_summary()   # {'covered': 9, 'partial': 8, 'not_covered': 0, 'total': 17}
 ```
 
 or from the CLI: `largestack owasp`.
@@ -23,7 +23,7 @@ or from the CLI: `largestack owasp`.
 | LLM02 | Sensitive Information Disclosure | ✅ covered | PIIGuard (input+output redact); trace-content redaction; secret/key patterns | PII + API-key/secret redaction on inputs, outputs and persisted traces. Separator-free numerics need Presidio (`LARGESTACK_ENABLE_PRESIDIO_PII=1`). |
 | LLM03 | Supply Chain | ⚠️ partial | SBOM (`largestack sbom`); CI pip-audit + bandit + trivy + SBOM artifact; PyPI Trusted Publishing | SBOM + CVE/SAST/container scans in CI; releases publish via Trusted Publishing (attested). For full "covered": hash-pinned lockfile + enable the PyPI trusted-publisher (one-time account setting). |
 | LLM04 | Data and Model Poisoning | ⚠️ partial | MemoryIntegrityChecker; RBAC/tenant-scoped memory | Memory/context-poisoning checks exist; RAG ingestion is caller-controlled. Training-data poisoning is out of scope. |
-| LLM05 | Improper Output Handling | ✅ covered | OutputSanitizer (HTML-escape/strip/scan); output guardrails; CodeSandbox; typed/structured output | `OutputSanitizer` neutralizes XSS/script/JS-URI/SQL/shell-meta before downstream use; you must still escape at the final sink. |
+| LLM05 | Improper Output Handling | ⚠️ partial | OutputSanitizer (**opt-in**); output guardrails; CodeSandbox; typed/structured output | `OutputSanitizer` neutralizes XSS/script/JS-URI/SQL/shell-meta, but it is NOT in `create_guardrails`/the default Agent output path — it's auto-applied only by `SecureRAGAgent` or when you call it. Escape at the final sink. |
 | LLM06 | Excessive Agency | ✅ covered | tool_permissions; ToolAccessPolicy (rate+param); HITL approval; max_turns; cost_budget; kill-switch | Tool gating enforced in the run loop; HITL, turn caps, budgets and a kill-switch bound autonomy. |
 | LLM07 | System Prompt Leakage | ⚠️ partial | InjectionGuard (reveal-system-prompt patterns); output redaction | Catches common "reveal your system prompt" attacks; don't place secrets in the system prompt regardless. |
 | LLM08 | Vector and Embedding Weaknesses | ⚠️ partial | RBAC/tenant isolation; vector-store filter-injection escaping | Per-tenant scoping + escaped Redis/Milvus filters. Embedding-inversion hardening beyond access control is the deployment's responsibility. |
@@ -33,12 +33,12 @@ or from the CLI: `largestack owasp`.
 | ASI02 | Tool / Function Misuse | ✅ covered | ToolAccessPolicy (allow/deny + rate + fullmatch params); tool_permissions; approval gating | Enforced in ToolExecutor; parameter rules use `re.fullmatch`. Treat tool args as untrusted. |
 | ASI03 | Identity & Privilege Abuse | ✅ covered | RBAC (roles/permissions, wildcard, tenant); AgentIdentityManager; audited denials | SecureRAGAgent gates queries by permission. |
 | ASI06 | Memory & Context Poisoning | ⚠️ partial | MemoryIntegrityChecker (validate + hash) | Heuristic checks + content hashing; not a full provenance system. |
-| ASI07 | Insecure Inter-Agent Communication | ✅ covered | InterAgentAuth (HMAC-signed, nonce replay-protection) | No public default secret (v1.1.1). Set `LARGESTACK_INTER_AGENT_SECRET` in production. |
+| ASI07 | Insecure Inter-Agent Communication | ⚠️ partial | InterAgentAuth (HMAC-signed, nonce replay-protection) — **opt-in primitive** | Available + tested, but NOT the default multi-agent transport (Team/Swarm pass plain messages). Adopt explicitly + set `LARGESTACK_INTER_AGENT_SECRET`. |
 | ASI-SSRF | Server-Side Request Forgery | ✅ covered | NetworkPolicy (`public_only()`) | Blocks internal hosts by name + validates resolved IPs (defeats DNS-rebinding to metadata). |
 | ASI-AUDIT | Repudiation / Insufficient Audit | ✅ covered | AuditTrail (HMAC-keyed hash chain); per-run trace + audit row | DB-only tampering is detected. SIEM export is a documented seam (`audit → syslog/webhook`). |
 | ASI-SANDBOX | Unsafe Code Execution | ⚠️ partial | CodeSandbox (env-scrubbed + AST imports); E2B backend | No kernel isolation in the default subprocess — use `backend="e2b"` for untrusted code. |
 
-_Summary: **11 covered, 6 partial, 0 not-covered**, of 17 mapped risks._ (v1.1.1 closed LLM05 via `OutputSanitizer` and moved LLM03 from not-covered → partial via SBOM + CI scans + Trusted Publishing.)
+_Summary: **9 covered, 8 partial, 0 not-covered**, of 17 mapped risks._ (v1.1.1 moved LLM03 from not-covered → partial via SBOM + CI scans + Trusted Publishing. LLM05 and ASI07 are honestly **partial**: the OutputSanitizer and InterAgentAuth controls exist but are opt-in, not wired into the default Agent/multi-agent paths.)
 
 ## Red-team eval
 
