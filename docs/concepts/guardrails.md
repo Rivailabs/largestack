@@ -99,7 +99,7 @@ When a guard blocks, it raises `GuardrailBlockedError(guard_type, details)` — 
 
 ## Example — redact PII (offline, no network)
 
-`PIIGuard` with `action="redact"` mutates message content in place and substitutes `[TYPE_REDACTED]` placeholders.
+`PIIGuard` with `action="redact"` mutates message content in place and substitutes `[TYPE_REDACTED]` redaction tokens.
 
 ```python
 import asyncio

@@ -101,7 +101,7 @@ Cost is accumulated per-run from each response in the engine (not the shared gat
 | EpisodicMemory | `_memory/episodic.py` | works | Generative-Agents tri-score (recency-decay + importance + word-overlap) retrieval; `reflect()` is a stub. |
 | SemanticMemory | `_memory/semantic.py` | partial | Cosine recall, but default embedder is a 128-dim bag-of-words hash (token overlap, not true semantics). |
 | ProceduralMemory (skills) | `_memory/procedural.py` | works | Voyager-style skill library: keyword search + success-rate boosting + optional JSON persistence. |
-| ObservationalMemory | `_memory/observational.py` | partial | Observer/Reflector notes with priority+compression; fact extraction is heuristic (LLM path TODO). |
+| ObservationalMemory | `_memory/observational.py` | partial | Observer/Reflector notes with priority+compression; fact extraction is heuristic; an LLM-backed path is not implemented. |
 | GraphMemory | `_memory/graph.py` | works | Directed entity-relation graph: BFS path-finding, subgraph extraction, JSON persistence. |
 | SharedMemorySpace | `_memory/shared.py` | works | Lock-guarded cross-agent key/value with pub/sub; thread-isolated by default. |
 | ContextCompressor | `_memory/compression.py` | partial | Extractive sentence-density default; LLMLingua opt-in (falls back to extractive). |

@@ -352,7 +352,7 @@ Largestack should not yet be marketed as:
 
 - fully BFSI-certified,
 - SOC2/ISO-certified,
-- a full substitute for the LangChain/LangGraph ecosystem,
+- a complete coverage match for the LangChain/LangGraph ecosystem,
 - public SaaS production platform without load tests, external VAPT, and real Kubernetes install proof.
 
 Known limitations are tracked in [`docs/known-limitations.md`](docs/known-limitations.md). Review that file before publishing release, SaaS, BFSI, or regulated-enterprise claims.
