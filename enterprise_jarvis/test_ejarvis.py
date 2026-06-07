@@ -2,6 +2,7 @@
 
 Run: cd enterprise_jarvis && python -m pytest test_ejarvis.py -q
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -27,6 +28,7 @@ from ejarvis.schemas import TicketTriage  # noqa: E402
 
 # ---- RBAC ------------------------------------------------------------------
 
+
 def test_rbac_viewer_cannot_raise_ticket():
     assert not rbac.can("viewer", "raise_ticket")
     assert rbac.can("agent", "raise_ticket")
@@ -40,6 +42,7 @@ def test_rbac_only_admin_reads_audit():
 
 # ---- Bounded calculator ----------------------------------------------------
 
+
 def test_calc_basic():
     assert safe_calc("23 * 19 + 7") == "444"
 
@@ -49,6 +52,7 @@ def test_calc_refuses_pow_dos():
 
 
 # ---- Store: tenant isolation + persistence + audit -------------------------
+
 
 def test_tenant_isolation():
     store.set_fact("acme", "deadline", "June 20")
@@ -71,6 +75,7 @@ def test_audit_appends_and_reads():
 
 # ---- Knowledge / RAG -------------------------------------------------------
 
+
 def test_knowledge_finds_leave_policy_with_citation():
     hits = knowledge.search("how many annual leave days")
     assert hits
@@ -83,6 +88,7 @@ def test_knowledge_insufficient_evidence():
 
 # ---- Agent wiring (offline via FunctionModel) ------------------------------
 
+
 def test_ask_returns_typed_reply_offline():
     jarvis = EnterpriseJarvis(Principal("alice", "admin", "acme"))
     with jarvis.agent.override(model=FunctionModel(lambda m, i: {"content": "Hello from Jarvis"})):
@@ -93,7 +99,9 @@ def test_ask_returns_typed_reply_offline():
 
 def test_triage_returns_validated_model_offline():
     jarvis = EnterpriseJarvis(Principal("alice", "admin", "acme"))
-    payload = '{"category": "it", "priority": "high", "summary": "laptop dead", "needs_approval": false}'
+    payload = (
+        '{"category": "it", "priority": "high", "summary": "laptop dead", "needs_approval": false}'
+    )
     with jarvis._triage.override(model=FunctionModel(lambda m, i: {"content": payload})):
         t = asyncio.run(jarvis.triage("laptop won't boot"))
     assert isinstance(t, TicketTriage)

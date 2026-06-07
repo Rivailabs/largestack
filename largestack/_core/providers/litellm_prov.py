@@ -32,13 +32,19 @@ Cohere) work normally — LiteLLM reads them itself.
 Requires: ``pip install litellm``. Without it, this provider raises a
 clear ImportError on first use.
 """
+
 from __future__ import annotations
 import json
 import logging
 from typing import Any, AsyncIterator
 
 from largestack._core.providers.base import BaseProvider
-from largestack.errors import ProviderAuthError, ProviderRateLimitError, ProviderError, ProviderTimeoutError
+from largestack.errors import (
+    ProviderAuthError,
+    ProviderRateLimitError,
+    ProviderError,
+    ProviderTimeoutError,
+)
 from largestack.types import LLMResponse, ToolCall
 
 log = logging.getLogger("largestack.providers.litellm")
@@ -50,6 +56,7 @@ class LiteLLMProvider(BaseProvider):
     Lazy-imports LiteLLM only when ``chat()`` or ``chat_stream()`` is
     called — keeps LARGESTACK startup time fast even when LiteLLM isn't used.
     """
+
     name = "litellm"
 
     def __init__(self, api_key: str | None = None, base_url: str | None = None):
@@ -65,19 +72,18 @@ class LiteLLMProvider(BaseProvider):
         if self._litellm is None:
             try:
                 import litellm  # type: ignore
+
                 # Suppress LiteLLM's verbose info logs by default
                 litellm.suppress_debug_info = True
                 self._litellm = litellm
             except ImportError as e:
-                raise ImportError(
-                    "litellm not installed. Run: pip install litellm"
-                ) from e
+                raise ImportError("litellm not installed. Run: pip install litellm") from e
         return self._litellm
 
     def get_model(self, model: str) -> str:
-        """``litellm/bedrock/anthropic.claude-3-sonnet`` -> 
+        """``litellm/bedrock/anthropic.claude-3-sonnet`` ->
         ``bedrock/anthropic.claude-3-sonnet``.
-        
+
         Strips only the ``litellm/`` prefix, leaving the provider/model
         intact for LiteLLM to dispatch.
         """

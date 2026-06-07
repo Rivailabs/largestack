@@ -13,6 +13,7 @@ webhook path (httpx, already a dependency).
 
 CLI: ``largestack siem-export --format cef --out audit.cef``
 """
+
 from __future__ import annotations
 import json, logging, os, socket, sqlite3, time
 from typing import Any
@@ -23,8 +24,12 @@ _SEVERITY = {"completed": 3, "failed": 7, "denied": 8, "blocked": 8}
 
 
 class SiemExporter:
-    def __init__(self, audit_db: str = "~/.largestack/audit.db", fmt: str = "json",
-                 product: str = "largestack"):
+    def __init__(
+        self,
+        audit_db: str = "~/.largestack/audit.db",
+        fmt: str = "json",
+        product: str = "largestack",
+    ):
         self.audit_db = os.path.expanduser(audit_db)
         self.fmt = fmt
         self.product = product
@@ -56,18 +61,24 @@ class SiemExporter:
 
     def _to_cef(self, row: dict) -> str:
         # CEF:0|Vendor|Product|Version|SignatureID|Name|Severity|Extension
-        ext = (f"rt={int(row.get('timestamp', 0) * 1000)} duser={row.get('user_id', '')} "
-               f"act={row.get('action', '')} cs1={row.get('agent_name', '')} cs1Label=agent "
-               f"cn1={row.get('cost', 0)} cn1Label=cost externalId={row.get('trace_id', '')}")
+        ext = (
+            f"rt={int(row.get('timestamp', 0) * 1000)} duser={row.get('user_id', '')} "
+            f"act={row.get('action', '')} cs1={row.get('agent_name', '')} cs1Label=agent "
+            f"cn1={row.get('cost', 0)} cn1Label=cost externalId={row.get('trace_id', '')}"
+        )
         name = str(row.get("event_type", "event")).replace("|", "/")
-        return (f"CEF:0|Riva Labs|{self.product}|1.1.1|{row.get('event_type', 'event')}|"
-                f"{name}|{self._severity(row)}|{ext}")
+        return (
+            f"CEF:0|Riva Labs|{self.product}|1.1.1|{row.get('event_type', 'event')}|"
+            f"{name}|{self._severity(row)}|{ext}"
+        )
 
     def _to_leef(self, row: dict) -> str:
-        return (f"LEEF:2.0|Riva Labs|{self.product}|1.1.1|{row.get('event_type', 'event')}|"
-                f"devTime={int(row.get('timestamp', 0))}\tusrName={row.get('user_id', '')}\t"
-                f"action={row.get('action', '')}\tagent={row.get('agent_name', '')}\t"
-                f"cost={row.get('cost', 0)}\ttraceId={row.get('trace_id', '')}")
+        return (
+            f"LEEF:2.0|Riva Labs|{self.product}|1.1.1|{row.get('event_type', 'event')}|"
+            f"devTime={int(row.get('timestamp', 0))}\tusrName={row.get('user_id', '')}\t"
+            f"action={row.get('action', '')}\tagent={row.get('agent_name', '')}\t"
+            f"cost={row.get('cost', 0)}\ttraceId={row.get('trace_id', '')}"
+        )
 
     def export_file(self, path: str, since: float = 0.0) -> int:
         rows = self._read(since)
@@ -78,11 +89,13 @@ class SiemExporter:
         log.info("SIEM export: %d audit rows → %s (%s)", len(rows), path, self.fmt)
         return len(rows)
 
-    def export_syslog(self, host: str, port: int = 514, since: float = 0.0,
-                      proto: str = "udp") -> int:
+    def export_syslog(
+        self, host: str, port: int = 514, since: float = 0.0, proto: str = "udp"
+    ) -> int:
         rows = self._read(since)
-        sock = socket.socket(socket.AF_INET,
-                             socket.SOCK_DGRAM if proto == "udp" else socket.SOCK_STREAM)
+        sock = socket.socket(
+            socket.AF_INET, socket.SOCK_DGRAM if proto == "udp" else socket.SOCK_STREAM
+        )
         try:
             if proto != "udp":
                 sock.connect((host, port))
@@ -98,12 +111,17 @@ class SiemExporter:
         finally:
             sock.close()
 
-    async def export_webhook(self, url: str, since: float = 0.0, headers: dict | None = None) -> int:
+    async def export_webhook(
+        self, url: str, since: float = 0.0, headers: dict | None = None
+    ) -> int:
         import httpx
+
         rows = self._read(since)
-        payload = ("\n".join(self.format_row(r) for r in rows)
-                   if self.fmt != "json" else
-                   "\n".join(json.dumps(r, default=str) for r in rows))
+        payload = (
+            "\n".join(self.format_row(r) for r in rows)
+            if self.fmt != "json"
+            else "\n".join(json.dumps(r, default=str) for r in rows)
+        )
         async with httpx.AsyncClient(timeout=30) as c:
             resp = await c.post(url, content=payload, headers=headers or {})
             resp.raise_for_status()

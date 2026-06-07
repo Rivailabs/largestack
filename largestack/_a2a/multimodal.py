@@ -18,6 +18,7 @@ A2A message parts shape::
 These helpers DO NOT modify the existing ``A2AMessage.text()`` API —
 they're additive constructors plus accessor helpers.
 """
+
 from __future__ import annotations
 import base64
 import logging
@@ -34,6 +35,7 @@ PartType = Literal["text", "image", "file", "data", "uri"]
 
 
 # -------------------- Constructors --------------------
+
 
 def text_part(text: str) -> dict[str, Any]:
     """Build a text part."""
@@ -68,7 +70,10 @@ def file_part(
 ) -> dict[str, Any]:
     """Build a file part."""
     encoded, mt = _resolve_binary(
-        data, path, media_type, default="application/octet-stream",
+        data,
+        path,
+        media_type,
+        default="application/octet-stream",
     )
     if not filename and path is not None:
         filename = Path(path).name
@@ -104,9 +109,7 @@ def uri_part(
     if not uri:
         raise ValueError("uri is required")
     if not uri.startswith(("http://", "https://", "s3://", "gs://", "azure://")):
-        raise ValueError(
-            f"uri must use http/https/s3/gs/azure scheme: {uri}"
-        )
+        raise ValueError(f"uri must use http/https/s3/gs/azure scheme: {uri}")
     part: dict[str, Any] = {"type": "uri", "uri": uri}
     if media_type:
         part["media_type"] = media_type
@@ -154,6 +157,7 @@ def _resolve_binary(
 
 # -------------------- A2AMessage helpers --------------------
 
+
 def message_from_parts(
     role: Literal["user", "agent"],
     *parts: dict[str, Any],
@@ -185,10 +189,14 @@ def message_image(
     parts: list[dict[str, Any]] = []
     if text:
         parts.append(text_part(text))
-    parts.append(image_part(
-        data=image_data, path=image_path,
-        media_type=media_type, alt_text=alt_text or text,
-    ))
+    parts.append(
+        image_part(
+            data=image_data,
+            path=image_path,
+            media_type=media_type,
+            alt_text=alt_text or text,
+        )
+    )
     return A2AMessage(role=role, parts=parts)
 
 
@@ -205,14 +213,19 @@ def message_file(
     parts: list[dict[str, Any]] = []
     if text:
         parts.append(text_part(text))
-    parts.append(file_part(
-        data=file_data, path=file_path,
-        media_type=media_type, filename=filename,
-    ))
+    parts.append(
+        file_part(
+            data=file_data,
+            path=file_path,
+            media_type=media_type,
+            filename=filename,
+        )
+    )
     return A2AMessage(role=role, parts=parts)
 
 
 # -------------------- Accessors --------------------
+
 
 def message_get_images(msg: A2AMessage) -> list[dict[str, Any]]:
     """Return all image parts."""
@@ -232,9 +245,7 @@ def message_get_data(msg: A2AMessage) -> list[dict[str, Any]]:
 def part_get_bytes(part: dict[str, Any]) -> bytes:
     """Decode an image/file part's base64 ``data`` to bytes."""
     if part.get("type") not in ("image", "file"):
-        raise ValueError(
-            f"part must be 'image' or 'file', got '{part.get('type')}'"
-        )
+        raise ValueError(f"part must be 'image' or 'file', got '{part.get('type')}'")
     data = part.get("data", "")
     if not isinstance(data, str):
         raise ValueError("part data must be a base64 string")
@@ -266,8 +277,16 @@ if not hasattr(A2AMessage, "file"):
 
 __all__ = [
     "PartType",
-    "text_part", "image_part", "file_part", "data_part", "uri_part",
-    "message_from_parts", "message_image", "message_file",
-    "message_get_images", "message_get_files", "message_get_data",
+    "text_part",
+    "image_part",
+    "file_part",
+    "data_part",
+    "uri_part",
+    "message_from_parts",
+    "message_image",
+    "message_file",
+    "message_get_images",
+    "message_get_files",
+    "message_get_data",
     "part_get_bytes",
 ]

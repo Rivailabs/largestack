@@ -14,6 +14,7 @@ Tools:
 Auth via LARGESTACK_STRIPE_API_KEY (Stripe secret key, sk_live_... or sk_test_...).
 Uses Stripe REST API directly via httpx — no SDK required.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -41,9 +42,11 @@ class StripeToolkit:
         *,
         api_version: str = "2024-06-20",
     ):
-        self.api_key = api_key or os.environ.get(
-            "LARGESTACK_STRIPE_API_KEY"
-        ) or os.environ.get("STRIPE_API_KEY", "")
+        self.api_key = (
+            api_key
+            or os.environ.get("LARGESTACK_STRIPE_API_KEY")
+            or os.environ.get("STRIPE_API_KEY", "")
+        )
         self.api_version = api_version
         self.base_url = "https://api.stripe.com/v1"
         self._tools: list[Callable] = self._build_tools()
@@ -59,7 +62,8 @@ class StripeToolkit:
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post(
                 f"{self.base_url}{path}",
-                headers=self._headers, data=data,
+                headers=self._headers,
+                data=data,
             )
             try:
                 return r.json()
@@ -70,7 +74,8 @@ class StripeToolkit:
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.get(
                 f"{self.base_url}{path}",
-                headers=self._headers, params=params or {},
+                headers=self._headers,
+                params=params or {},
             )
             try:
                 return r.json()
@@ -100,37 +105,39 @@ class StripeToolkit:
                 return err
             try:
                 # First create a price + product
-                product_resp = await tk._post(
-                    "/products", {"name": description or "Payment"}
-                )
+                product_resp = await tk._post("/products", {"name": description or "Payment"})
                 if "error" in product_resp:
                     return f"error: {product_resp['error'].get('message', 'product create failed')}"
                 product_id = product_resp.get("id")
                 price_resp = await tk._post(
-                    "/prices", {
+                    "/prices",
+                    {
                         "product": product_id,
                         "unit_amount": int(amount_cents),
                         "currency": currency,
-                    }
+                    },
                 )
                 if "error" in price_resp:
                     return f"error: {price_resp['error'].get('message')}"
                 price_id = price_resp.get("id")
                 # Now create payment link
                 link_resp = await tk._post(
-                    "/payment_links", {
+                    "/payment_links",
+                    {
                         "line_items[0][price]": price_id,
                         "line_items[0][quantity]": 1,
-                    }
+                    },
                 )
                 if "error" in link_resp:
                     return f"error: {link_resp['error'].get('message')}"
-                return json.dumps({
-                    "id": link_resp.get("id"),
-                    "url": link_resp.get("url"),
-                    "amount_cents": amount_cents,
-                    "currency": currency,
-                })
+                return json.dumps(
+                    {
+                        "id": link_resp.get("id"),
+                        "url": link_resp.get("url"),
+                        "amount_cents": amount_cents,
+                        "currency": currency,
+                    }
+                )
             except Exception as e:
                 return f"error: {e}"
 
@@ -146,14 +153,16 @@ class StripeToolkit:
                 resp = await tk._get(f"/payment_intents/{payment_intent_id}")
                 if "error" in resp:
                     return f"error: {resp['error'].get('message')}"
-                return json.dumps({
-                    "id": resp.get("id"),
-                    "status": resp.get("status"),
-                    "amount": resp.get("amount"),
-                    "currency": resp.get("currency"),
-                    "customer": resp.get("customer"),
-                    "created": resp.get("created"),
-                })
+                return json.dumps(
+                    {
+                        "id": resp.get("id"),
+                        "status": resp.get("status"),
+                        "amount": resp.get("amount"),
+                        "currency": resp.get("currency"),
+                        "customer": resp.get("customer"),
+                        "created": resp.get("created"),
+                    }
+                )
             except Exception as e:
                 return f"error: {e}"
 
@@ -166,9 +175,7 @@ class StripeToolkit:
             if err:
                 return err
             try:
-                resp = await tk._get(
-                    "/charges", params={"limit": min(int(limit), 100)}
-                )
+                resp = await tk._get("/charges", params={"limit": min(int(limit), 100)})
                 if "error" in resp:
                     return f"error: {resp['error'].get('message')}"
                 charges = [
@@ -206,12 +213,14 @@ class StripeToolkit:
                 resp = await tk._post("/refunds", data)
                 if "error" in resp:
                     return f"error: {resp['error'].get('message')}"
-                return json.dumps({
-                    "id": resp.get("id"),
-                    "amount": resp.get("amount"),
-                    "status": resp.get("status"),
-                    "charge": resp.get("charge"),
-                })
+                return json.dumps(
+                    {
+                        "id": resp.get("id"),
+                        "amount": resp.get("amount"),
+                        "status": resp.get("status"),
+                        "charge": resp.get("charge"),
+                    }
+                )
             except Exception as e:
                 return f"error: {e}"
 
@@ -230,11 +239,13 @@ class StripeToolkit:
                 resp = await tk._post("/customers", data)
                 if "error" in resp:
                     return f"error: {resp['error'].get('message')}"
-                return json.dumps({
-                    "id": resp.get("id"),
-                    "email": resp.get("email"),
-                    "name": resp.get("name"),
-                })
+                return json.dumps(
+                    {
+                        "id": resp.get("id"),
+                        "email": resp.get("email"),
+                        "name": resp.get("name"),
+                    }
+                )
             except Exception as e:
                 return f"error: {e}"
 
@@ -242,9 +253,7 @@ class StripeToolkit:
             name="stripe_list_subscriptions",
             description="List active Stripe subscriptions, optionally for a specific customer",
         )
-        async def list_subscriptions(
-            customer_id: str = "", limit: int = 10
-        ) -> str:
+        async def list_subscriptions(customer_id: str = "", limit: int = 10) -> str:
             err = tk._check_auth()
             if err:
                 return err
@@ -269,8 +278,12 @@ class StripeToolkit:
                 return f"error: {e}"
 
         return [
-            create_payment_link, fetch_payment_intent, list_charges,
-            create_refund, create_customer, list_subscriptions,
+            create_payment_link,
+            fetch_payment_intent,
+            list_charges,
+            create_refund,
+            create_customer,
+            list_subscriptions,
         ]
 
     def get_tools(self) -> list[Callable]:

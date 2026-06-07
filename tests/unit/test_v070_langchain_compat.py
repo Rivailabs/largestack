@@ -3,6 +3,7 @@
 Mocks LangChain objects so we don't need langchain-core installed
 to test the wrappers' behavior.
 """
+
 from __future__ import annotations
 
 import sys
@@ -20,6 +21,7 @@ def fake_langchain():
 
 
 # -------------------- wrap_tool --------------------
+
 
 @pytest.mark.asyncio
 async def test_wrap_tool_basic_async(fake_langchain):
@@ -117,6 +119,7 @@ def test_wrap_tool_preserves_args_schema(fake_langchain):
 
 # -------------------- wrap_loader --------------------
 
+
 @pytest.mark.asyncio
 async def test_wrap_loader_basic(fake_langchain):
     """A LangChain loader's load() returns Documents → list of dicts."""
@@ -165,6 +168,7 @@ async def test_wrap_loader_handles_aload(fake_langchain):
 
 def test_wrap_loader_rejects_non_loader(fake_langchain):
     from largestack._integrations.langchain_compat import wrap_loader
+
     bad = MagicMock(spec=["__class__"])
     if hasattr(bad, "load"):
         del bad.load
@@ -189,6 +193,7 @@ async def test_wrap_loader_returns_empty_on_error(fake_langchain):
 
 
 # -------------------- wrap_retriever --------------------
+
 
 @pytest.mark.asyncio
 async def test_wrap_retriever_with_ainvoke(fake_langchain):
@@ -263,9 +268,11 @@ async def test_wrap_retriever_handles_exception(fake_langchain):
 
 # -------------------- ImportError path --------------------
 
+
 def test_ensure_langchain_raises_clear_error_when_missing():
     """If langchain_core isn't installed, raise informative ImportError."""
     from largestack._integrations.langchain_compat import _ensure_langchain
+
     if "langchain_core" in sys.modules:
         # Skip if real langchain is present
         pytest.skip("langchain_core is actually installed")

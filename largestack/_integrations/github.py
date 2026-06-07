@@ -6,6 +6,7 @@ and ``Pull requests: read``).
 
 Hits the GitHub REST API directly — no github / PyGithub dependency.
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -83,9 +84,7 @@ async def github_list_issues(repo: str, state: str = "open", limit: int = 20) ->
 
 
 @tool(timeout=15)
-async def github_create_issue(
-    repo: str, title: str, body: str = "", labels: str = ""
-) -> str:
+async def github_create_issue(repo: str, title: str, body: str = "", labels: str = "") -> str:
     """Create a new issue.
 
     Args:

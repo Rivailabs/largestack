@@ -29,6 +29,7 @@ multi-modal features.
 Note: as of LlamaIndex v0.13+, ``llama_parse`` is being migrated to
 ``llama_cloud_services``. This module probes both import paths.
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -44,11 +45,13 @@ def _llama_parse_available() -> bool:
     """Check if llama_parse (or its successor) is installed."""
     try:
         import llama_parse  # noqa: F401
+
         return True
     except ImportError:
         pass
     try:
         from llama_cloud_services import LlamaParse  # noqa: F401
+
         return True
     except ImportError:
         pass
@@ -59,11 +62,13 @@ def _import_llama_parse():
     """Import LlamaParse from either package path (legacy or current)."""
     try:
         from llama_parse import LlamaParse
+
         return LlamaParse
     except ImportError:
         pass
     try:
         from llama_cloud_services import LlamaParse
+
         return LlamaParse
     except ImportError:
         raise ImportError(
@@ -73,6 +78,7 @@ def _import_llama_parse():
 
 
 # -------------------- Public API --------------------
+
 
 async def load_with_llamaparse(
     path: str | Path,
@@ -112,24 +118,15 @@ async def load_with_llamaparse(
 
     if not _llama_parse_available():
         if fallback_on_error:
-            log.warning(
-                "llama_parse not installed; falling back to load_pdf"
-            )
+            log.warning("llama_parse not installed; falling back to load_pdf")
             return await _fallback_load(p)
-        raise ImportError(
-            "llama_parse not installed. Install with: "
-            "pip install llama-parse"
-        )
+        raise ImportError("llama_parse not installed. Install with: pip install llama-parse")
 
     if not api_key:
         if fallback_on_error:
-            log.warning(
-                "no LLAMA_CLOUD_API_KEY; falling back to load_pdf"
-            )
+            log.warning("no LLAMA_CLOUD_API_KEY; falling back to load_pdf")
             return await _fallback_load(p)
-        raise ValueError(
-            "api_key required (or set LLAMA_CLOUD_API_KEY env var)"
-        )
+        raise ValueError("api_key required (or set LLAMA_CLOUD_API_KEY env var)")
 
     LlamaParse = _import_llama_parse()
     parser_kwargs = dict(
@@ -169,11 +166,7 @@ def _normalize_docs(docs: Iterable, source: str) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for d in docs:
         # LlamaParse's Document has .text and .metadata
-        content = (
-            getattr(d, "text", None)
-            or getattr(d, "content", None)
-            or str(d)
-        )
+        content = getattr(d, "text", None) or getattr(d, "content", None) or str(d)
         metadata = dict(getattr(d, "metadata", {}) or {})
         metadata.setdefault("source", source)
         metadata.setdefault("parser", "llamaparse")
@@ -191,14 +184,22 @@ async def _fallback_load(path: Path) -> list[dict[str, Any]]:
             "largestack._loaders.load_pdf unavailable; reading as text",
         )
         try:
-            return [{
-                "content": path.read_text(encoding="utf-8", errors="replace"),
-                "metadata": {"source": str(path), "parser": "fallback_text"},
-            }]
+            return [
+                {
+                    "content": path.read_text(encoding="utf-8", errors="replace"),
+                    "metadata": {"source": str(path), "parser": "fallback_text"},
+                }
+            ]
         except Exception as e:
-            return [{"content": "", "metadata": {
-                "source": str(path), "error": str(e),
-            }}]
+            return [
+                {
+                    "content": "",
+                    "metadata": {
+                        "source": str(path),
+                        "error": str(e),
+                    },
+                }
+            ]
 
     if suffix == ".pdf":
         try:
@@ -222,6 +223,7 @@ async def _fallback_load(path: Path) -> list[dict[str, Any]]:
 
 # -------------------- Sync wrapper --------------------
 
+
 def load_with_llamaparse_sync(
     path: str | Path,
     *,
@@ -233,11 +235,17 @@ def load_with_llamaparse_sync(
     extra_kwargs: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Synchronous wrapper around ``load_with_llamaparse``."""
-    return asyncio.run(load_with_llamaparse(
-        path, api_key=api_key, result_type=result_type,
-        language=language, num_workers=num_workers,
-        fallback_on_error=fallback_on_error, extra_kwargs=extra_kwargs,
-    ))
+    return asyncio.run(
+        load_with_llamaparse(
+            path,
+            api_key=api_key,
+            result_type=result_type,
+            language=language,
+            num_workers=num_workers,
+            fallback_on_error=fallback_on_error,
+            extra_kwargs=extra_kwargs,
+        )
+    )
 
 
 __all__ = [

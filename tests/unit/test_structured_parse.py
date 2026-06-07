@@ -4,6 +4,7 @@ parse_structured() must hydrate a Pydantic model from the many shapes an LLM
 actually returns: clean JSON, fenced JSON, JSON embedded in prose, and it must
 raise (not silently return garbage) when there is no usable JSON.
 """
+
 from __future__ import annotations
 
 import pytest

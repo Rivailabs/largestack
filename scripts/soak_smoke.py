@@ -1,4 +1,5 @@
 """Offline-friendly soak smoke check for Largestack AI deployments."""
+
 from __future__ import annotations
 
 import argparse
@@ -39,9 +40,23 @@ def main(argv: list[str] | None = None) -> int:
         }
         print(json.dumps(row, sort_keys=True))
         if health_code >= 400:
-            failures.append({"iteration": i, "endpoint": "health", "status": health_code, "body": health_body[:200]})
+            failures.append(
+                {
+                    "iteration": i,
+                    "endpoint": "health",
+                    "status": health_code,
+                    "body": health_body[:200],
+                }
+            )
         if metrics_code >= 400:
-            failures.append({"iteration": i, "endpoint": "metrics", "status": metrics_code, "body": metrics_body[:200]})
+            failures.append(
+                {
+                    "iteration": i,
+                    "endpoint": "metrics",
+                    "status": metrics_code,
+                    "body": metrics_body[:200],
+                }
+            )
         if i != args.iterations:
             time.sleep(args.sleep)
 
@@ -54,4 +69,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

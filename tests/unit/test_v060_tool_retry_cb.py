@@ -1,4 +1,5 @@
 """v0.6.0: Tool retry strategy + circuit breaker tests."""
+
 from __future__ import annotations
 
 import asyncio
@@ -13,19 +14,14 @@ from largestack.types import ToolCall
 
 # -------------------- Backoff strategies --------------------
 
+
 def test_backoff_exponential_grows():
-    delays = [
-        ToolExecutor._backoff_delay(i, "exponential", 30.0, jitter=False)
-        for i in range(4)
-    ]
+    delays = [ToolExecutor._backoff_delay(i, "exponential", 30.0, jitter=False) for i in range(4)]
     assert delays == [1.0, 2.0, 4.0, 8.0]
 
 
 def test_backoff_linear_grows():
-    delays = [
-        ToolExecutor._backoff_delay(i, "linear", 30.0, jitter=False)
-        for i in range(4)
-    ]
+    delays = [ToolExecutor._backoff_delay(i, "linear", 30.0, jitter=False) for i in range(4)]
     assert delays == [1.0, 2.0, 3.0, 4.0]
 
 
@@ -49,15 +45,13 @@ def test_backoff_max_caps_value():
 def test_backoff_jitter_in_band():
     """Jitter must keep result within ±25% of base."""
     base = 4.0
-    samples = [
-        ToolExecutor._backoff_delay(2, "exponential", 30.0, jitter=True)
-        for _ in range(50)
-    ]
+    samples = [ToolExecutor._backoff_delay(2, "exponential", 30.0, jitter=True) for _ in range(50)]
     for s in samples:
         assert 0.75 * base <= s <= 1.25 * base
 
 
 # -------------------- Retry behavior --------------------
+
 
 @pytest.mark.asyncio
 async def test_retry_runs_n_plus_one_times():
@@ -102,13 +96,15 @@ async def test_retry_succeeds_on_second_attempt():
 
 # -------------------- Circuit breaker --------------------
 
+
 @pytest.mark.asyncio
 async def test_circuit_breaker_opens_after_threshold():
     """After N consecutive failures, the circuit opens and short-circuits."""
     counter = {"n": 0}
 
     @tool(
-        retries=0, backoff="none",
+        retries=0,
+        backoff="none",
         circuit_breaker_threshold=3,
         circuit_breaker_window_seconds=10.0,
         circuit_breaker_cooldown_seconds=10.0,
@@ -161,7 +157,8 @@ async def test_circuit_breaker_success_resets_failure_count():
     state = {"calls": 0, "fail_until": 2}
 
     @tool(
-        retries=0, backoff="none",
+        retries=0,
+        backoff="none",
         circuit_breaker_threshold=3,
         circuit_breaker_window_seconds=10.0,
         circuit_breaker_cooldown_seconds=5.0,
@@ -199,7 +196,8 @@ async def test_circuit_breaker_cooldown_then_recloses():
     counter = {"n": 0}
 
     @tool(
-        retries=0, backoff="none",
+        retries=0,
+        backoff="none",
         circuit_breaker_threshold=2,
         circuit_breaker_window_seconds=10.0,
         circuit_breaker_cooldown_seconds=0.1,  # tiny cooldown
@@ -232,6 +230,7 @@ async def test_circuit_breaker_cooldown_then_recloses():
 
 # -------------------- @tool decorator carries new attrs --------------------
 
+
 def test_tool_decorator_attaches_v060_attributes():
     @tool(
         retries=5,
@@ -257,6 +256,7 @@ def test_tool_decorator_attaches_v060_attributes():
 def test_tool_decorator_defaults_are_legacy_compatible():
     """No-config @tool must behave like v0.5 — same backoff (exponential),
     no circuit breaker."""
+
     @tool
     async def plain():
         return "x"

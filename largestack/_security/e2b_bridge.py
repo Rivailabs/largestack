@@ -21,6 +21,7 @@ Usage::
     print(result.stdout)
     await sandbox.close()
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -33,10 +34,12 @@ log = logging.getLogger("largestack.security.e2b")
 def _have_e2b() -> bool:
     try:
         import e2b_code_interpreter  # noqa
+
         return True
     except ImportError:
         try:
             import e2b  # noqa
+
             return True
         except ImportError:
             return False
@@ -81,17 +84,15 @@ def _validate_local_exec_ast(tree):
             raise ValueError(f"blocked name: {node.id}")
 
         if isinstance(node, ast.Attribute) and (
-            node.attr.startswith("__")
-            or node.attr in {"__class__", "__mro__", "__subclasses__"}
+            node.attr.startswith("__") or node.attr in {"__class__", "__mro__", "__subclasses__"}
         ):
             raise ValueError(f"blocked attribute: {node.attr}")
 
 
 @dataclass
-
-
 class SandboxResult:
     """Result of code execution in a sandbox."""
+
     stdout: str = ""
     stderr: str = ""
     exit_code: int = 0
@@ -107,6 +108,7 @@ class SandboxResult:
 @dataclass
 class E2BConfig:
     """Configuration for E2B sandbox bridge."""
+
     api_key: str = ""
     template: str = "python-3.11"
     timeout_seconds: float = 30.0
@@ -154,13 +156,13 @@ class E2BSandbox:
             return self._sandbox
         if not _have_e2b():
             raise ImportError(
-                "e2b-code-interpreter required. Install: "
-                "pip install e2b-code-interpreter"
+                "e2b-code-interpreter required. Install: pip install e2b-code-interpreter"
             )
 
         # Prefer the modern code_interpreter package
         try:
             from e2b_code_interpreter import AsyncSandbox
+
             self._sandbox = await AsyncSandbox.create(
                 template=self.config.template,
                 api_key=self.config.api_key or None,
@@ -168,6 +170,7 @@ class E2BSandbox:
             )
         except ImportError:
             from e2b import AsyncSandbox  # legacy
+
             self._sandbox = await AsyncSandbox.create(
                 template=self.config.template,
                 api_key=self.config.api_key or None,
@@ -195,6 +198,7 @@ class E2BSandbox:
             return SandboxResult(error=str(e), exit_code=1)
 
         import time
+
         start = time.monotonic()
         try:
             # E2B's run_code returns an Execution object
@@ -240,7 +244,9 @@ class E2BSandbox:
         )
 
     async def upload_file(
-        self, local_path: str, sandbox_path: str,
+        self,
+        local_path: str,
+        sandbox_path: str,
     ) -> bool:
         """Upload a file into the sandbox."""
         sb = await self._ensure_sandbox()
@@ -254,7 +260,9 @@ class E2BSandbox:
             return False
 
     async def download_file(
-        self, sandbox_path: str, local_path: str,
+        self,
+        sandbox_path: str,
+        local_path: str,
     ) -> bool:
         """Download a file from the sandbox."""
         sb = await self._ensure_sandbox()
@@ -290,6 +298,7 @@ class E2BSandbox:
 
 # -------------------- Local fallback (already exists) --------------------
 
+
 class LocalSandbox:
     """Fallback sandbox using stdlib ``exec`` with restricted globals.
 
@@ -311,11 +320,13 @@ class LocalSandbox:
             return SandboxResult(error="empty code")
 
         import io, contextlib, time, ast
+
         try:
             ast.parse(code)
         except SyntaxError as e:
             return SandboxResult(
-                error=f"syntax error: {e}", exit_code=1,
+                error=f"syntax error: {e}",
+                exit_code=1,
             )
 
         try:
@@ -326,29 +337,43 @@ class LocalSandbox:
             compiled_code = compile(parsed, "<sandbox>", "exec")
         except SyntaxError as e:
             return SandboxResult(
-                error=f"syntax error: {e}", exit_code=1,
+                error=f"syntax error: {e}",
+                exit_code=1,
             )
         except ValueError as e:
             return SandboxResult(
-                error=f"blocked unsafe code: {e}", exit_code=1,
+                error=f"blocked unsafe code: {e}",
+                exit_code=1,
             )
 
         stdout_buf = io.StringIO()
         stderr_buf = io.StringIO()
 
         def _run():
-            with contextlib.redirect_stdout(stdout_buf), \
-                 contextlib.redirect_stderr(stderr_buf):
+            with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
                 # Restricted globals — no __import__ access by default
                 safe_globals = {
                     "__builtins__": {
-                        "print": print, "len": len, "range": range,
-                        "str": str, "int": int, "float": float,
-                        "list": list, "dict": dict, "tuple": tuple,
-                        "set": set, "bool": bool, "abs": abs,
-                        "min": min, "max": max, "sum": sum,
-                        "sorted": sorted, "enumerate": enumerate,
-                        "zip": zip, "map": map, "filter": filter,
+                        "print": print,
+                        "len": len,
+                        "range": range,
+                        "str": str,
+                        "int": int,
+                        "float": float,
+                        "list": list,
+                        "dict": dict,
+                        "tuple": tuple,
+                        "set": set,
+                        "bool": bool,
+                        "abs": abs,
+                        "min": min,
+                        "max": max,
+                        "sum": sum,
+                        "sorted": sorted,
+                        "enumerate": enumerate,
+                        "zip": zip,
+                        "map": map,
+                        "filter": filter,
                         "round": round,
                     },
                 }
@@ -358,7 +383,8 @@ class LocalSandbox:
         start = time.monotonic()
         try:
             await asyncio.wait_for(
-                asyncio.to_thread(_run), timeout=timeout,
+                asyncio.to_thread(_run),
+                timeout=timeout,
             )
         except asyncio.TimeoutError:
             return SandboxResult(
@@ -387,5 +413,8 @@ class LocalSandbox:
 
 
 __all__ = [
-    "SandboxResult", "E2BConfig", "E2BSandbox", "LocalSandbox",
+    "SandboxResult",
+    "E2BConfig",
+    "E2BSandbox",
+    "LocalSandbox",
 ]

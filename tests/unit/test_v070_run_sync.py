@@ -3,6 +3,7 @@
 Verifies the synchronous wrapper works in scripts and refuses to run
 from inside an already-active event loop (which would deadlock).
 """
+
 from __future__ import annotations
 
 import asyncio

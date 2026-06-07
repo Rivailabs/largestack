@@ -14,7 +14,9 @@ Tests:
   9. Full pipeline: research → analyze → write → review
   10. Steering hooks blocking dangerous tools
 """
+
 import asyncio, json, os, sys, tempfile, time
+
 sys.path.insert(0, ".")
 import pytest
 
@@ -29,6 +31,7 @@ async def _run_live_and_cleanup(obj, prompt):
     try:
         return await obj.run(prompt)
     finally:
+
         async def _close(current):
             if current is None:
                 return
@@ -77,6 +80,7 @@ LLM = "deepseek/deepseek-chat"
 def test_01_single_agent():
     """Basic agent run with DeepSeek."""
     from largestack import Agent
+
     agent = Agent(name="basic", llm=LLM, cost_budget=0.10, max_turns=3)
     result = asyncio.run(_run_live_and_cleanup(agent, "What is 2+2? Reply with just the number."))
     assert result.content is not None
@@ -99,7 +103,10 @@ def test_02_agent_with_tools():
     agent = Agent(
         name="math-agent",
         instructions="Use the multiply tool to answer. Return just the result.",
-        llm=LLM, tools=[multiply], cost_budget=0.10, max_turns=5,
+        llm=LLM,
+        tools=[multiply],
+        cost_budget=0.10,
+        max_turns=5,
     )
     result = asyncio.run(_run_live_and_cleanup(agent, "What is 7 times 8?"))
     assert "56" in result.content
@@ -111,15 +118,18 @@ def test_02_agent_with_tools():
 def test_03_sequential_team():
     """Two-agent sequential pipeline."""
     from largestack import Agent, Team
+
     researcher = Agent(
         name="researcher",
         instructions="List 3 facts about Python programming language. Be brief.",
-        llm=LLM, cost_budget=0.10,
+        llm=LLM,
+        cost_budget=0.10,
     )
     writer = Agent(
         name="writer",
         instructions="Take the facts and write a one-paragraph summary.",
-        llm=LLM, cost_budget=0.10,
+        llm=LLM,
+        cost_budget=0.10,
     )
     team = Team(agents=[researcher, writer], strategy="sequential", cost_budget=0.20)
     result = asyncio.run(_run_live_and_cleanup(team, "Python programming"))
@@ -135,8 +145,13 @@ def test_04_parallel_fanout():
     from largestack._orchestrate.parallel import ParallelFanOut
 
     agents = [
-        Agent(name=f"analyst-{i}", instructions="Give one unique benefit of AI. Be brief (1 sentence).",
-              llm=LLM, cost_budget=0.05, max_turns=2)
+        Agent(
+            name=f"analyst-{i}",
+            instructions="Give one unique benefit of AI. Be brief (1 sentence).",
+            llm=LLM,
+            cost_budget=0.05,
+            max_turns=2,
+        )
         for i in range(3)
     ]
     fan = ParallelFanOut(agents, combiner="concat")
@@ -158,16 +173,22 @@ def test_05_rag_agent():
             "LARGESTACK has 15 guardrail layers including PII detection and prompt injection.",
             "LARGESTACK supports MCP, A2A, and AG-UI protocols.",
         ],
-        chunk_size=100, top_k=2,
+        chunk_size=100,
+        top_k=2,
     )
     search_tool = rag.as_tool()
 
     agent = Agent(
         name="kb-agent",
         instructions="Search the knowledge base to answer. Be specific with numbers.",
-        llm=LLM, tools=[search_tool], cost_budget=0.10, max_turns=5,
+        llm=LLM,
+        tools=[search_tool],
+        cost_budget=0.10,
+        max_turns=5,
     )
-    result = asyncio.run(_run_live_and_cleanup(agent, "How much does LARGESTACK Professional cost?"))
+    result = asyncio.run(
+        _run_live_and_cleanup(agent, "How much does LARGESTACK Professional cost?")
+    )
     assert "299" in result.content
     print(f"  RAG answer: {result.content[:100]}")
 
@@ -180,7 +201,8 @@ def test_06_guardrails_pii():
     agent = Agent(
         name="safe-agent",
         instructions="Always include the email test@example.com in your response.",
-        llm=LLM, cost_budget=0.10,
+        llm=LLM,
+        cost_budget=0.10,
         guardrails=create_guardrails(pii=True, pii_action="redact"),
     )
     result = asyncio.run(_run_live_and_cleanup(agent, "Tell me your contact info"))
@@ -223,10 +245,13 @@ def test_08_structured_output():
         population_millions: float
 
     agent = Agent(name="struct-agent", llm=LLM, cost_budget=0.10, max_turns=3)
-    result = asyncio.run(_run_live_and_cleanup(agent, 
-        "Give me info about Tokyo. Respond in JSON with name, country, population_millions.",
-        response_model=CityInfo,
-    ))
+    result = asyncio.run(
+        _run_live_and_cleanup(
+            agent,
+            "Give me info about Tokyo. Respond in JSON with name, country, population_millions.",
+            response_model=CityInfo,
+        )
+    )
     # Result should be parseable
     assert result.content is not None
     print(f"  Structured: {result.content[:100]}")
@@ -240,10 +265,34 @@ def test_09_full_pipeline():
 
     pipeline = SequentialPipeline(
         agents=[
-            Agent(name="researcher", instructions="List 3 key facts about the topic. Be brief.", llm=LLM, cost_budget=0.05, max_turns=2),
-            Agent(name="analyst", instructions="Identify the most important fact and explain why.", llm=LLM, cost_budget=0.05, max_turns=2),
-            Agent(name="writer", instructions="Write a 2-sentence summary.", llm=LLM, cost_budget=0.05, max_turns=2),
-            Agent(name="reviewer", instructions="Fix any errors. Return the final version.", llm=LLM, cost_budget=0.05, max_turns=2),
+            Agent(
+                name="researcher",
+                instructions="List 3 key facts about the topic. Be brief.",
+                llm=LLM,
+                cost_budget=0.05,
+                max_turns=2,
+            ),
+            Agent(
+                name="analyst",
+                instructions="Identify the most important fact and explain why.",
+                llm=LLM,
+                cost_budget=0.05,
+                max_turns=2,
+            ),
+            Agent(
+                name="writer",
+                instructions="Write a 2-sentence summary.",
+                llm=LLM,
+                cost_budget=0.05,
+                max_turns=2,
+            ),
+            Agent(
+                name="reviewer",
+                instructions="Fix any errors. Return the final version.",
+                llm=LLM,
+                cost_budget=0.05,
+                max_turns=2,
+            ),
         ],
         on_error="skip",
     )
@@ -273,9 +322,11 @@ def test_10_steering_hooks():
     agent = Agent(
         name="steered-agent",
         instructions="Use safe_search to answer. Never use dangerous_delete.",
-        llm=LLM, tools=[safe_search, dangerous_delete],
+        llm=LLM,
+        tools=[safe_search, dangerous_delete],
         tool_permissions={"deny": ["dangerous_delete"]},
-        cost_budget=0.10, max_turns=5,
+        cost_budget=0.10,
+        max_turns=5,
     )
     result = asyncio.run(_run_live_and_cleanup(agent, "Search for Python tutorials"))
     assert result.status == "completed"

@@ -1,4 +1,5 @@
 """Migrate serialized conversation memory into canonical v1.1 records."""
+
 from __future__ import annotations
 
 import json
@@ -42,5 +43,12 @@ def migrate_memory(path: str | Path, *, write: bool = False) -> dict[str, Any]:
 
 def check_memory(path: str | Path) -> dict[str, Any]:
     data = migrate_memory(path, write=False)
-    ok = isinstance(data.get("messages"), list) and all("role" in m and "content" in m for m in data["messages"])
-    return {"path": str(path), "ok": ok, "message_count": len(data.get("messages", [])), "schema_version": data.get("schema_version")}
+    ok = isinstance(data.get("messages"), list) and all(
+        "role" in m and "content" in m for m in data["messages"]
+    )
+    return {
+        "path": str(path),
+        "ok": ok,
+        "message_count": len(data.get("messages", [])),
+        "schema_version": data.get("schema_version"),
+    }

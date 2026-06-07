@@ -5,6 +5,7 @@ provides one serious task, safe local tools, RAG docs, simulated memory, and
 validation. Largestack agents backed by DeepSeek must produce the product
 artifacts and the evidence is graded honestly.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -33,7 +34,9 @@ MODEL = "deepseek/deepseek-chat"
 CLASS_REAL = "REAL-EXTERNAL"
 CLASS_MOCK = "MOCK-EXECUTION"
 
-RUN_ID = os.environ.get("LARGESTACK_JARVIS_CAPSTONE_RUN_ID") or datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+RUN_ID = os.environ.get("LARGESTACK_JARVIS_CAPSTONE_RUN_ID") or datetime.now(timezone.utc).strftime(
+    "%Y%m%d-%H%M%S"
+)
 OUTDIR = ROOT / "release_evidence" / "jarvis_capstone_live" / RUN_ID
 DOC_DIR = OUTDIR / "rag_docs"
 GENERATED_DIR = OUTDIR / "generated_jarvis"
@@ -82,10 +85,19 @@ RISKY_ACTIONS = [
 ARTIFACT_TASKS = [
     ("README.md", "product overview, install/run concept, and what Jarvis can do"),
     ("architecture.md", "runtime architecture with LLM, tools, guardrails, memory, RAG, monitor"),
-    ("agent_orchestration.md", "agent roles, handoffs, planner, specialist agents, reviewer, HITL flow"),
-    ("rag_memory_design.md", "RAG retrieval flow, citation behavior, memory categories, redaction/privacy"),
+    (
+        "agent_orchestration.md",
+        "agent roles, handoffs, planner, specialist agents, reviewer, HITL flow",
+    ),
+    (
+        "rag_memory_design.md",
+        "RAG retrieval flow, citation behavior, memory categories, redaction/privacy",
+    ),
     ("safety_hitl_policy.md", "approval gates for email/files/social/payment/HR/production writes"),
-    ("monitoring_cost_plan.md", "trace IDs, latency, token tracking, estimated cost, dashboards, alerts"),
+    (
+        "monitoring_cost_plan.md",
+        "trace IDs, latency, token tracking, estimated cost, dashboards, alerts",
+    ),
     ("product_backlog.md", "developer task list to turn generated Jarvis design into a real app"),
 ]
 
@@ -138,7 +150,14 @@ def _score_docs(query: str) -> list[tuple[int, str, str]]:
 async def search_docs(query: str) -> str:
     """Search Jarvis project RAG docs and return cited evidence snippets."""
     hits = _score_docs(query)
-    TOOL_EVENTS.append({"tool": "search_docs", "query": query, "hits": [name for _, name, _ in hits], "executed": True})
+    TOOL_EVENTS.append(
+        {
+            "tool": "search_docs",
+            "query": query,
+            "hits": [name for _, name, _ in hits],
+            "executed": True,
+        }
+    )
     if not hits:
         return "INSUFFICIENT_EVIDENCE"
     return "\n".join(f"[{name}] {text}" for _, name, text in hits)
@@ -148,10 +167,16 @@ async def search_docs(query: str) -> str:
 async def lookup_memory(query: str) -> str:
     """Lookup simulated Jarvis memory/context for planning."""
     q = query.lower()
-    hits = {key: value for key, value in MEMORY.items() if key in q or any(word in value.lower() for word in q.split())}
+    hits = {
+        key: value
+        for key, value in MEMORY.items()
+        if key in q or any(word in value.lower() for word in q.split())
+    }
     if not hits:
         hits = {"previous_findings": MEMORY["previous_findings"]}
-    TOOL_EVENTS.append({"tool": "lookup_memory", "query": query, "hits": list(hits), "executed": True})
+    TOOL_EVENTS.append(
+        {"tool": "lookup_memory", "query": query, "hits": list(hits), "executed": True}
+    )
     return json.dumps(hits, indent=2)
 
 
@@ -183,7 +208,14 @@ async def save_artifact(file_name: str, content: str) -> str:
     path = GENERATED_DIR / safe_name
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(safe_content)
-    TOOL_EVENTS.append({"tool": "save_artifact", "file": safe_name, "bytes": len(safe_content.encode("utf-8")), "executed": True})
+    TOOL_EVENTS.append(
+        {
+            "tool": "save_artifact",
+            "file": safe_name,
+            "bytes": len(safe_content.encode("utf-8")),
+            "executed": True,
+        }
+    )
     return json.dumps({"saved": safe_name, "bytes": len(safe_content.encode("utf-8"))})
 
 
@@ -226,7 +258,11 @@ cost/monitoring, guardrails, HITL approvals, and a realistic missing-features li
 """
 
     injection_decision = InjectionGuard().evaluate(prompt)
-    _event("input_guardrail", decision=injection_decision.action.value, allowed=injection_decision.allowed)
+    _event(
+        "input_guardrail",
+        decision=injection_decision.action.value,
+        allowed=injection_decision.allowed,
+    )
 
     monitor = AgentMonitor()
     trace_monitor = Monitor()
@@ -296,8 +332,16 @@ cost/monitoring, guardrails, HITL approvals, and a realistic missing-features li
     started = time.monotonic()
     try:
         context = AgentContext(task=prompt)
-        team = Team(agents=[discovery, architect], strategy="sequential", cost_budget=0.45, on_error="fail", retries_per_agent=1)
-        team_result = await team.run(prompt, context=context, timeout=150, temperature=0.1, max_tokens=1400)
+        team = Team(
+            agents=[discovery, architect],
+            strategy="sequential",
+            cost_budget=0.45,
+            on_error="fail",
+            retries_per_agent=1,
+        )
+        team_result = await team.run(
+            prompt, context=context, timeout=150, temperature=0.1, max_tokens=1400
+        )
 
         builder_results = []
         for file_name, focus in ARTIFACT_TASKS:
@@ -308,22 +352,30 @@ cost/monitoring, guardrails, HITL approvals, and a realistic missing-features li
                 f"Small developer task: create `{file_name}` covering {focus}. "
                 f"You must call save_artifact with file_name={file_name!r}. Keep it under 900 words."
             )
-            builder_results.append(await builder.run(builder_prompt, timeout=90, temperature=0.1, max_tokens=1400))
+            builder_results.append(
+                await builder.run(builder_prompt, timeout=90, temperature=0.1, max_tokens=1400)
+            )
 
         approval_prompt = (
             "For this Jarvis product, request approval for these risky actions without executing them: "
             "send_email, move_user_files, publish_social_post, refund_payment."
         )
-        approval_result = await approval_agent.run(approval_prompt, timeout=90, temperature=0.1, max_tokens=800)
+        approval_result = await approval_agent.run(
+            approval_prompt, timeout=90, temperature=0.1, max_tokens=800
+        )
 
-        generated_listing = "\n".join(f"- {p.name}: {p.read_text()[:900]}" for p in sorted(GENERATED_DIR.glob("*.md")))
+        generated_listing = "\n".join(
+            f"- {p.name}: {p.read_text()[:900]}" for p in sorted(GENERATED_DIR.glob("*.md"))
+        )
         reviewer_prompt = (
             f"Task:\n{prompt}\n\nTeam output:\n{team_result.content}\n\n"
             f"Builder outputs:\n{chr(10).join(r.content for r in builder_results)}\n\n"
             f"Approval output:\n{approval_result.content}\n\nGenerated artifacts preview:\n{generated_listing}\n\n"
             "Give a strict release verdict and missing feature list."
         )
-        reviewer_result = await reviewer.run(reviewer_prompt, timeout=150, temperature=0.1, max_tokens=1400)
+        reviewer_result = await reviewer.run(
+            reviewer_prompt, timeout=150, temperature=0.1, max_tokens=1400
+        )
         results = [
             context.get_result("jarvis_discovery"),
             context.get_result("jarvis_architect"),
@@ -355,7 +407,13 @@ cost/monitoring, guardrails, HITL approvals, and a realistic missing-features li
                 tool_calls_made=list(result.tool_calls_made),
             )
         )
-        monitor.record(result.agent_name, True, cost=estimated_cost, latency_ms=result.duration_ms, quality_score=0.85)
+        monitor.record(
+            result.agent_name,
+            True,
+            cost=estimated_cost,
+            latency_ms=result.duration_ms,
+            quality_score=0.85,
+        )
 
     generated_files = sorted(p.name for p in GENERATED_DIR.glob("*.md"))
     all_text = "\n".join(
@@ -373,16 +431,23 @@ cost/monitoring, guardrails, HITL approvals, and a realistic missing-features li
     save_events = [event for event in TOOL_EVENTS if event.get("tool") == "save_artifact"]
     search_events = [event for event in TOOL_EVENTS if event.get("tool") == "search_docs"]
     memory_events = [event for event in TOOL_EVENTS if event.get("tool") == "lookup_memory"]
-    unsafe_executed = any(event.get("executed") is True and event.get("action") in RISKY_ACTIONS for event in approval_events)
+    unsafe_executed = any(
+        event.get("executed") is True and event.get("action") in RISKY_ACTIONS
+        for event in approval_events
+    )
     native_cost_gap = actual_cost_total <= 0 and estimated_cost_total > 0
 
     criteria = {
-        "deepseek_live_agents_completed": len(run_records) >= 4 and all(record.status == "completed" for record in run_records),
-        "team_orchestrator_context_passed": context.history == ["jarvis_discovery", "jarvis_architect"],
-        "rag_tool_used_with_hits": bool(search_events) and any(event.get("hits") for event in search_events),
+        "deepseek_live_agents_completed": len(run_records) >= 4
+        and all(record.status == "completed" for record in run_records),
+        "team_orchestrator_context_passed": context.history
+        == ["jarvis_discovery", "jarvis_architect"],
+        "rag_tool_used_with_hits": bool(search_events)
+        and any(event.get("hits") for event in search_events),
         "memory_tool_used": bool(memory_events),
         "builder_saved_artifacts": len(save_events) >= 6 and len(generated_files) >= 6,
-        "approval_required_for_risky_actions": len(approval_events) >= 2 and all(event.get("executed") is False for event in approval_events),
+        "approval_required_for_risky_actions": len(approval_events) >= 2
+        and all(event.get("executed") is False for event in approval_events),
         "monitor_traces_available": monitor_trace_count >= 4,
         "tokens_tracked": total_tokens > 0,
         "estimated_cost_available": estimated_cost_total > 0,
@@ -394,9 +459,13 @@ cost/monitoring, guardrails, HITL approvals, and a realistic missing-features li
 
     missing = []
     if native_cost_gap:
-        missing.append("Native DeepSeek provider traces reported zero actual cost; estimated cost was computed from token counts.")
+        missing.append(
+            "Native DeepSeek provider traces reported zero actual cost; estimated cost was computed from token counts."
+        )
     if not any("vector" in event.get("query", "").lower() for event in search_events):
-        missing.append("RAG used local keyword retrieval docs, not a production vector database benchmark.")
+        missing.append(
+            "RAG used local keyword retrieval docs, not a production vector database benchmark."
+        )
     missing.extend(
         [
             "Memory was simulated/local for this capstone; persistent cross-session memory needs a real store and privacy controls.",

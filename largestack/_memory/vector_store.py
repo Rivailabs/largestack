@@ -23,6 +23,7 @@ Embedding providers:
 Each provider is optional. The default is ``HashingEmbedder`` (works
 without any dependency installation).
 """
+
 from __future__ import annotations
 import asyncio
 import hashlib
@@ -31,13 +32,17 @@ import math
 from typing import Any, Awaitable, Callable, Protocol
 
 from largestack._memory.long_term import (
-    LongTermMemoryEntry, LongTermMemoryStore, MemoryScope, MemoryTier,
+    LongTermMemoryEntry,
+    LongTermMemoryStore,
+    MemoryScope,
+    MemoryTier,
 )
 
 log = logging.getLogger("largestack.memory.vector")
 
 
 # -------------------- Embedder protocol --------------------
+
 
 class EmbedderProtocol(Protocol):
     """An embedder produces a fixed-size vector for any text."""
@@ -51,6 +56,7 @@ class EmbedderProtocol(Protocol):
 
 
 # -------------------- Built-in embedders --------------------
+
 
 class HashingEmbedder:
     """Deterministic hash-based embedder. Zero dependencies.
@@ -72,7 +78,8 @@ class HashingEmbedder:
         for token in text.lower().split():
             # Stable hash — feature-hashing trick
             h = int.from_bytes(
-                hashlib.sha256(token.encode()).digest()[:8], "big",
+                hashlib.sha256(token.encode()).digest()[:8],
+                "big",
             )
             bucket = h % self._dim
             sign = 1.0 if (h // self._dim) & 1 else -1.0
@@ -82,7 +89,8 @@ class HashingEmbedder:
         for i in range(max(0, len(text_lower) - 2)):
             tri = text_lower[i : i + 3]
             h = int.from_bytes(
-                hashlib.sha256(tri.encode()).digest()[:8], "big",
+                hashlib.sha256(tri.encode()).digest()[:8],
+                "big",
             )
             bucket = h % self._dim
             v[bucket] += 0.3
@@ -130,8 +138,7 @@ class OpenAIEmbedder:
                 import openai
             except ImportError as e:
                 raise ImportError(
-                    "openai required for OpenAIEmbedder. "
-                    "Install with: pip install openai"
+                    "openai required for OpenAIEmbedder. Install with: pip install openai"
                 ) from e
             self._client = openai.AsyncOpenAI(api_key=self.api_key)
         return self._client
@@ -139,14 +146,16 @@ class OpenAIEmbedder:
     async def embed(self, text: str) -> list[float]:
         client = self._get_client()
         resp = await client.embeddings.create(
-            model=self.model, input=text,
+            model=self.model,
+            input=text,
         )
         return list(resp.data[0].embedding)
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
         client = self._get_client()
         resp = await client.embeddings.create(
-            model=self.model, input=texts,
+            model=self.model,
+            input=texts,
         )
         return [list(d.embedding) for d in resp.data]
 
@@ -190,12 +199,14 @@ class SentenceTransformerEmbedder:
         self._load()
         return await asyncio.to_thread(
             lambda: self._model.encode(
-                texts, show_progress_bar=False,
+                texts,
+                show_progress_bar=False,
             ).tolist()
         )
 
 
 # -------------------- Vector index (in-memory) --------------------
+
 
 class _VectorIndex:
     """In-memory cosine-similarity index. Keyed by (tenant_id, entry_id)."""
@@ -205,7 +216,10 @@ class _VectorIndex:
         self._lock = asyncio.Lock()
 
     async def upsert(
-        self, tenant_id: str, entry_id: str, vector: list[float],
+        self,
+        tenant_id: str,
+        entry_id: str,
+        vector: list[float],
     ) -> None:
         async with self._lock:
             self._vectors[(tenant_id, entry_id)] = vector
@@ -253,6 +267,7 @@ def _cosine(a: list[float], b: list[float]) -> float:
 
 
 # -------------------- VectorMemoryStore wrapper --------------------
+
 
 class VectorMemoryStore(LongTermMemoryStore):
     """Wraps a backing ``LongTermMemoryStore`` with vector embedding
@@ -316,8 +331,12 @@ class VectorMemoryStore(LongTermMemoryStore):
         limit: int | None = None,
     ) -> list[LongTermMemoryEntry]:
         return await self.backing.list(
-            tenant_id=tenant_id, user_id=user_id, tier=tier,
-            scope=scope, tag=tag, limit=limit,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            tier=tier,
+            scope=scope,
+            tag=tag,
+            limit=limit,
         )
 
     async def search(
@@ -335,14 +354,18 @@ class VectorMemoryStore(LongTermMemoryStore):
         except Exception as e:
             log.warning(f"query embed failed: {e}; falling back to substring")
             return await self.backing.search(
-                tenant_id=tenant_id, user_id=user_id,
-                query=query, limit=limit,
+                tenant_id=tenant_id,
+                user_id=user_id,
+                query=query,
+                limit=limit,
             )
 
         # Cosine search across this tenant's vectors
         # Over-fetch to leave headroom after user/expiry filtering
         candidates = await self._index.search(
-            tenant_id, qvec, limit=limit * 4,
+            tenant_id,
+            qvec,
+            limit=limit * 4,
         )
         if not candidates:
             # Index might be empty (no vectors yet, or not rebuilt after a restart
@@ -351,14 +374,18 @@ class VectorMemoryStore(LongTermMemoryStore):
             # degradation from cosine→substring is visible; call reindex() to
             # repopulate the in-memory vector index over persisted entries.
             import logging
+
             logging.getLogger("largestack.memory").warning(
                 "VectorMemoryStore: vector index empty for tenant %r — falling back to "
                 "substring search (not cosine). Call reindex() to rebuild the index over "
-                "persisted entries after process start.", tenant_id,
+                "persisted entries after process start.",
+                tenant_id,
             )
             return await self.backing.search(
-                tenant_id=tenant_id, user_id=user_id,
-                query=query, limit=limit,
+                tenant_id=tenant_id,
+                user_id=user_id,
+                query=query,
+                limit=limit,
             )
 
         results: list[LongTermMemoryEntry] = []
@@ -376,7 +403,9 @@ class VectorMemoryStore(LongTermMemoryStore):
         return results
 
     async def purge_expired(
-        self, *, tenant_id: str | None = None,
+        self,
+        *,
+        tenant_id: str | None = None,
     ) -> int:
         # Remove from index too (best-effort: scan-and-delete)
         # Backing purge first to know what was removed
@@ -386,7 +415,7 @@ class VectorMemoryStore(LongTermMemoryStore):
         if tenant_id and count > 0:
             after = await self.backing.list(tenant_id=tenant_id)
             after_ids = {e.id for e in after}
-            for removed_id in (before_ids - after_ids):
+            for removed_id in before_ids - after_ids:
                 await self._index.remove(tenant_id, removed_id)
         return count
 

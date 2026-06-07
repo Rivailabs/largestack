@@ -10,6 +10,7 @@ Extends ``largestack._a2a`` with two A2A v0.3-spec features:
 Both features are optional. The stdlib-only client + server still work
 without them.
 """
+
 from __future__ import annotations
 import asyncio
 import base64
@@ -28,19 +29,18 @@ log = logging.getLogger("largestack.a2a.v03")
 
 # -------------------- SSE streaming --------------------
 
+
 @dataclass
 class TaskStreamEvent:
     """One event in an A2A SSE stream."""
+
     event: str  # 'state_change', 'message', 'artifact', 'done', 'error'
     data: dict[str, Any] = field(default_factory=dict)
     timestamp: float = field(default_factory=lambda: time.time())
 
     def to_sse(self) -> str:
         """Encode as a single SSE message (with trailing blank line)."""
-        return (
-            f"event: {self.event}\n"
-            f"data: {json.dumps(self.data)}\n\n"
-        )
+        return f"event: {self.event}\ndata: {json.dumps(self.data)}\n\n"
 
 
 class StreamingA2AServer(A2AServer):
@@ -66,7 +66,9 @@ class StreamingA2AServer(A2AServer):
         task_ttl_seconds: float = 3600.0,
     ):
         super().__init__(
-            card=card, handler=handler, task_ttl_seconds=task_ttl_seconds,
+            card=card,
+            handler=handler,
+            task_ttl_seconds=task_ttl_seconds,
         )
 
     async def stream_task(
@@ -78,6 +80,7 @@ class StreamingA2AServer(A2AServer):
     ) -> AsyncIterator[TaskStreamEvent]:
         """Submit a task and yield events as it progresses."""
         import uuid
+
         task = A2ATask(
             id=task_id or str(uuid.uuid4()),
             metadata=metadata or {},
@@ -104,15 +107,19 @@ class StreamingA2AServer(A2AServer):
         events_queue: asyncio.Queue[TaskStreamEvent | None] = asyncio.Queue()
 
         async def emit(event_type: str, data: dict[str, Any]) -> None:
-            await events_queue.put(TaskStreamEvent(
-                event=event_type, data={**data, "task_id": task.id},
-            ))
+            await events_queue.put(
+                TaskStreamEvent(
+                    event=event_type,
+                    data={**data, "task_id": task.id},
+                )
+            )
 
         # Run the handler in a separate task so we can drain the queue
         async def run_handler():
             try:
                 # Detect signature
                 import inspect
+
                 sig = inspect.signature(self.handler)
                 if len(sig.parameters) >= 3:
                     out = await self.handler(input_text, task, emit)
@@ -120,25 +127,32 @@ class StreamingA2AServer(A2AServer):
                     out = await self.handler(input_text, task)
                 task.add_message(A2AMessage.text("agent", str(out)))
                 task.transition("completed")
-                await events_queue.put(TaskStreamEvent(
-                    event="message",
-                    data={"task_id": task.id, "role": "agent",
-                          "text": str(out)},
-                ))
-                await events_queue.put(TaskStreamEvent(
-                    event="state_change",
-                    data={"task_id": task.id, "state": "completed"},
-                ))
+                await events_queue.put(
+                    TaskStreamEvent(
+                        event="message",
+                        data={"task_id": task.id, "role": "agent", "text": str(out)},
+                    )
+                )
+                await events_queue.put(
+                    TaskStreamEvent(
+                        event="state_change",
+                        data={"task_id": task.id, "state": "completed"},
+                    )
+                )
             except Exception as e:
                 task.transition("failed", error=str(e))
-                await events_queue.put(TaskStreamEvent(
-                    event="error",
-                    data={"task_id": task.id, "error": str(e)},
-                ))
-                await events_queue.put(TaskStreamEvent(
-                    event="state_change",
-                    data={"task_id": task.id, "state": "failed"},
-                ))
+                await events_queue.put(
+                    TaskStreamEvent(
+                        event="error",
+                        data={"task_id": task.id, "error": str(e)},
+                    )
+                )
+                await events_queue.put(
+                    TaskStreamEvent(
+                        event="state_change",
+                        data={"task_id": task.id, "state": "failed"},
+                    )
+                )
             finally:
                 await events_queue.put(None)  # sentinel
 
@@ -175,7 +189,8 @@ class StreamingA2AServer(A2AServer):
         """
         if method != "POST" or path != "/tasks/sendSubscribe":
             yield TaskStreamEvent(
-                event="error", data={"error": "unknown endpoint"},
+                event="error",
+                data={"error": "unknown endpoint"},
             ).to_sse()
             return
 
@@ -186,12 +201,14 @@ class StreamingA2AServer(A2AServer):
             if isinstance(msg, dict):
                 parts = msg.get("parts", [])
                 input_text = "\n".join(
-                    p.get("text", "") for p in parts
+                    p.get("text", "")
+                    for p in parts
                     if isinstance(p, dict) and p.get("type") == "text"
                 )
         if not input_text:
             yield TaskStreamEvent(
-                event="error", data={"error": "input is required"},
+                event="error",
+                data={"error": "input is required"},
             ).to_sse()
             return
 
@@ -204,6 +221,7 @@ class StreamingA2AServer(A2AServer):
 
 
 # -------------------- Signed AgentCards --------------------
+
 
 @dataclass
 class SignedAgentCard:
@@ -222,6 +240,7 @@ class SignedAgentCard:
           }
         }
     """
+
     card: AgentCard
     signature: dict[str, Any]
 
@@ -262,7 +281,9 @@ def sign_agent_card_hs256(
     }
     payload_bytes = _canonical_json(payload).encode()
     sig = hmac.new(
-        secret.encode(), payload_bytes, hashlib.sha256,
+        secret.encode(),
+        payload_bytes,
+        hashlib.sha256,
     ).digest()
     return SignedAgentCard(
         card=card,
@@ -329,14 +350,14 @@ def sign_agent_card_rs256(
         from cryptography.hazmat.primitives.asymmetric import padding
     except ImportError as e:
         raise ImportError(
-            "cryptography required for RS256. "
-            "Install with: pip install cryptography"
+            "cryptography required for RS256. Install with: pip install cryptography"
         ) from e
 
     if isinstance(private_key_pem, str):
         private_key_pem = private_key_pem.encode()
     private_key = serialization.load_pem_private_key(
-        private_key_pem, password=None,
+        private_key_pem,
+        password=None,
     )
 
     now = time.time()
@@ -375,9 +396,7 @@ def verify_agent_card_rs256(
         from cryptography.hazmat.primitives.asymmetric import padding
         from cryptography.exceptions import InvalidSignature
     except ImportError as e:
-        raise ImportError(
-            "cryptography required for RS256 verify"
-        ) from e
+        raise ImportError("cryptography required for RS256 verify") from e
 
     sig = signed.signature
     if not sig:
@@ -414,6 +433,7 @@ def verify_agent_card_rs256(
 
 
 # -------------------- Helpers --------------------
+
 
 def _canonical_json(d: dict[str, Any]) -> str:
     """Canonical JSON for stable signing — sorted keys, no whitespace."""

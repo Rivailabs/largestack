@@ -31,6 +31,7 @@ Usage::
     )
     builder.export("/tmp/studio.html")
 """
+
 from __future__ import annotations
 import html
 import json
@@ -46,13 +47,19 @@ log = logging.getLogger("largestack.studio")
 # -------------------- Domain types --------------------
 
 NodeKind = Literal[
-    "start", "agent", "tool", "decision", "end", "checkpoint",
+    "start",
+    "agent",
+    "tool",
+    "decision",
+    "end",
+    "checkpoint",
 ]
 
 
 @dataclass
 class NodeSpec:
     """A node in the agent graph."""
+
     id: str
     label: str
     kind: NodeKind = "agent"
@@ -63,6 +70,7 @@ class NodeSpec:
 @dataclass
 class EdgeSpec:
     """An edge between two nodes."""
+
     source: str
     target: str
     label: str = ""
@@ -72,6 +80,7 @@ class EdgeSpec:
 @dataclass
 class AuditEvent:
     """One entry on the audit timeline."""
+
     timestamp: float
     agent: str
     event: str
@@ -84,6 +93,7 @@ class AuditEvent:
 @dataclass
 class MemorySnapshot:
     """Snapshot of memory state at the end of a run."""
+
     tenant_id: str
     user_id: str
     core_count: int = 0
@@ -95,12 +105,14 @@ class MemorySnapshot:
 @dataclass
 class ComplianceMarker:
     """Indian compliance marker from agent.yaml."""
+
     name: str  # "DPDP_Act_2023", "RBI_PA_PG_2024", "PMLA_2002"
     section: str = ""
     notes: str = ""
 
 
 # -------------------- Builder --------------------
+
 
 class StudioBuilder:
     """Builder for a single-HTML Studio export."""
@@ -143,13 +155,17 @@ class StudioBuilder:
         user_id: str = "",
         duration_ms: float = 0.0,
     ) -> None:
-        self._audit.append(AuditEvent(
-            timestamp=timestamp if timestamp is not None else time.time(),
-            agent=agent, event=event,
-            payload=payload or {},
-            tenant_id=tenant_id, user_id=user_id,
-            duration_ms=duration_ms,
-        ))
+        self._audit.append(
+            AuditEvent(
+                timestamp=timestamp if timestamp is not None else time.time(),
+                agent=agent,
+                event=event,
+                payload=payload or {},
+                tenant_id=tenant_id,
+                user_id=user_id,
+                duration_ms=duration_ms,
+            )
+        )
 
     def set_memory_snapshot(self, snap: MemorySnapshot) -> None:
         self._memory = snap
@@ -183,9 +199,11 @@ class StudioBuilder:
         json_data = json_data.replace("</", "<\\/")
         title_html = html.escape(self.title)
         return _STUDIO_TEMPLATE.replace(
-            "{{TITLE}}", title_html,
+            "{{TITLE}}",
+            title_html,
         ).replace(
-            "{{PAYLOAD_JSON}}", json_data,
+            "{{PAYLOAD_JSON}}",
+            json_data,
         )
 
     def export(self, path: str | Path) -> Path:
@@ -198,6 +216,7 @@ class StudioBuilder:
 
 
 # -------------------- Connector helpers (auto-build from LARGESTACK) --------------------
+
 
 async def from_memory_manager(manager) -> MemorySnapshot:
     """Build a ``MemorySnapshot`` from a ``LongTermMemoryManager``."""
@@ -217,15 +236,17 @@ def from_audit_log_records(records: list[dict[str, Any]]) -> list[AuditEvent]:
     """Convert LARGESTACK audit-log dict records → AuditEvent list."""
     events = []
     for r in records:
-        events.append(AuditEvent(
-            timestamp=r.get("timestamp", time.time()),
-            agent=r.get("agent", ""),
-            event=r.get("event", r.get("action", "")),
-            payload=r.get("payload", r.get("data", {})),
-            tenant_id=r.get("tenant_id", ""),
-            user_id=r.get("user_id", ""),
-            duration_ms=r.get("duration_ms", 0.0),
-        ))
+        events.append(
+            AuditEvent(
+                timestamp=r.get("timestamp", time.time()),
+                agent=r.get("agent", ""),
+                event=r.get("event", r.get("action", "")),
+                payload=r.get("payload", r.get("data", {})),
+                tenant_id=r.get("tenant_id", ""),
+                user_id=r.get("user_id", ""),
+                duration_ms=r.get("duration_ms", 0.0),
+            )
+        )
     return events
 
 

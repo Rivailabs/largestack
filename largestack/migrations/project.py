@@ -1,4 +1,5 @@
 """Project-level migration checks."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -30,11 +31,14 @@ def apply_project_migrations(root: str | Path = ".") -> dict[str, object]:
     applied = []
     config = root / "largestack.yaml"
     if config.exists():
-        migrate_config(config, write=True); applied.append("config")
+        migrate_config(config, write=True)
+        applied.append("config")
     memory = root / "memory.json"
     if memory.exists():
-        migrate_memory(memory, write=True); applied.append("memory")
+        migrate_memory(memory, write=True)
+        applied.append("memory")
     trace_db = root / "traces.db"
     if trace_db.exists():
-        migrate_trace_db(trace_db, write=True); applied.append("trace_db")
+        migrate_trace_db(trace_db, write=True)
+        applied.append("trace_db")
     return {"root": str(root), "applied": applied, "ok": True}

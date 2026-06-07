@@ -5,6 +5,7 @@ This is intentionally deterministic by default: it uses TestModel and
 FunctionModel so production-runtime behavior can be exercised without live
 provider spend, network dependency, or accidental model calls.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -645,7 +646,11 @@ def build_scenarios(include_failure_injections: bool, scenario_set: str = "all")
         scenarios.extend(
             [
                 Scenario("tool_error_handled", "failure_injection", scenario_tool_error_handled),
-                Scenario("provider_timeout_handled", "failure_injection", scenario_provider_timeout_handled),
+                Scenario(
+                    "provider_timeout_handled",
+                    "failure_injection",
+                    scenario_provider_timeout_handled,
+                ),
                 Scenario("bad_key_handled", "failure_injection", scenario_bad_key_handled),
                 Scenario("rate_limit_handled", "failure_injection", scenario_rate_limit_handled),
             ]
@@ -718,7 +723,9 @@ async def prewarm_scenarios(config: CertConfig, scenarios: list[Scenario]) -> di
     return {"enabled": True, "scenarios": results}
 
 
-async def execute_load(config: CertConfig, scenarios: list[Scenario]) -> tuple[Aggregates, float, float]:
+async def execute_load(
+    config: CertConfig, scenarios: list[Scenario]
+) -> tuple[Aggregates, float, float]:
     from largestack.testing import disable_model_requests, enable_model_requests
 
     aggregates = Aggregates()
@@ -843,12 +850,10 @@ def build_summary(
         "trace_db_ok": bool(trace["ok"]),
         "trace_rows_present": int(trace.get("rows", 0) or 0) > 0,
         "memory_growth_ok": (
-            config.max_memory_growth_mb <= 0
-            or memory_growth_mb <= config.max_memory_growth_mb
+            config.max_memory_growth_mb <= 0 or memory_growth_mb <= config.max_memory_growth_mb
         ),
         "all_scenarios_exercised": all(
-            aggregates.by_scenario.get(name, {}).get("total", 0) > 0
-            for name in expected_scenarios
+            aggregates.by_scenario.get(name, {}).get("total", 0) > 0 for name in expected_scenarios
         ),
     }
     run_pass = all(acceptance.values())
@@ -1018,9 +1023,7 @@ def main(argv: list[str] | None = None) -> int:
     total_runs = defaults["total_runs"] if args.total_runs is None else args.total_runs
     concurrency = defaults["concurrency"] if args.concurrency is None else args.concurrency
     duration_seconds = (
-        defaults["duration_seconds"]
-        if args.duration_seconds is None
-        else args.duration_seconds
+        defaults["duration_seconds"] if args.duration_seconds is None else args.duration_seconds
     )
     if total_runs <= 0 and duration_seconds <= 0:
         raise SystemExit("Either --total-runs or --duration-seconds must be positive.")

@@ -8,6 +8,7 @@ anthropic from `adapter_only` → `verified`.
 
     LARGESTACK_ANTHROPIC_API_KEY=sk-ant-... pytest tests/integration/test_live_anthropic.py
 """
+
 from __future__ import annotations
 import asyncio
 import os
@@ -17,9 +18,12 @@ import pytest
 _KEY = os.environ.get("LARGESTACK_ANTHROPIC_API_KEY", "")
 
 
-@pytest.mark.skipif(not _KEY, reason="no LARGESTACK_ANTHROPIC_API_KEY — set a real key to verify Anthropic live")
+@pytest.mark.skipif(
+    not _KEY, reason="no LARGESTACK_ANTHROPIC_API_KEY — set a real key to verify Anthropic live"
+)
 def test_anthropic_check_connection_live():
     from largestack import check_connection
+
     model = os.environ.get("LARGESTACK_ANTHROPIC_TEST_MODEL", "anthropic/claude-haiku-4-5-20251001")
     res = asyncio.run(check_connection(model))
     assert res.get("ok") is True, f"anthropic check_connection failed: {res.get('detail')}"

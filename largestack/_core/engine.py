@@ -1,4 +1,5 @@
 """Agent execution engine — core loop with steering, guardrails, kill switch, metrics, compression."""
+
 from __future__ import annotations
 import json, logging, os, time, uuid
 from typing import Any, AsyncIterator
@@ -10,7 +11,12 @@ from largestack._core.license import check_license
 from largestack._core.steering import SteeringEngine, accept
 from largestack._core.tools import ToolExecutor, ToolRegistry
 from largestack._guard.kill_switch import is_active as _kill_switch_active
-from largestack.errors import BudgetExceededError, LoopDetectedError, KillSwitchActivatedError, GuardrailBlockedError
+from largestack.errors import (
+    BudgetExceededError,
+    LoopDetectedError,
+    KillSwitchActivatedError,
+    GuardrailBlockedError,
+)
 from largestack.types import AgentResult, LLMResponse, ToolCall, SteeringAction
 from largestack.testing import _capture_message  # v0.3.10: capture wiring
 
@@ -24,11 +30,13 @@ def _adapt_test_model_response(raw: dict, model: str) -> LLMResponse:
     tcs = []
     for tc in raw.get("tool_calls", []) or []:
         # Normalize: TestModel emits {"id","name","arguments"}; align to ToolCall
-        tcs.append(ToolCall(
-            id=tc.get("id", f"tc_{len(tcs)}"),
-            name=tc.get("name", ""),
-            params=tc.get("arguments", {}) if "arguments" in tc else tc.get("params", {}),
-        ))
+        tcs.append(
+            ToolCall(
+                id=tc.get("id", f"tc_{len(tcs)}"),
+                name=tc.get("name", ""),
+                params=tc.get("arguments", {}) if "arguments" in tc else tc.get("params", {}),
+            )
+        )
     usage = raw.get("usage", {}) or {}
     return LLMResponse(
         content=raw.get("content", ""),
@@ -42,22 +50,28 @@ def _adapt_test_model_response(raw: dict, model: str) -> LLMResponse:
         cost=0.0,
     )
 
+
 def _audit_events_enabled() -> bool:
     """v1.1.1: opt-in per-tool-call / per-guard-block audit rows (event_type=
     'tool.call'/'guard.block'). Off by default to avoid audit-log volume; enable
     with LARGESTACK_AUDIT_EVENTS=1 to populate the dashboard Tools/Guards panels."""
     return os.environ.get("LARGESTACK_AUDIT_EVENTS", "").lower() in ("1", "true", "yes")
 
+
 _audit = None
+
+
 def _get_audit():
     global _audit
     if _audit is None:
         try:
             from largestack._enterprise.audit import AuditTrail
+
             _audit = AuditTrail()
         except Exception as e:
             logging.getLogger("largestack.engine").debug(f"Audit init failed: {e}")
     return _audit
+
 
 log = logging.getLogger("largestack.engine")
 
@@ -82,15 +96,33 @@ def _assistant_message_from_response(resp):
 
 
 class AgentEngine:
-    def __init__(self, name, instructions, llm, gateway, tool_registry, steering_engine,
-                 config=None, tool_permissions=None, guardrails=None, memory=None,
-                 max_turns=25, cost_budget=5.0, tool_policy=None):
-        self.name = name; self.instructions = instructions; self.llm = llm
-        self.gateway = gateway; self.steering = steering_engine
+    def __init__(
+        self,
+        name,
+        instructions,
+        llm,
+        gateway,
+        tool_registry,
+        steering_engine,
+        config=None,
+        tool_permissions=None,
+        guardrails=None,
+        memory=None,
+        max_turns=25,
+        cost_budget=5.0,
+        tool_policy=None,
+    ):
+        self.name = name
+        self.instructions = instructions
+        self.llm = llm
+        self.gateway = gateway
+        self.steering = steering_engine
         self.tool_exec = ToolExecutor(tool_registry, tool_permissions, name, policy=tool_policy)
         self.config = config or get_config()
-        self.guardrails = guardrails; self.memory = memory
-        self.max_turns = max_turns; self.cost_budget = cost_budget
+        self.guardrails = guardrails
+        self.memory = memory
+        self.max_turns = max_turns
+        self.cost_budget = cost_budget
         # v0.3.10: when set by Agent.override(), bypass gateway entirely and
         # call this object's `chat(messages, model, tools, **kw)` instead.
         # Must expose a `chat()` coroutine returning a raw dict shaped like
@@ -99,6 +131,7 @@ class AgentEngine:
         self._compressor = None
         if self.config.context_compression:
             from largestack._memory.compression import ContextCompressor
+
             self._compressor = ContextCompressor()
 
     async def _llm_call(self, msgs, tools, behavior_kw) -> "LLMResponse":
@@ -111,12 +144,11 @@ class AgentEngine:
         """
         test_model = getattr(self, "_test_model", None)
         if test_model is not None:
-            raw = await test_model.chat(messages=msgs, model=self.llm,
-                                        tools=tools, **behavior_kw)
+            raw = await test_model.chat(messages=msgs, model=self.llm, tools=tools, **behavior_kw)
             return _adapt_test_model_response(raw, self.llm)
-        return await self.gateway.chat(model=self.llm, messages=msgs,
-                                        tools=tools, agent_name=self.name,
-                                        **behavior_kw)
+        return await self.gateway.chat(
+            model=self.llm, messages=msgs, tools=tools, agent_name=self.name, **behavior_kw
+        )
 
     def _check_kill_switch(self):
         """Check kill switch before every LLM call."""
@@ -127,7 +159,8 @@ class AgentEngine:
         # License enforcement
         check_license()
 
-        tid = str(uuid.uuid4()); t0 = time.monotonic()
+        tid = str(uuid.uuid4())
+        t0 = time.monotonic()
         # v1.1.1: open an OTel parent span when OTel is configured. Previously the
         # engine never opened a span, so the only spans (httpx auto-trace) were
         # flat/parentless and their trace_ids never matched the engine trace_id.
@@ -136,6 +169,7 @@ class AgentEngine:
         _otel_span_cm = None
         try:
             from largestack._observability.otel import get_tracer as _get_tracer
+
             _otel_tracer = _get_tracer()
             if _otel_tracer is not None:
                 _otel_span_cm = _otel_tracer.start_as_current_span("agent.run")
@@ -202,7 +236,8 @@ class AgentEngine:
                     self._compress_context(msgs)
 
                 # Input guardrails
-                if self.guardrails: await self.guardrails.check_input(msgs)
+                if self.guardrails:
+                    await self.guardrails.check_input(msgs)
 
                 # LLM call
                 # P0-1 (v0.3.3): forward structured-output + behavior kwargs to gateway
@@ -210,10 +245,19 @@ class AgentEngine:
                 # v0.3.6: include both snake_case (Google native) and camelCase aliases,
                 # plus separate structured tools from agent tools.
                 _BEHAVIOR_KWS = {
-                    "temperature", "max_tokens", "response_format", "tool_choice",
-                    "top_p", "top_k", "seed", "stop", "stop_sequences",
-                    "responseMimeType", "responseSchema",
-                    "response_mime_type", "response_schema",
+                    "temperature",
+                    "max_tokens",
+                    "response_format",
+                    "tool_choice",
+                    "top_p",
+                    "top_k",
+                    "seed",
+                    "stop",
+                    "stop_sequences",
+                    "responseMimeType",
+                    "responseSchema",
+                    "response_mime_type",
+                    "response_schema",
                     "format",  # Ollama native JSON-schema constrained decoding
                 }
                 behavior_kw = {k: v for k, v in kw.items() if k in _BEHAVIOR_KWS}
@@ -221,7 +265,9 @@ class AgentEngine:
                 # with agent tools rather than letting the engine overwrite.
                 schemas = self.tool_exec.registry.get_all_schemas() or []
                 structured_tools = kw.get("tools") or []
-                merged_tools = (schemas + list(structured_tools)) if (schemas or structured_tools) else None
+                merged_tools = (
+                    (schemas + list(structured_tools)) if (schemas or structured_tools) else None
+                )
                 # v0.3.10: route through _llm_call so Agent.override(model=TestModel)
                 # bypasses the real gateway. Real path is unchanged.
                 resp = await self._llm_call(msgs, merged_tools, behavior_kw)
@@ -231,9 +277,8 @@ class AgentEngine:
                 # v0.3.7.1: LLMResponse has input_tokens + output_tokens, not "tokens".
                 # Sum them. Fallback to "tokens" attr for any future provider that
                 # populates the legacy field directly.
-                _tok = (
-                    int(getattr(resp, "input_tokens", 0) or 0)
-                    + int(getattr(resp, "output_tokens", 0) or 0)
+                _tok = int(getattr(resp, "input_tokens", 0) or 0) + int(
+                    getattr(resp, "output_tokens", 0) or 0
                 )
                 if _tok == 0:
                     _tok = int(getattr(resp, "tokens", 0) or 0)
@@ -244,12 +289,14 @@ class AgentEngine:
                 guard.check_cost(_turn_cost)
 
                 # Output guardrails
-                if self.guardrails: await self.guardrails.check_output(resp)
+                if self.guardrails:
+                    await self.guardrails.check_output(resp)
 
                 # Steering after model
                 sr = await self.steering.run_after(resp, {"agent": self.name})
                 if sr.action == SteeringAction.DISCARD:
-                    msgs.append({"role": "user", "content": sr.feedback}); continue
+                    msgs.append({"role": "user", "content": sr.feedback})
+                    continue
                 if sr.action == SteeringAction.INTERRUPT:
                     return self._result(str(sr.result or "Interrupted"), tid, t0, tc_made, guard)
 
@@ -261,8 +308,7 @@ class AgentEngine:
                     # Treat it as such and return immediately rather than trying
                     # to execute a non-existent tool.
                     structured_tc = next(
-                        (tc for tc in resp.tool_calls if tc.name == "structured_output"),
-                        None
+                        (tc for tc in resp.tool_calls if tc.name == "structured_output"), None
                     )
                     if structured_tc is not None:
                         # The structured payload is in tc.params (a dict matching the schema).
@@ -276,33 +322,56 @@ class AgentEngine:
                         _capture_message({"role": "assistant", "content": content})
                         if self.memory is not None:
                             turn_msgs = [
-                                dict(m) for m in msgs[memory_turn_start:]
+                                dict(m)
+                                for m in msgs[memory_turn_start:]
                                 if isinstance(m, dict) and m.get("role") != "system"
                             ]
                             turn_msgs.append({"role": "assistant", "content": content})
                             await self.memory.add_messages(turn_msgs)
-                        return self._result(content, tid, t0, tc_made, guard,
-                                             run_cost=run_cost, run_tokens=run_tokens)
-                    
+                        return self._result(
+                            content,
+                            tid,
+                            t0,
+                            tc_made,
+                            guard,
+                            run_cost=run_cost,
+                            run_tokens=run_tokens,
+                        )
+
                     if guard.check_loop(resp.tool_calls):
                         # v1.1.1: thread per-run cost/tokens (the exhaustion path at
                         # the bottom does too) so loop-terminated runs don't report 0
                         # or fall back to the shared gateway cost_tracker.
-                        return await self._force_final(msgs, tid, t0, tc_made, guard,
-                                                       run_cost=run_cost, run_tokens=run_tokens)
-                    _asst = {"role": "assistant", "content": resp.content or None,
-                        "tool_calls": [{"id": tc.id, "type": "function",
-                            "function": {"name": tc.name, "arguments": json.dumps(tc.params)}} for tc in resp.tool_calls]}
+                        return await self._force_final(
+                            msgs, tid, t0, tc_made, guard, run_cost=run_cost, run_tokens=run_tokens
+                        )
+                    _asst = {
+                        "role": "assistant",
+                        "content": resp.content or None,
+                        "tool_calls": [
+                            {
+                                "id": tc.id,
+                                "type": "function",
+                                "function": {"name": tc.name, "arguments": json.dumps(tc.params)},
+                            }
+                            for tc in resp.tool_calls
+                        ],
+                    }
                     if getattr(resp, "reasoning_content", None):
                         _asst["reasoning_content"] = resp.reasoning_content
                     msgs.append(_asst)
                     _capture_message(_asst)  # v0.3.10
                     for tc in resp.tool_calls:
                         # Steering before tool
-                        sr = await self.steering.run_before(tc.name, tc.params, {"agent": self.name})
+                        sr = await self.steering.run_before(
+                            tc.name, tc.params, {"agent": self.name}
+                        )
                         if sr.action == SteeringAction.INTERRUPT:
-                            _blocked = {"role": "tool", "tool_call_id": tc.id,
-                                "content": f"Blocked by steering: {sr.feedback or sr.result}"}
+                            _blocked = {
+                                "role": "tool",
+                                "tool_call_id": tc.id,
+                                "content": f"Blocked by steering: {sr.feedback or sr.result}",
+                            }
                             msgs.append(_blocked)
                             _capture_message(_blocked)  # v0.3.10
                             continue
@@ -313,21 +382,39 @@ class AgentEngine:
                         res = await self.tool_exec.execute(tc)
                         if res.error:
                             guard.tool_failures.append(tc.name)
-                        duration_ms = res.duration_ms if res.duration_ms is not None else (time.monotonic() - t_start) * 1000
+                        duration_ms = (
+                            res.duration_ms
+                            if res.duration_ms is not None
+                            else (time.monotonic() - t_start) * 1000
+                        )
                         try:
                             from largestack._observe.metrics import track_tool_call
+
                             track_tool_call(tc.name, res.error is None, duration_ms)
-                        except Exception as _e: log.debug(f"swallowed: {_e}")
+                        except Exception as _e:
+                            log.debug(f"swallowed: {_e}")
                         # v1.1.1: opt-in per-tool-call audit row (powers dashboard Tools panel)
                         if _audit_events_enabled():
                             _a = _get_audit()
                             if _a:
                                 try:
-                                    _a.log("tool.call", tc.name, agent_name=self.name, trace_id=tid,
-                                           details={"ok": res.error is None, "duration_ms": round(duration_ms, 1)})
-                                except Exception as _e: log.debug(f"swallowed: {_e}")
-                        _tool_msg = {"role": "tool", "tool_call_id": tc.id,
-                            "content": res.content if not res.error else f"Error: {res.error}"}
+                                    _a.log(
+                                        "tool.call",
+                                        tc.name,
+                                        agent_name=self.name,
+                                        trace_id=tid,
+                                        details={
+                                            "ok": res.error is None,
+                                            "duration_ms": round(duration_ms, 1),
+                                        },
+                                    )
+                                except Exception as _e:
+                                    log.debug(f"swallowed: {_e}")
+                        _tool_msg = {
+                            "role": "tool",
+                            "tool_call_id": tc.id,
+                            "content": res.content if not res.error else f"Error: {res.error}",
+                        }
                         msgs.append(_tool_msg)
                         _capture_message(_tool_msg)  # v0.3.10
                 else:
@@ -335,44 +422,77 @@ class AgentEngine:
                     _capture_message({"role": "assistant", "content": resp.content})
                     # Loop guard: 5th layer — no-progress detection
                     # Only fires on text answers, NOT when agent makes tool calls
-                    if resp.content and hasattr(guard, 'check_progress'):
+                    if resp.content and hasattr(guard, "check_progress"):
                         if guard.check_progress(resp.content):
                             log.warning("No progress — agent output repeating. Forcing completion.")
-                            return self._result(resp.content, tid, t0, tc_made, guard,
-                                                 run_cost=run_cost, run_tokens=run_tokens,
-                                                 finish_reason="no_progress")
+                            return self._result(
+                                resp.content,
+                                tid,
+                                t0,
+                                tc_made,
+                                guard,
+                                run_cost=run_cost,
+                                run_tokens=run_tokens,
+                                finish_reason="no_progress",
+                            )
                     if self.memory is not None:
                         turn_msgs = [
-                            dict(m) for m in msgs[memory_turn_start:]
+                            dict(m)
+                            for m in msgs[memory_turn_start:]
                             if isinstance(m, dict) and m.get("role") != "system"
                         ]
                         turn_msgs.append({"role": "assistant", "content": resp.content})
                         await self.memory.add_messages(turn_msgs)
-                    return self._result(resp.content, tid, t0, tc_made, guard,
-                                         run_cost=run_cost, run_tokens=run_tokens,
-                                         finish_reason=getattr(resp, "finish_reason", "stop") or "stop")
-            return await self._force_final(msgs, tid, t0, tc_made, guard,
-                                            run_cost=run_cost, run_tokens=run_tokens)
+                    return self._result(
+                        resp.content,
+                        tid,
+                        t0,
+                        tc_made,
+                        guard,
+                        run_cost=run_cost,
+                        run_tokens=run_tokens,
+                        finish_reason=getattr(resp, "finish_reason", "stop") or "stop",
+                    )
+            return await self._force_final(
+                msgs, tid, t0, tc_made, guard, run_cost=run_cost, run_tokens=run_tokens
+            )
         except (BudgetExceededError, LoopDetectedError, KillSwitchActivatedError) as e:
-            run_status = "failed"; _run_error = e
-            await bus.emit("agent.error", {"agent": self.name, "error": str(e), "type": type(e).__name__})
+            run_status = "failed"
+            _run_error = e
+            await bus.emit(
+                "agent.error", {"agent": self.name, "error": str(e), "type": type(e).__name__}
+            )
             raise
         except Exception as e:
-            run_status = "failed"; _run_error = e
+            run_status = "failed"
+            _run_error = e
             await bus.emit("agent.error", {"agent": self.name, "error": str(e)})
             # v1.1.1: opt-in guard-block audit row (powers dashboard Guards panel)
             if isinstance(e, GuardrailBlockedError) and _audit_events_enabled():
                 _a = _get_audit()
                 if _a:
                     try:
-                        _a.log(f"guard.{getattr(e, 'guard_type', 'block')}", getattr(e, "guard_type", "block"),
-                               agent_name=self.name, trace_id=tid)
-                    except Exception as _e: log.debug(f"swallowed: {_e}")
+                        _a.log(
+                            f"guard.{getattr(e, 'guard_type', 'block')}",
+                            getattr(e, "guard_type", "block"),
+                            agent_name=self.name,
+                            trace_id=tid,
+                        )
+                    except Exception as _e:
+                        log.debug(f"swallowed: {_e}")
             raise
         finally:
             # v0.3.6: emit per-run cost (was: shared gateway tracker)
-            await bus.emit("agent.done", {"agent": self.name, "trace_id": tid,
-                "duration_ms": (time.monotonic()-t0)*1000, "cost": run_cost, "status": run_status})
+            await bus.emit(
+                "agent.done",
+                {
+                    "agent": self.name,
+                    "trace_id": tid,
+                    "duration_ms": (time.monotonic() - t0) * 1000,
+                    "cost": run_cost,
+                    "status": run_status,
+                },
+            )
             # v1.1.1: failed runs were never written to the traces table (the
             # success path's _result() is the only log_trace caller), so the
             # dashboard/Monitor error-rate read a permanent 0%. Write the failure
@@ -380,13 +500,18 @@ class AgentEngine:
             if run_status == "failed":
                 try:
                     from largestack._observe.traces_db import log_trace
+
                     log_trace(
-                        trace_id=tid, agent=self.name,
+                        trace_id=tid,
+                        agent=self.name,
                         task=getattr(self, "_current_task", "") or "",
-                        model=str(self.llm), output="",
+                        model=str(self.llm),
+                        output="",
                         error=str(_run_error) if _run_error else "failed",
                         duration_ms=(time.monotonic() - t0) * 1000,
-                        cost=run_cost, tokens=run_tokens, turns=getattr(guard, "turn", 0),
+                        cost=run_cost,
+                        tokens=run_tokens,
+                        turns=getattr(guard, "turn", 0),
                         finish_reason="error",
                     )
                 except Exception as _e:
@@ -395,31 +520,46 @@ class AgentEngine:
             audit = _get_audit()
             if audit:
                 try:
-                    audit.log("agent.run", run_status, agent_name=self.name,
-                        cost=run_cost, trace_id=tid,
-                        details={"duration_ms": round((time.monotonic()-t0)*1000, 1)})
-                except Exception as _e: log.debug(f"swallowed: {_e}")
+                    audit.log(
+                        "agent.run",
+                        run_status,
+                        agent_name=self.name,
+                        cost=run_cost,
+                        trace_id=tid,
+                        details={"duration_ms": round((time.monotonic() - t0) * 1000, 1)},
+                    )
+                except Exception as _e:
+                    log.debug(f"swallowed: {_e}")
             # v1.1.1: close the OTel parent span (opened above) last, so everything
             # above is captured within the span.
             if _otel_span_cm is not None:
-                try: _otel_span_cm.__exit__(None, None, None)
-                except Exception as _e: log.debug(f"otel span close failed: {_e}")
+                try:
+                    _otel_span_cm.__exit__(None, None, None)
+                except Exception as _e:
+                    log.debug(f"otel span close failed: {_e}")
 
     def _compress_context(self, msgs: list[dict]):
         """Compress older messages to save tokens."""
-        if len(msgs) <= 4: return
+        if len(msgs) <= 4:
+            return
         # Compress messages 1 to N-3 (keep system, first user, last 2)
         to_compress = msgs[1:-2]
-        if not to_compress: return
+        if not to_compress:
+            return
         full_text = "\n".join(str(m.get("content", "")) for m in to_compress)
         if len(full_text) > 2000:
             compressed = self._compressor.compress(full_text, max_tokens=500)
             # Replace with summary
             msgs[1:-2] = [{"role": "system", "content": f"[Compressed context]: {compressed}"}]
 
-    async def _force_final(self, msgs, tid, t0, tc_made, guard, run_cost: float = 0.0, run_tokens: int = 0):
+    async def _force_final(
+        self, msgs, tid, t0, tc_made, guard, run_cost: float = 0.0, run_tokens: int = 0
+    ):
         self._check_kill_switch()
-        _final_prompt = {"role": "user", "content": "Provide your best answer now based on what you have."}
+        _final_prompt = {
+            "role": "user",
+            "content": "Provide your best answer now based on what you have.",
+        }
         msgs.append(_final_prompt)
         _capture_message(_final_prompt)  # v0.3.10
         # v0.3.10: route through _llm_call so Agent.override() is honored here too.
@@ -431,15 +571,20 @@ class AgentEngine:
             await self.guardrails.check_output(r)
         # Accumulate this final call's cost
         run_cost += float(getattr(r, "cost", 0.0) or 0.0)
-        _tok = (
-            int(getattr(r, "input_tokens", 0) or 0)
-            + int(getattr(r, "output_tokens", 0) or 0)
-        )
+        _tok = int(getattr(r, "input_tokens", 0) or 0) + int(getattr(r, "output_tokens", 0) or 0)
         if _tok == 0:
             _tok = int(getattr(r, "tokens", 0) or 0)
         run_tokens += _tok
-        return self._result(r.content, tid, t0, tc_made, guard, finish_reason="forced",
-                             run_cost=run_cost, run_tokens=run_tokens)
+        return self._result(
+            r.content,
+            tid,
+            t0,
+            tc_made,
+            guard,
+            finish_reason="forced",
+            run_cost=run_cost,
+            run_tokens=run_tokens,
+        )
 
     def _build_msgs(self, task):
         msgs = []
@@ -469,8 +614,17 @@ class AgentEngine:
         msgs.append({"role": "user", "content": task})
         return msgs
 
-    def _result(self, content, tid, t0, tc_made, guard, run_cost: float | None = None,
-                run_tokens: int | None = None, finish_reason: str = "stop"):
+    def _result(
+        self,
+        content,
+        tid,
+        t0,
+        tc_made,
+        guard,
+        run_cost: float | None = None,
+        run_tokens: int | None = None,
+        finish_reason: str = "stop",
+    ):
         # v0.3.6: prefer per-run cost. Fall back to gateway tracker for back-compat
         # callers that don't pass per-run values.
         if run_cost is None:
@@ -483,6 +637,7 @@ class AgentEngine:
         # v0.3.12: include the task so the dashboard's trace list is informative.
         try:
             from largestack._observe.traces_db import log_trace
+
             log_trace(
                 trace_id=tid,
                 agent=self.name,
@@ -497,12 +652,17 @@ class AgentEngine:
             )
         except Exception as e:
             log.debug(f"trace log failed (non-fatal): {e}")
-        return AgentResult(content=content, agent_name=self.name,
+        return AgentResult(
+            content=content,
+            agent_name=self.name,
             total_cost=run_cost,
             total_tokens=run_tokens,
-            turns=guard.turn, trace_id=tid,
-            duration_ms=duration_ms, tool_calls_made=tc_made,
-            tool_calls_failed=list(getattr(guard, "tool_failures", [])))
+            turns=guard.turn,
+            trace_id=tid,
+            duration_ms=duration_ms,
+            tool_calls_made=tc_made,
+            tool_calls_failed=list(getattr(guard, "tool_failures", [])),
+        )
 
     async def stream(self, task: str, **kw) -> AsyncIterator[str]:
         """Stream tokens with policy parity to execute().
@@ -542,11 +702,13 @@ class AgentEngine:
         # License + kill switch
         check_license()
         self._check_kill_switch()
-        tid = str(uuid.uuid4()); t0 = time.monotonic()
+        tid = str(uuid.uuid4())
+        t0 = time.monotonic()
         await bus.emit("agent.stream.started", {"agent": self.name, "task": task, "trace_id": tid})
         msgs = self._build_msgs(task)
         # Input guardrails
-        if self.guardrails: await self.guardrails.check_input(msgs)
+        if self.guardrails:
+            await self.guardrails.check_input(msgs)
         # Cost budget pre-check (defensive; gateway tracks per-call cost)
         cost_budget = kw.get("cost_budget", self.cost_budget)
 
@@ -565,10 +727,19 @@ class AgentEngine:
 
             # Behavior kwargs same as execute()
             _BEHAVIOR_KWS = {
-                "temperature", "max_tokens", "response_format", "tool_choice",
-                "top_p", "top_k", "seed", "stop", "stop_sequences",
-                "responseMimeType", "responseSchema",
-                "response_mime_type", "response_schema",
+                "temperature",
+                "max_tokens",
+                "response_format",
+                "tool_choice",
+                "top_p",
+                "top_k",
+                "seed",
+                "stop",
+                "stop_sequences",
+                "responseMimeType",
+                "responseSchema",
+                "response_mime_type",
+                "response_schema",
                 "tools",
             }
             behavior_kw = {k: v for k, v in kw.items() if k in _BEHAVIOR_KWS}
@@ -581,9 +752,15 @@ class AgentEngine:
                 if not self.guardrails:
                     return True
                 try:
-                    fake_resp = type("StreamChunk", (), {
-                        "content": chunk_text, "cost": 0.0, "tokens": 0,
-                    })()
+                    fake_resp = type(
+                        "StreamChunk",
+                        (),
+                        {
+                            "content": chunk_text,
+                            "cost": 0.0,
+                            "tokens": 0,
+                        },
+                    )()
                     await self.guardrails.check_output(fake_resp)
                     return True
                 except Exception as e:
@@ -632,18 +809,30 @@ class AgentEngine:
             if self.guardrails and not blocked:
                 full_text = "".join(buffered)
                 try:
-                    fake_resp = type("StreamResp", (), {
-                        "content": full_text, "cost": 0.0, "tokens": 0,
-                    })()
+                    fake_resp = type(
+                        "StreamResp",
+                        (),
+                        {
+                            "content": full_text,
+                            "cost": 0.0,
+                            "tokens": 0,
+                        },
+                    )()
                     await self.guardrails.check_output(fake_resp)
                 except Exception as e:
                     log.warning(f"Stream output guardrail (final) failed: {e}")
 
-            await bus.emit("agent.stream.completed",
-                          {"agent": self.name, "trace_id": tid,
-                           "blocked": blocked,
-                           "duration_ms": (time.monotonic() - t0) * 1000})
+            await bus.emit(
+                "agent.stream.completed",
+                {
+                    "agent": self.name,
+                    "trace_id": tid,
+                    "blocked": blocked,
+                    "duration_ms": (time.monotonic() - t0) * 1000,
+                },
+            )
         except Exception as e:
-            await bus.emit("agent.stream.failed",
-                          {"agent": self.name, "trace_id": tid, "error": str(e)})
+            await bus.emit(
+                "agent.stream.failed", {"agent": self.name, "trace_id": tid, "error": str(e)}
+            )
             raise

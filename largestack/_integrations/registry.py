@@ -1,4 +1,5 @@
 """Beginner-facing integration registry for Largestack AI projects."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -99,7 +100,11 @@ INTEGRATIONS: dict[str, IntegrationSpec] = {
     "opensearch": IntegrationSpec(
         name="opensearch",
         description="Use OpenSearch for keyword, hybrid, or vector retrieval.",
-        env_vars=("LARGESTACK_OPENSEARCH_URL", "LARGESTACK_OPENSEARCH_USER", "LARGESTACK_OPENSEARCH_PASSWORD"),
+        env_vars=(
+            "LARGESTACK_OPENSEARCH_URL",
+            "LARGESTACK_OPENSEARCH_USER",
+            "LARGESTACK_OPENSEARCH_PASSWORD",
+        ),
         risk_type="external_exfiltration",
         approval="require_approval",
         approval_actions=("external_upload", "vector_index_write"),

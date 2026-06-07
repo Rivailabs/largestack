@@ -1,4 +1,5 @@
 """v0.9.0: Tests for 3 new rerankers."""
+
 from __future__ import annotations
 
 import json
@@ -11,11 +12,13 @@ respx = pytest.importorskip("respx")
 
 # -------------------- Voyage Rerank --------------------
 
+
 @pytest.mark.asyncio
 async def test_voyage_rerank_no_key_returns_unchanged(monkeypatch):
     monkeypatch.delenv("LARGESTACK_VOYAGE_API_KEY", raising=False)
     monkeypatch.delenv("VOYAGE_API_KEY", raising=False)
     from largestack._rerankers import voyage_rerank
+
     docs = [{"id": "1", "content": "doc1"}, {"id": "2", "content": "doc2"}]
     result = await voyage_rerank("query", docs, top_k=2)
     assert len(result) == 2  # unchanged passthrough
@@ -27,6 +30,7 @@ async def test_voyage_rerank_no_key_returns_unchanged(monkeypatch):
 async def test_voyage_rerank_success(monkeypatch):
     monkeypatch.setenv("LARGESTACK_VOYAGE_API_KEY", "vk_test")
     from largestack._rerankers import voyage_rerank
+
     docs = [
         {"id": "doc1", "content": "irrelevant"},
         {"id": "doc2", "content": "highly relevant"},
@@ -52,6 +56,7 @@ async def test_voyage_rerank_success(monkeypatch):
 async def test_voyage_rerank_http_error_falls_through(monkeypatch):
     monkeypatch.setenv("LARGESTACK_VOYAGE_API_KEY", "x")
     from largestack._rerankers import voyage_rerank
+
     docs = [{"content": "a"}, {"content": "b"}]
     with respx.mock() as mock:
         mock.post("https://api.voyageai.com/v1/rerank").respond(500)
@@ -62,17 +67,20 @@ async def test_voyage_rerank_http_error_falls_through(monkeypatch):
 @pytest.mark.asyncio
 async def test_voyage_rerank_empty_docs():
     from largestack._rerankers import voyage_rerank
+
     result = await voyage_rerank("q", [])
     assert result == []
 
 
 # -------------------- Jina Rerank --------------------
 
+
 @pytest.mark.asyncio
 async def test_jina_rerank_no_key_returns_unchanged(monkeypatch):
     monkeypatch.delenv("LARGESTACK_JINA_API_KEY", raising=False)
     monkeypatch.delenv("JINA_API_KEY", raising=False)
     from largestack._rerankers import jina_rerank
+
     docs = [{"content": "a"}, {"content": "b"}]
     result = await jina_rerank("q", docs, top_k=2)
     assert len(result) == 2
@@ -82,6 +90,7 @@ async def test_jina_rerank_no_key_returns_unchanged(monkeypatch):
 async def test_jina_rerank_success(monkeypatch):
     monkeypatch.setenv("LARGESTACK_JINA_API_KEY", "fake")
     from largestack._rerankers import jina_rerank
+
     docs = [
         {"id": "a", "content": "first"},
         {"id": "b", "content": "second"},
@@ -103,6 +112,7 @@ async def test_jina_rerank_success(monkeypatch):
 async def test_jina_rerank_handles_string_documents(monkeypatch):
     monkeypatch.setenv("LARGESTACK_JINA_API_KEY", "x")
     from largestack._rerankers import jina_rerank
+
     docs = ["doc one", "doc two", "doc three"]
     fake_resp = {
         "results": [
@@ -118,15 +128,21 @@ async def test_jina_rerank_handles_string_documents(monkeypatch):
 
 # -------------------- Cross-Encoder --------------------
 
+
 @pytest.mark.asyncio
 async def test_cross_encoder_no_dep_returns_unchanged(monkeypatch):
-    real_import = __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    real_import = (
+        __builtins__["__import__"] if isinstance(__builtins__, dict) else __builtins__.__import__
+    )
+
     def fake_import(name, *args, **kwargs):
         if name == "sentence_transformers":
             raise ImportError("Mocked")
         return real_import(name, *args, **kwargs)
+
     monkeypatch.setattr("builtins.__import__", fake_import)
     from largestack._rerankers import cross_encoder_rerank
+
     docs = [{"content": "a"}, {"content": "b"}]
     result = await cross_encoder_rerank("q", docs, top_k=2)
     assert len(result) == 2  # graceful fallback
@@ -146,6 +162,7 @@ async def test_cross_encoder_with_mocked_model():
         # Clear cache to force fresh load
         from largestack._rerankers import cross_encoder_rerank
         from largestack import _rerankers
+
         _rerankers._CE_MODELS.clear()
 
         docs = [
@@ -162,5 +179,6 @@ async def test_cross_encoder_with_mocked_model():
 @pytest.mark.asyncio
 async def test_cross_encoder_empty_docs():
     from largestack._rerankers import cross_encoder_rerank
+
     result = await cross_encoder_rerank("q", [])
     assert result == []

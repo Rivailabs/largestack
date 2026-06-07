@@ -33,6 +33,7 @@ The function raises ``StructuredOutputError`` after max_retries on
 persistent failure. Each failure includes the parser error in the next
 prompt, giving the LLM a chance to self-correct.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -128,7 +129,7 @@ def _strip_code_fences(text: str) -> str:
         if first_nl != -1:
             s = s[first_nl + 1 :]
         if s.endswith("```"):
-            s = s[: -3].rstrip()
+            s = s[:-3].rstrip()
     return s
 
 
@@ -160,7 +161,11 @@ async def parse_with_retry(
     last_response = ""
     feedback = ""
     for attempt in range(max_retries + 1):
-        prompt = task if not feedback else f"{task}\n\nPrevious attempt failed:\n{feedback}\n\nReturn valid JSON conforming exactly to this schema:\n{json.dumps(schema, indent=2)}"
+        prompt = (
+            task
+            if not feedback
+            else f"{task}\n\nPrevious attempt failed:\n{feedback}\n\nReturn valid JSON conforming exactly to this schema:\n{json.dumps(schema, indent=2)}"
+        )
         result = await agent.run(prompt, **agent_run_kwargs)
         # AgentResult.content is the assistant's final text
         text = getattr(result, "content", str(result))
@@ -172,7 +177,9 @@ async def parse_with_retry(
             data = json.loads(cleaned)
         except json.JSONDecodeError as e:
             feedback = f"Output was not valid JSON: {e}. Return ONLY a JSON object — no explanation, no markdown fences."
-            log.debug(f"structured_output attempt {attempt + 1}/{max_retries + 1}: parse error: {e}")
+            log.debug(
+                f"structured_output attempt {attempt + 1}/{max_retries + 1}: parse error: {e}"
+            )
             continue
 
         # Validate
@@ -180,11 +187,12 @@ async def parse_with_retry(
         if ok:
             return data
         feedback = "JSON had schema violations:\n- " + "\n- ".join(errors)
-        log.debug(f"structured_output attempt {attempt + 1}/{max_retries + 1}: schema violations: {errors}")
+        log.debug(
+            f"structured_output attempt {attempt + 1}/{max_retries + 1}: schema violations: {errors}"
+        )
 
     raise StructuredOutputError(
-        f"Failed to produce valid JSON after {max_retries + 1} attempts. "
-        f"Last error: {feedback}",
+        f"Failed to produce valid JSON after {max_retries + 1} attempts. Last error: {feedback}",
         last_response=last_response,
         attempts=max_retries + 1,
     )

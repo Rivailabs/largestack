@@ -1,4 +1,5 @@
 """Provider routing policy for regulated/sensitive contexts."""
+
 from __future__ import annotations
 
 from largestack._guard.config import GuardrailConfig, get_guardrail_config
@@ -15,7 +16,9 @@ def decide_provider_routing(
     """Decide whether a provider may receive the given payload."""
     cfg = config or get_guardrail_config()
     guard = PIIGuard()
-    sensitive = guard._detect_any(text) or guard._detect_secret(text) or guard._detect_financial(text)
+    sensitive = (
+        guard._detect_any(text) or guard._detect_secret(text) or guard._detect_financial(text)
+    )
 
     if not sensitive:
         return allow(
@@ -32,7 +35,11 @@ def decide_provider_routing(
             "Sensitive data cannot be routed to an unapproved provider",
             risk_type=GuardrailRiskType.PROVIDER_ROUTING_VIOLATION,
             severity=GuardrailSeverity.CRITICAL,
-            metadata={"provider": provider, "context": cfg.context, "approved_providers": cfg.bfsi_approved_providers},
+            metadata={
+                "provider": provider,
+                "context": cfg.context,
+                "approved_providers": cfg.bfsi_approved_providers,
+            },
         )
 
     if regulated:

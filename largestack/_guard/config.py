@@ -1,4 +1,5 @@
 """Guardrail configuration resolved from environment variables."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -56,7 +57,9 @@ def _parse_mode(value: str | None, default: GuardrailMode = GuardrailMode.PROTEC
     try:
         return GuardrailMode(value.strip().lower())
     except ValueError:
-        log.warning("Invalid LARGESTACK_GUARDRAIL_MODE=%r; falling back to %s", value, default.value)
+        log.warning(
+            "Invalid LARGESTACK_GUARDRAIL_MODE=%r; falling back to %s", value, default.value
+        )
         return default
 
 
@@ -94,5 +97,7 @@ def get_guardrail_config() -> GuardrailConfig:
         tool_write_action=_parse_action("LARGESTACK_TOOL_WRITE_ACTION"),
         external_upload_action=_parse_action("LARGESTACK_EXTERNAL_UPLOAD_ACTION"),
         critical_risk_action=_parse_action("LARGESTACK_CRITICAL_RISK_ACTION"),
-        bfsi_approved_providers=_parse_providers(os.environ.get("LARGESTACK_BFSI_APPROVED_PROVIDERS")),
+        bfsi_approved_providers=_parse_providers(
+            os.environ.get("LARGESTACK_BFSI_APPROVED_PROVIDERS")
+        ),
     )

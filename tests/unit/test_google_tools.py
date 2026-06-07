@@ -2,6 +2,7 @@
 and JSON-schema cleaning. (Live tool-calling is exercised via test_live_deepseek_e2e-style
 keyed tests; these cover the pure translation logic offline.)
 """
+
 from __future__ import annotations
 
 from largestack._core.providers.google_prov import _clean_schema, _to_gemini_contents
@@ -25,9 +26,17 @@ def test_clean_schema_strips_unsupported_keys():
 def test_tool_roundtrip_maps_id_to_name():
     msgs = [
         {"role": "user", "content": "add 1 and 2"},
-        {"role": "assistant", "content": "",
-         "tool_calls": [{"id": "c1", "type": "function",
-                         "function": {"name": "add", "arguments": '{"a": 1, "b": 2}'}}]},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "c1",
+                    "type": "function",
+                    "function": {"name": "add", "arguments": '{"a": 1, "b": 2}'},
+                }
+            ],
+        },
         {"role": "tool", "tool_call_id": "c1", "content": "3"},
     ]
     contents, sys_i = _to_gemini_contents(msgs)
@@ -42,9 +51,11 @@ def test_tool_roundtrip_maps_id_to_name():
 
 
 def test_system_message_becomes_instruction():
-    contents, sys_i = _to_gemini_contents([
-        {"role": "system", "content": "Be terse."},
-        {"role": "user", "content": "hi"},
-    ])
+    contents, sys_i = _to_gemini_contents(
+        [
+            {"role": "system", "content": "Be terse."},
+            {"role": "user", "content": "hi"},
+        ]
+    )
     assert sys_i == "Be terse."
     assert all(c["role"] != "system" for c in contents)

@@ -10,6 +10,7 @@ Event categories:
   - Reasoning: REASONING_START, REASONING_CONTENT, REASONING_END, REASONING_CHUNK
   - Custom: CUSTOM, RAW
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -24,37 +25,38 @@ log = logging.getLogger("largestack.agui")
 
 class EventType(str, Enum):
     """AG-UI event types (25 total)."""
+
     # Lifecycle (5)
     RUN_STARTED = "RUN_STARTED"
     RUN_FINISHED = "RUN_FINISHED"
     RUN_ERROR = "RUN_ERROR"
     STEP_STARTED = "STEP_STARTED"
     STEP_FINISHED = "STEP_FINISHED"
-    
+
     # Text messages (4)
     TEXT_MESSAGE_START = "TEXT_MESSAGE_START"
     TEXT_MESSAGE_CONTENT = "TEXT_MESSAGE_CONTENT"
     TEXT_MESSAGE_END = "TEXT_MESSAGE_END"
     TEXT_MESSAGE_CHUNK = "TEXT_MESSAGE_CHUNK"
-    
+
     # Tool calls (5)
     TOOL_CALL_START = "TOOL_CALL_START"
     TOOL_CALL_ARGS = "TOOL_CALL_ARGS"
     TOOL_CALL_END = "TOOL_CALL_END"
     TOOL_CALL_CHUNK = "TOOL_CALL_CHUNK"
     TOOL_CALL_RESULT = "TOOL_CALL_RESULT"
-    
+
     # State management (3)
     STATE_SNAPSHOT = "STATE_SNAPSHOT"
     STATE_DELTA = "STATE_DELTA"
     MESSAGES_SNAPSHOT = "MESSAGES_SNAPSHOT"
-    
+
     # Reasoning (4)
     REASONING_START = "REASONING_START"
     REASONING_CONTENT = "REASONING_CONTENT"
     REASONING_END = "REASONING_END"
     REASONING_CHUNK = "REASONING_CHUNK"
-    
+
     # Other (4)
     CUSTOM = "CUSTOM"
     RAW = "RAW"
@@ -65,10 +67,11 @@ class EventType(str, Enum):
 @dataclass
 class AGUIEvent:
     """Base AG-UI event."""
+
     type: EventType
     timestamp: float = field(default_factory=time.time)
     raw_event: dict | None = None
-    
+
     def to_sse(self) -> str:
         """Format as Server-Sent Event."""
         data = {"type": self.type.value, "timestamp": self.timestamp}
@@ -160,6 +163,7 @@ class StateSnapshot(AGUIEvent):
 @dataclass
 class StateDelta(AGUIEvent):
     """JSON Patch (RFC 6902) format."""
+
     type: EventType = EventType.STATE_DELTA
     delta: list = field(default_factory=list)
 
@@ -185,31 +189,30 @@ class ReasoningEnd(AGUIEvent):
 
 class AGUIEmitter:
     """Emit AG-UI events as Server-Sent Event stream.
-    
+
     Example:
         emitter = AGUIEmitter()
         async for event in emitter.run_with_agent(agent, "Hello"):
             yield event.to_sse()
     """
-    
+
     def __init__(self, thread_id: str | None = None, run_id: str | None = None):
         self.thread_id = thread_id or str(uuid.uuid4())
         self.run_id = run_id or str(uuid.uuid4())
         self.events_emitted = 0
-    
+
     def run_started(self) -> RunStarted:
         self.events_emitted += 1
         return RunStarted(thread_id=self.thread_id, run_id=self.run_id)
-    
+
     def run_finished(self, result: Any = None) -> RunFinished:
         self.events_emitted += 1
         return RunFinished(thread_id=self.thread_id, run_id=self.run_id, result=result)
-    
+
     def run_error(self, message: str, code: str | None = None) -> RunError:
         self.events_emitted += 1
-        return RunError(thread_id=self.thread_id, run_id=self.run_id,
-                        message=message, code=code)
-    
+        return RunError(thread_id=self.thread_id, run_id=self.run_id, message=message, code=code)
+
     def text_message(self, content: str, message_id: str | None = None) -> list[AGUIEvent]:
         """Stream a text message as start/content/end events."""
         mid = message_id or str(uuid.uuid4())
@@ -219,9 +222,8 @@ class AGUIEmitter:
             TextMessageContent(message_id=mid, delta=content),
             TextMessageEnd(message_id=mid),
         ]
-    
-    def tool_call(self, tool_call_id: str, name: str, args: dict,
-                  result: Any) -> list[AGUIEvent]:
+
+    def tool_call(self, tool_call_id: str, name: str, args: dict, result: Any) -> list[AGUIEvent]:
         """Emit tool call lifecycle events."""
         self.events_emitted += 4
         return [
@@ -230,16 +232,16 @@ class AGUIEmitter:
             ToolCallEnd(tool_call_id=tool_call_id),
             ToolCallResult(tool_call_id=tool_call_id, content=json.dumps(result)),
         ]
-    
+
     def state_snapshot(self, state: dict) -> StateSnapshot:
         self.events_emitted += 1
         return StateSnapshot(snapshot=state)
-    
+
     def state_delta(self, patches: list[dict]) -> StateDelta:
         """Emit JSON Patch (RFC 6902) state delta."""
         self.events_emitted += 1
         return StateDelta(delta=patches)
-    
+
     def reasoning(self, content: str) -> list[AGUIEvent]:
         mid = str(uuid.uuid4())
         self.events_emitted += 3
@@ -248,7 +250,7 @@ class AGUIEmitter:
             ReasoningContent(message_id=mid, delta=content),
             ReasoningEnd(message_id=mid),
         ]
-    
+
     @property
     def stats(self) -> dict:
         return {
@@ -261,26 +263,26 @@ class AGUIEmitter:
 
 def create_fastapi_app(emitter_factory):
     """Mount AG-UI server with FastAPI.
-    
+
     Args:
         emitter_factory: async generator yielding AGUIEvent instances
     """
     from fastapi import FastAPI, Request
     from fastapi.responses import StreamingResponse
-    
+
     app = FastAPI(title="AG-UI Server")
-    
+
     @app.post("/agui/run")
     async def run(request: Request):
         body = await request.json()
         prompt = body.get("prompt", "")
-        
+
         async def event_stream():
             async for event in emitter_factory(prompt):
                 yield event.to_sse()
-        
+
         return StreamingResponse(event_stream(), media_type="text/event-stream")
-    
+
     @app.get("/agui/info")
     def info():
         return {
@@ -288,5 +290,5 @@ def create_fastapi_app(emitter_factory):
             "supported_event_types": [e.value for e in EventType],
             "event_count": len(EventType),
         }
-    
+
     return app

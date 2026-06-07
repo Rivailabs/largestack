@@ -1,6 +1,7 @@
 """The typed decorator AgentRunResult must expose tool_calls_made / tool_calls_failed
 (parity with the legacy Agent), so callers have tool observability.
 """
+
 from __future__ import annotations
 
 from largestack.decorators import Agent

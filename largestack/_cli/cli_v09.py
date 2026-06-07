@@ -9,6 +9,7 @@ Adds 9 new commands beyond the existing Typer CLI:
 
 Built on stdlib argparse — no extra dependencies.
 """
+
 from __future__ import annotations
 import argparse
 import json
@@ -145,6 +146,7 @@ CREDIT_CARD_RE = re.compile(r"\b(?:[0-9]{4}[-\s]?){3}[0-9]{4}\b")
 
 # -------------------- Commands --------------------
 
+
 def cmd_init_v09(template: str, path: str) -> int:
     """Scaffold new project from template."""
     if template not in TEMPLATES:
@@ -177,12 +179,28 @@ def cmd_pii_scan(path: str, json_output: bool = False) -> int:
     if p.is_file():
         files = [p]
     else:
-        exts = {".txt", ".md", ".log", ".csv", ".json", ".yaml", ".yml",
-                ".py", ".js", ".ts", ".html"}
+        exts = {
+            ".txt",
+            ".md",
+            ".log",
+            ".csv",
+            ".json",
+            ".yaml",
+            ".yml",
+            ".py",
+            ".js",
+            ".ts",
+            ".html",
+        }
         files = [pp for pp in p.rglob("*") if pp.is_file() and pp.suffix.lower() in exts]
     findings: dict = {
-        "pan": [], "aadhaar": [], "gstin": [], "phone": [],
-        "email": [], "ifsc": [], "credit_card": [],
+        "pan": [],
+        "aadhaar": [],
+        "gstin": [],
+        "phone": [],
+        "email": [],
+        "ifsc": [],
+        "credit_card": [],
     }
     files_scanned = 0
     for fp in files:
@@ -192,8 +210,12 @@ def cmd_pii_scan(path: str, json_output: bool = False) -> int:
             continue
         files_scanned += 1
         for pii_type, pattern in [
-            ("pan", PAN_RE), ("aadhaar", AADHAAR_RE), ("gstin", GSTIN_RE),
-            ("phone", PHONE_IN_RE), ("email", EMAIL_RE), ("ifsc", IFSC_RE),
+            ("pan", PAN_RE),
+            ("aadhaar", AADHAAR_RE),
+            ("gstin", GSTIN_RE),
+            ("phone", PHONE_IN_RE),
+            ("email", EMAIL_RE),
+            ("ifsc", IFSC_RE),
             ("credit_card", CREDIT_CARD_RE),
         ]:
             for m in pattern.finditer(text):
@@ -201,9 +223,13 @@ def cmd_pii_scan(path: str, json_output: bool = False) -> int:
                 match_str = m.group()
                 if pii_type in {"pan", "aadhaar", "credit_card"}:
                     match_str = match_str[:4] + "***"
-                findings[pii_type].append({
-                    "file": str(fp), "line": line_no, "match": match_str,
-                })
+                findings[pii_type].append(
+                    {
+                        "file": str(fp),
+                        "line": line_no,
+                        "match": match_str,
+                    }
+                )
     total = sum(len(v) for v in findings.values())
     if json_output:
         print(json.dumps({"files_scanned": files_scanned, "findings": findings}, indent=2))
@@ -228,11 +254,13 @@ def cmd_audit_export(output: str, from_dir: str = ".") -> int:
     if not log_dir.exists():
         print(f"error: source dir not found: {log_dir}")
         return 1
-    log_files = sorted(set(
-        list(log_dir.glob("audit*.log"))
-        + list(log_dir.glob("audit*.jsonl"))
-        + list(log_dir.glob("*audit*.jsonl"))
-    ))
+    log_files = sorted(
+        set(
+            list(log_dir.glob("audit*.log"))
+            + list(log_dir.glob("audit*.jsonl"))
+            + list(log_dir.glob("*audit*.jsonl"))
+        )
+    )
     if not log_files:
         print(f"error: no audit logs found in {log_dir}")
         return 1
@@ -267,6 +295,7 @@ def cmd_tenant(action: str, name: str = "", tenant_dir: str = ".largestack") -> 
         tenants = {}
 
     import time as _time
+
     if action == "create":
         if not name:
             print("error: --name required for create")
@@ -283,12 +312,11 @@ def cmd_tenant(action: str, name: str = "", tenant_dir: str = ".largestack") -> 
             print("(no tenants)")
             return 0
         from datetime import datetime
+
         print(f"{'NAME':<20} {'STATUS':<10} {'CREATED':<20}")
         print("-" * 50)
         for tn, info in sorted(tenants.items()):
-            created = datetime.fromtimestamp(
-                info.get("created_at", 0)
-            ).isoformat()[:19]
+            created = datetime.fromtimestamp(info.get("created_at", 0)).isoformat()[:19]
             status = "active" if info.get("active") else "inactive"
             print(f"{tn:<20} {status:<10} {created}")
         return 0
@@ -339,9 +367,11 @@ def cmd_eval(suite_path: str) -> int:
 
 # -------------------- argparse-based main --------------------
 
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="largestack-v09", description="Largestack AI v0.9.0 enhanced commands",
+        prog="largestack-v09",
+        description="Largestack AI v0.9.0 enhanced commands",
     )
     sub = p.add_subparsers(dest="command", required=True)
 

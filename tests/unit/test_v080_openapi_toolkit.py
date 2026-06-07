@@ -3,6 +3,7 @@
 Validates that any OpenAPI 3.x or Swagger 2.x spec produces working
 LARGESTACK tools. Uses respx to mock HTTP calls.
 """
+
 from __future__ import annotations
 
 import json
@@ -51,15 +52,23 @@ PETSTORE_OPENAPI_3 = {
                 "operationId": "getPet",
                 "summary": "Get a pet by ID",
                 "parameters": [
-                    {"name": "petId", "in": "path", "required": True,
-                     "schema": {"type": "integer"}},
+                    {
+                        "name": "petId",
+                        "in": "path",
+                        "required": True,
+                        "schema": {"type": "integer"},
+                    },
                 ],
             },
             "delete": {
                 "operationId": "deletePet",
                 "parameters": [
-                    {"name": "petId", "in": "path", "required": True,
-                     "schema": {"type": "integer"}},
+                    {
+                        "name": "petId",
+                        "in": "path",
+                        "required": True,
+                        "schema": {"type": "integer"},
+                    },
                 ],
             },
         },
@@ -72,18 +81,16 @@ SWAGGER_2 = {
     "host": "old.example.com",
     "basePath": "/api",
     "schemes": ["https"],
-    "paths": {
-        "/users": {
-            "get": {"operationId": "listUsers", "summary": "List users"}
-        }
-    },
+    "paths": {"/users": {"get": {"operationId": "listUsers", "summary": "List users"}}},
 }
 
 
 # -------------------- Construction --------------------
 
+
 def test_constructor_rejects_empty_spec():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     with pytest.raises(ValueError, match="non-empty dict"):
         OpenAPIToolkit({})
     with pytest.raises(ValueError):
@@ -92,24 +99,28 @@ def test_constructor_rejects_empty_spec():
 
 def test_resolves_base_url_from_openapi_3():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     assert tk.base_url == "https://petstore.example.com/v1"
 
 
 def test_resolves_base_url_from_swagger_2():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(SWAGGER_2)
     assert tk.base_url == "https://old.example.com/api"
 
 
 def test_base_url_override_takes_precedence():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3, base_url="https://override.test/v2")
     assert tk.base_url == "https://override.test/v2"
 
 
 def test_generates_one_tool_per_operation():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     tools = tk.get_tools()
     # 4 operations: GET /pets, POST /pets, GET /pets/{id}, DELETE /pets/{id}
@@ -120,6 +131,7 @@ def test_generates_one_tool_per_operation():
 
 def test_tool_descriptions_include_summary():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     tools = tk.get_tools()
     list_pets = next(t for t in tools if t._tool_schema["name"] == "listPets")
@@ -128,6 +140,7 @@ def test_tool_descriptions_include_summary():
 
 def test_tool_schema_includes_path_query_and_body_params():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     tools = tk.get_tools()
 
@@ -150,15 +163,12 @@ def test_tool_schema_includes_path_query_and_body_params():
 def test_safe_tool_name_fallback_when_no_operationId():
     """An op without operationId should still produce a callable tool."""
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     spec = {
         "openapi": "3.0.0",
         "info": {"title": "x", "version": "1"},
         "servers": [{"url": "https://x.test"}],
-        "paths": {
-            "/foo/bar": {
-                "get": {"summary": "no op id"}
-            }
-        },
+        "paths": {"/foo/bar": {"get": {"summary": "no op id"}}},
     }
     tk = OpenAPIToolkit(spec)
     tools = tk.get_tools()
@@ -170,9 +180,11 @@ def test_safe_tool_name_fallback_when_no_operationId():
 
 # -------------------- Execution --------------------
 
+
 @pytest.mark.asyncio
 async def test_get_tool_substitutes_path_param_and_returns_body():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     get_pet = next(t for t in tk.get_tools() if t._tool_schema["name"] == "getPet")
 
@@ -190,13 +202,12 @@ async def test_get_tool_substitutes_path_param_and_returns_body():
 @pytest.mark.asyncio
 async def test_post_tool_sends_json_body():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     create_pet = next(t for t in tk.get_tools() if t._tool_schema["name"] == "createPet")
 
     with respx.mock() as mock:
-        route = mock.post("https://petstore.example.com/v1/pets").respond(
-            201, json={"id": 1}
-        )
+        route = mock.post("https://petstore.example.com/v1/pets").respond(201, json={"id": 1})
         out = await create_pet(body={"name": "Rex", "tag": "dog"})
 
     assert route.called
@@ -209,6 +220,7 @@ async def test_post_tool_sends_json_body():
 @pytest.mark.asyncio
 async def test_query_params_passed_through():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     list_pets = next(t for t in tk.get_tools() if t._tool_schema["name"] == "listPets")
 
@@ -223,6 +235,7 @@ async def test_query_params_passed_through():
 @pytest.mark.asyncio
 async def test_auth_header_applied_to_all_requests():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(
         PETSTORE_OPENAPI_3,
         auth_header=("Authorization", "Bearer test-token"),
@@ -239,6 +252,7 @@ async def test_auth_header_applied_to_all_requests():
 @pytest.mark.asyncio
 async def test_api_key_query_appended():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(
         PETSTORE_OPENAPI_3,
         api_key_query={"api_key": "secret"},
@@ -256,6 +270,7 @@ async def test_api_key_query_appended():
 async def test_http_error_returned_as_dict_not_exception():
     """Failed HTTP returns the response — agent loop survives."""
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     get_pet = next(t for t in tk.get_tools() if t._tool_schema["name"] == "getPet")
 
@@ -271,6 +286,7 @@ async def test_http_error_returned_as_dict_not_exception():
 @pytest.mark.asyncio
 async def test_network_error_returns_string_not_exception():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     get_pet = next(t for t in tk.get_tools() if t._tool_schema["name"] == "getPet")
 
@@ -290,6 +306,7 @@ async def test_network_error_returns_string_not_exception():
 @pytest.mark.asyncio
 async def test_response_truncation_for_huge_bodies():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3, max_response_chars=100)
     list_pets = next(t for t in tk.get_tools() if t._tool_schema["name"] == "listPets")
 
@@ -304,6 +321,7 @@ async def test_response_truncation_for_huge_bodies():
 def test_swagger_2_works():
     """Old Swagger 2.0 specs must still produce tools."""
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(SWAGGER_2)
     tools = tk.get_tools()
     assert len(tools) == 1
@@ -312,19 +330,20 @@ def test_swagger_2_works():
 
 def test_len_returns_tool_count():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     tk = OpenAPIToolkit(PETSTORE_OPENAPI_3)
     assert len(tk) == 4
 
 
 # -------------------- from_url --------------------
 
+
 @pytest.mark.asyncio
 async def test_from_url_fetches_and_parses_json():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     with respx.mock() as mock:
-        mock.get("https://example.com/spec.json").respond(
-            200, json=PETSTORE_OPENAPI_3
-        )
+        mock.get("https://example.com/spec.json").respond(200, json=PETSTORE_OPENAPI_3)
         tk = await OpenAPIToolkit.from_url("https://example.com/spec.json")
     assert len(tk.get_tools()) == 4
 
@@ -332,6 +351,7 @@ async def test_from_url_fetches_and_parses_json():
 @pytest.mark.asyncio
 async def test_from_url_raises_on_404():
     from largestack._integrations.openapi_toolkit import OpenAPIToolkit
+
     with respx.mock() as mock:
         mock.get("https://example.com/missing.json").respond(404)
         with pytest.raises(ValueError, match="failed to fetch"):

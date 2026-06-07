@@ -1,4 +1,5 @@
 """v0.13.0: Tests for pptx + xlsx loaders."""
+
 from __future__ import annotations
 
 import sys
@@ -10,13 +11,16 @@ import pytest
 
 # -------------------- Module imports --------------------
 
+
 def test_office_module_imports_cleanly():
     from largestack._loaders import office
+
     assert hasattr(office, "load_pptx")
     assert hasattr(office, "load_xlsx")
 
 
 # -------------------- PPTX --------------------
+
 
 @pytest.mark.asyncio
 async def test_load_pptx_missing_dep_raises():
@@ -31,6 +35,7 @@ async def test_load_pptx_missing_dep_raises():
 async def test_load_pptx_missing_file(tmp_path):
     pytest.importorskip("pptx")
     from largestack._loaders.office import load_pptx
+
     with pytest.raises(FileNotFoundError):
         await load_pptx(tmp_path / "nope.pptx")
 
@@ -49,13 +54,19 @@ async def test_load_pptx_extracts_slide_text(tmp_path):
 
     slide1 = prs.slides.add_slide(blank_layout)
     txbox = slide1.shapes.add_textbox(
-        Inches(1), Inches(1), Inches(5), Inches(1),
+        Inches(1),
+        Inches(1),
+        Inches(5),
+        Inches(1),
     )
     txbox.text_frame.text = "First Slide Title"
 
     slide2 = prs.slides.add_slide(blank_layout)
     txbox = slide2.shapes.add_textbox(
-        Inches(1), Inches(1), Inches(5), Inches(1),
+        Inches(1),
+        Inches(1),
+        Inches(5),
+        Inches(1),
     )
     txbox.text_frame.text = "Second Slide Content"
 
@@ -73,9 +84,11 @@ async def test_load_pptx_extracts_slide_text(tmp_path):
 
 # -------------------- XLSX --------------------
 
+
 @pytest.mark.asyncio
 async def test_load_xlsx_missing_dep_raises():
     from largestack._loaders import office
+
     with patch.object(office, "_have_openpyxl", return_value=False):
         with pytest.raises(ImportError, match="openpyxl"):
             await office.load_xlsx("/tmp/x.xlsx")
@@ -85,6 +98,7 @@ async def test_load_xlsx_missing_dep_raises():
 async def test_load_xlsx_missing_file(tmp_path):
     pytest.importorskip("openpyxl")
     from largestack._loaders.office import load_xlsx
+
     with pytest.raises(FileNotFoundError):
         await load_xlsx(tmp_path / "nope.xlsx")
 
@@ -179,5 +193,7 @@ async def test_load_xlsx_includes_header_in_metadata(tmp_path):
 
     docs = await load_xlsx(out)
     assert docs[0]["metadata"]["header"] == [
-        "aadhaar_last4", "pan_masked", "amount",
+        "aadhaar_last4",
+        "pan_masked",
+        "amount",
     ]

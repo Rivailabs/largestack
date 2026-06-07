@@ -1,4 +1,5 @@
 """v0.14.0: Tests for generic typed Agent class."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock
@@ -8,40 +9,48 @@ import pytest
 
 # -------------------- _extract_json_from_response --------------------
 
+
 def test_extract_json_bare():
     from largestack._core.typed_agent import _extract_json_from_response
+
     assert _extract_json_from_response('{"a": 1}') == {"a": 1}
 
 
 def test_extract_json_from_code_fence():
     from largestack._core.typed_agent import _extract_json_from_response
-    text = "Here is the result:\n```json\n{\"verified\": true}\n```\nThanks"
+
+    text = 'Here is the result:\n```json\n{"verified": true}\n```\nThanks'
     assert _extract_json_from_response(text) == {"verified": True}
 
 
 def test_extract_json_from_xml_tag():
     from largestack._core.typed_agent import _extract_json_from_response
-    text = "<json>{\"a\": 1, \"b\": \"x\"}</json>"
+
+    text = '<json>{"a": 1, "b": "x"}</json>'
     assert _extract_json_from_response(text) == {"a": 1, "b": "x"}
 
 
 def test_extract_json_with_leading_prose():
     from largestack._core.typed_agent import _extract_json_from_response
-    text = "Sure! Here is the JSON: {\"score\": 0.85, \"name\": \"x\"}"
+
+    text = 'Sure! Here is the JSON: {"score": 0.85, "name": "x"}'
     result = _extract_json_from_response(text)
     assert result == {"score": 0.85, "name": "x"}
 
 
 def test_extract_json_returns_none_for_garbage():
     from largestack._core.typed_agent import _extract_json_from_response
+
     assert _extract_json_from_response("this is not JSON at all") is None
     assert _extract_json_from_response("") is None
 
 
 # -------------------- TypedAgent construction --------------------
 
+
 def test_typed_agent_requires_name():
     from largestack._core.typed_agent import TypedAgent
+
     pytest.importorskip("pydantic")
     from pydantic import BaseModel
 
@@ -50,12 +59,16 @@ def test_typed_agent_requires_name():
 
     with pytest.raises(ValueError, match="name"):
         TypedAgent(
-            name="", model="x", input_model=M, output_model=M,
+            name="",
+            model="x",
+            input_model=M,
+            output_model=M,
         )
 
 
 def test_typed_agent_requires_model():
     from largestack._core.typed_agent import TypedAgent
+
     pytest.importorskip("pydantic")
     from pydantic import BaseModel
 
@@ -68,6 +81,7 @@ def test_typed_agent_requires_model():
 
 def test_typed_agent_accepts_pydantic_models():
     from largestack._core.typed_agent import TypedAgent
+
     pytest.importorskip("pydantic")
     from pydantic import BaseModel
 
@@ -89,6 +103,7 @@ def test_typed_agent_accepts_pydantic_models():
 
 
 # -------------------- run() with mocked LLM --------------------
+
 
 @pytest.mark.asyncio
 async def test_run_returns_validated_output():
@@ -135,8 +150,10 @@ async def test_run_handles_code_fenced_json():
     )
 
     agent: TypedAgent = TypedAgent(
-        name="x", model="m",
-        input_model=M, output_model=M,
+        name="x",
+        model="m",
+        input_model=M,
+        output_model=M,
         llm_runner=fake_llm,
     )
     result = await agent.run(M(x=1))
@@ -158,8 +175,10 @@ async def test_run_retries_on_validation_failure():
     )
 
     agent: TypedAgent = TypedAgent(
-        name="x", model="m",
-        input_model=M, output_model=M,
+        name="x",
+        model="m",
+        input_model=M,
+        output_model=M,
         llm_runner=fake_llm,
         max_retries=1,
     )
@@ -173,7 +192,8 @@ async def test_run_raises_after_exhausted_retries():
     pytest.importorskip("pydantic")
     from pydantic import BaseModel
     from largestack._core.typed_agent import (
-        TypedAgent, OutputValidationError,
+        TypedAgent,
+        OutputValidationError,
     )
 
     class M(BaseModel):
@@ -182,8 +202,10 @@ async def test_run_raises_after_exhausted_retries():
     fake_llm = AsyncMock(return_value="garbage")
 
     agent: TypedAgent = TypedAgent(
-        name="x", model="m",
-        input_model=M, output_model=M,
+        name="x",
+        model="m",
+        input_model=M,
+        output_model=M,
         llm_runner=fake_llm,
         max_retries=1,
     )
@@ -201,8 +223,10 @@ async def test_run_raises_when_llm_runner_missing():
         x: int
 
     agent: TypedAgent = TypedAgent(
-        name="x", model="m",
-        input_model=M, output_model=M,
+        name="x",
+        model="m",
+        input_model=M,
+        output_model=M,
     )
     with pytest.raises(RuntimeError, match="llm_runner"):
         await agent.run(M(x=1))
@@ -223,8 +247,10 @@ async def test_run_with_dict_hydrates_input():
     fake_llm = AsyncMock(return_value='{"verified": true}')
 
     agent: TypedAgent = TypedAgent(
-        name="x", model="m",
-        input_model=InputModel, output_model=OutputModel,
+        name="x",
+        model="m",
+        input_model=InputModel,
+        output_model=OutputModel,
         llm_runner=fake_llm,
     )
     result = await agent.run_with_dict({"pan": "ABCDE1234F"})
@@ -232,6 +258,7 @@ async def test_run_with_dict_hydrates_input():
 
 
 # -------------------- _build_prompt --------------------
+
 
 def test_build_prompt_includes_input_data():
     pytest.importorskip("pydantic")
@@ -242,8 +269,10 @@ def test_build_prompt_includes_input_data():
         pan: str
 
     agent: TypedAgent = TypedAgent(
-        name="x", model="m",
-        input_model=M, output_model=M,
+        name="x",
+        model="m",
+        input_model=M,
+        output_model=M,
         instructions="You are a KYC agent",
     )
     msgs = agent._build_prompt(M(pan="ABCDE1234F"))
@@ -265,8 +294,10 @@ def test_build_prompt_includes_output_schema():
         result: str
 
     agent: TypedAgent = TypedAgent(
-        name="x", model="m",
-        input_model=M, output_model=O,
+        name="x",
+        model="m",
+        input_model=M,
+        output_model=O,
     )
     msgs = agent._build_prompt(M(x=1))
     # Schema mention in system prompt
@@ -275,10 +306,14 @@ def test_build_prompt_includes_output_schema():
 
 # -------------------- OutputValidationError --------------------
 
+
 def test_output_validation_error_carries_raw():
     from largestack._core.typed_agent import OutputValidationError
+
     e = OutputValidationError(
-        "boom", raw_output="garbage", validation_errors=["err1"],
+        "boom",
+        raw_output="garbage",
+        validation_errors=["err1"],
     )
     assert e.raw_output == "garbage"
     assert e.validation_errors == ["err1"]

@@ -10,6 +10,7 @@ Validates that the server-rendered HTML follows accessibility basics:
 - prefers-reduced-motion support
 - visible focus outlines
 """
+
 from __future__ import annotations
 
 import pytest
@@ -20,6 +21,7 @@ from fastapi.testclient import TestClient
 def _reset_rate_limiter():
     """Each test gets a fresh limiter — avoid cross-test pollution."""
     from largestack._dashboard.rate_limit import reset_for_tests
+
     reset_for_tests()
     yield
     reset_for_tests()
@@ -28,12 +30,14 @@ def _reset_rate_limiter():
 class TestDashboardA11y:
     def test_html_has_lang_attribute(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")
         assert '<html lang="en">' in r.text or "<html lang='en'>" in r.text
 
     def test_skip_to_content_link_present(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")
         assert 'class="skip-link"' in r.text
@@ -41,22 +45,25 @@ class TestDashboardA11y:
 
     def test_main_landmark_present(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")
-        assert '<main' in r.text
+        assert "<main" in r.text
         assert 'id="main-content"' in r.text
         assert 'role="main"' in r.text
 
     def test_nav_has_role_and_aria_label(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")
-        assert '<nav' in r.text
+        assert "<nav" in r.text
         assert 'role="navigation"' in r.text
-        assert 'aria-label=' in r.text
+        assert "aria-label=" in r.text
 
     def test_active_nav_link_has_aria_current(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")  # overview is active
         # The active link should carry aria-current="page"
@@ -64,6 +71,7 @@ class TestDashboardA11y:
 
     def test_viewport_meta_present(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")
         assert '<meta name="viewport"' in r.text
@@ -71,6 +79,7 @@ class TestDashboardA11y:
 
     def test_focus_outline_styles(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")
         # CSS should define a focus-visible outline
@@ -78,6 +87,7 @@ class TestDashboardA11y:
 
     def test_responsive_breakpoints_present(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")
         # Two breakpoints: tablet 640px, mobile 480px
@@ -86,6 +96,7 @@ class TestDashboardA11y:
 
     def test_reduced_motion_respected(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get("/")
         assert "prefers-reduced-motion" in r.text
@@ -94,6 +105,7 @@ class TestDashboardA11y:
 class TestDashboardMobile:
     def test_mobile_chrome_user_agent_returns_html(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get(
             "/",
@@ -110,6 +122,7 @@ class TestDashboardMobile:
 
     def test_iphone_user_agent_returns_html(self):
         from largestack._dashboard.app import create_app
+
         client = TestClient(create_app())
         r = client.get(
             "/",

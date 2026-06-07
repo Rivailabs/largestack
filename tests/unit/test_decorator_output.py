@@ -2,6 +2,7 @@
 return a validated model instance, not a raw string. Regression guard for the gap
 where Agent[Deps, Model](output_type=Model) returned result.content (a str).
 """
+
 from __future__ import annotations
 
 from pydantic import BaseModel
@@ -48,7 +49,7 @@ def test_decorator_late_tool_registration_invalidates_cache():
         "first tool"
         return x
 
-    u1 = agent._get_underlying()          # materialize the underlying agent
+    u1 = agent._get_underlying()  # materialize the underlying agent
     assert u1 is not None
     assert agent._underlying_agent is u1  # cached
 
@@ -59,7 +60,7 @@ def test_decorator_late_tool_registration_invalidates_cache():
 
     assert agent._underlying_agent is None  # registration invalidated the cache
     u2 = agent._get_underlying()
-    assert u2 is not u1                      # rebuilt
+    assert u2 is not u1  # rebuilt
     # the late tool is now actually in the underlying agent's registry
     assert u2._tool_registry.get("second") is not None
     assert u2._tool_registry.get("first") is not None

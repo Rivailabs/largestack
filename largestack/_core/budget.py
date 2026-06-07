@@ -9,6 +9,7 @@ Two storage backends:
 - ``MemoryBudgetStore`` — in-process (single-host)
 - ``RedisBudgetStore`` — Redis sliding-window counters
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -22,26 +23,31 @@ log = logging.getLogger("largestack.budget")
 
 class BudgetExceededError(Exception):
     """Raised when a tenant exceeds their budget."""
+
     def __init__(
-        self, tenant_id: str, kind: str, used: float, limit: float,
+        self,
+        tenant_id: str,
+        kind: str,
+        used: float,
+        limit: float,
     ):
         self.tenant_id = tenant_id
         self.kind = kind
         self.used = used
         self.limit = limit
         super().__init__(
-            f"tenant {tenant_id!r}: {kind} budget exceeded — "
-            f"used {used:.2f}, limit {limit:.2f}"
+            f"tenant {tenant_id!r}: {kind} budget exceeded — used {used:.2f}, limit {limit:.2f}"
         )
 
 
 @dataclass
 class BudgetLimit:
     """A single budget limit (kind=tokens|cost_usd, window=day|month|total)."""
+
     tenant_id: str
-    kind: str               # "tokens", "cost_usd"
-    limit: float            # max value over the window
-    window: str = "day"     # "day", "month", "total"
+    kind: str  # "tokens", "cost_usd"
+    limit: float  # max value over the window
+    window: str = "day"  # "day", "month", "total"
 
     def window_key(self) -> str:
         """Compute the current bucket key based on window."""
@@ -51,6 +57,7 @@ class BudgetLimit:
             return f"{self.tenant_id}:{self.kind}:day:{day}"
         if self.window == "month":
             import datetime as _dt
+
             now_d = _dt.datetime.fromtimestamp(now, _dt.timezone.utc)
             return f"{self.tenant_id}:{self.kind}:month:{now_d.year:04d}{now_d.month:02d}"
         return f"{self.tenant_id}:{self.kind}:total"
@@ -58,20 +65,18 @@ class BudgetLimit:
 
 # -------------------- Storage backends --------------------
 
+
 class BudgetStore(ABC):
     """ABC for budget counter storage."""
 
     @abstractmethod
-    async def get(self, key: str) -> float:
-        ...
+    async def get(self, key: str) -> float: ...
 
     @abstractmethod
-    async def add(self, key: str, value: float) -> float:
-        ...
+    async def add(self, key: str, value: float) -> float: ...
 
     @abstractmethod
-    async def reset(self, key: str) -> None:
-        ...
+    async def reset(self, key: str) -> None: ...
 
 
 class MemoryBudgetStore(BudgetStore):
@@ -103,7 +108,7 @@ class RedisBudgetStore(BudgetStore):
         url: str = "redis://localhost:6379",
         *,
         prefix: str = "largestack:budget:",
-        day_ttl: int = 90 * 86400,    # keep daily for 90 days
+        day_ttl: int = 90 * 86400,  # keep daily for 90 days
         month_ttl: int = 365 * 86400,  # keep monthly for 1 year
     ):
         self.url = url
@@ -118,9 +123,7 @@ class RedisBudgetStore(BudgetStore):
         try:
             import redis.asyncio as redis_async
         except ImportError as e:
-            raise ImportError(
-                "RedisBudgetStore needs: pip install 'redis>=5.0'"
-            ) from e
+            raise ImportError("RedisBudgetStore needs: pip install 'redis>=5.0'") from e
         self._client = redis_async.from_url(self.url, decode_responses=True)
 
     def _ttl_for_key(self, key: str) -> int | None:
@@ -153,6 +156,7 @@ class RedisBudgetStore(BudgetStore):
 
 
 # -------------------- BudgetTracker --------------------
+
 
 class BudgetTracker:
     """Per-tenant budget tracker.
@@ -217,8 +221,10 @@ class BudgetTracker:
             projected = current + value_to_add
             if projected > limit.limit:
                 raise BudgetExceededError(
-                    tenant_id, f"{limit.kind}.{limit.window}",
-                    used=projected, limit=limit.limit,
+                    tenant_id,
+                    f"{limit.kind}.{limit.window}",
+                    used=projected,
+                    limit=limit.limit,
                 )
 
         # Step 2: increment all atomically

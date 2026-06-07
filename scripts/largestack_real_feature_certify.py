@@ -10,6 +10,7 @@ The generated projects must avoid network side effects during their own tests:
 DeepSeek is used for generation/review, while project runtime checks use
 LARGESTACK's TestModel/FunctionModel overrides.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -126,7 +127,7 @@ FEATURES: dict[str, FeatureContract] = {
         attrs=("override", "run"),
         evidence_keys=("team_strategy", "team_output"),
         instructions=(
-            "Create a Team with strategy=\"sequential\" and two Agents overridden with TestModel. "
+            'Create a Team with strategy="sequential" and two Agents overridden with TestModel. '
             "Evidence must include team_strategy='sequential' and non-empty team_output."
         ),
     ),
@@ -137,7 +138,7 @@ FEATURES: dict[str, FeatureContract] = {
         attrs=("override", "run"),
         evidence_keys=("team_strategy", "team_output"),
         instructions=(
-            "Create a Team with strategy=\"parallel\" and at least two Agents overridden with "
+            'Create a Team with strategy="parallel" and at least two Agents overridden with '
             "TestModel. Team.run returns one AgentResult with combined content, not a tuple/list. "
             "Use result.content for team_output. Evidence must include team_strategy='parallel' "
             "and non-empty team_output."
@@ -150,7 +151,7 @@ FEATURES: dict[str, FeatureContract] = {
         attrs=("override", "run"),
         evidence_keys=("orchestrator_strategy", "route_output"),
         instructions=(
-            "Use Orchestrator(strategy=\"router\", classifier=..., routes={...}) with a classifier "
+            'Use Orchestrator(strategy="router", classifier=..., routes={...}) with a classifier '
             "and routed specialist Agents overridden with TestModel. Orchestrator.run returns "
             "OrchestratorResult; use result.output for route_output, not result.content. Evidence "
             "must include orchestrator_strategy='router' and route_output."
@@ -163,7 +164,7 @@ FEATURES: dict[str, FeatureContract] = {
         attrs=("override", "run"),
         evidence_keys=("orchestrator_strategy", "map_items"),
         instructions=(
-            "Use Agent objects for mapper and reducer, then Orchestrator(strategy=\"map_reduce\", "
+            'Use Agent objects for mapper and reducer, then Orchestrator(strategy="map_reduce", '
             "mapper=mapper_agent, reducer=reducer_agent). Override mapper and reducer with "
             "TestModel('mapped') and TestModel('summary'), run at least three items, and report "
             "orchestrator_strategy='map_reduce' and map_items >= 3."
@@ -310,7 +311,7 @@ def progress(message: str) -> None:
 
 
 def ast_acceptance_helpers() -> str:
-    return r'''
+    return r"""
 from pathlib import Path
 import ast, asyncio
 from largestack.testing import block_model_requests
@@ -378,7 +379,7 @@ assert out["status"] == "ok", out
 assert isinstance(out.get("evidence"), dict), out
 features = set(out.get("features", []))
 evidence = out["evidence"]
-'''
+"""
 
 
 def make_feature_assertions(feature_names: tuple[str, ...]) -> str:
@@ -488,7 +489,7 @@ def make_feature_assertions(feature_names: tuple[str, ...]) -> str:
                 'assert evidence["trace_id"], evidence',
                 'captured_value = evidence["captured_messages"]',
                 'captured_count = len(captured_value) if hasattr(captured_value, "__len__") and not isinstance(captured_value, (str, bytes, int, float)) else int(captured_value)',
-                'assert captured_count >= 2, evidence',
+                "assert captured_count >= 2, evidence",
                 'assert float(evidence["total_cost"]) >= 0, evidence',
                 'assert not re.search(r"\\bsk-[A-Za-z0-9_-]{12,}\\b", evidence["redacted_log"]), evidence',
             ]
@@ -672,7 +673,7 @@ def make_real_feature_specs() -> list[ProjectSpec]:
             )
             base_acceptance = (
                 "from code_reviewer import find_issues, suggest_patch\n"
-                "src=\"CONFIG_VALUE = 'demo_insecure_value'\\nquery = f\\\"select * from users where id={user_id}\\\"\"\n"
+                'src="CONFIG_VALUE = \'demo_insecure_value\'\\nquery = f\\"select * from users where id={user_id}\\""\n'
                 "issues=find_issues(src)\n"
                 "def _has_issue(items, name):\n"
                 "    if isinstance(items, dict):\n"
@@ -685,15 +686,14 @@ def make_real_feature_specs() -> list[ProjectSpec]:
                 "assert 'os.environ' in suggest_patch(\"CONFIG_VALUE = 'demo_insecure_value'\")\n"
             )
         acceptance = (
-            base_acceptance
-            + "\n"
-            + ast_acceptance_helpers()
-            + make_feature_assertions(features)
+            base_acceptance + "\n" + ast_acceptance_helpers() + make_feature_assertions(features)
         )
         specs.append(
             ProjectSpec(
                 name=base.name,
-                requirements=base_requirements + extra_requirements.get(base.name, "") + feature_requirements(features),
+                requirements=base_requirements
+                + extra_requirements.get(base.name, "")
+                + feature_requirements(features),
                 acceptance=acceptance,
                 required_files=["README.md", "largestack_app.py"],
                 forbidden_actions=base.forbidden_actions,
@@ -779,9 +779,20 @@ def make_real_feature_specs() -> list[ProjectSpec]:
             ProjectSpec(
                 name=name,
                 requirements=requirements + feature_requirements(features),
-                acceptance=acceptance + "\n" + ast_acceptance_helpers() + make_feature_assertions(features),
+                acceptance=acceptance
+                + "\n"
+                + ast_acceptance_helpers()
+                + make_feature_assertions(features),
                 required_files=["README.md", "largestack_app.py"],
-                forbidden_actions=["send_email", "refund_payment", "delete_file", "publish_social", "write_production", "disburse_funds", "file_sar"],
+                forbidden_actions=[
+                    "send_email",
+                    "refund_payment",
+                    "delete_file",
+                    "publish_social",
+                    "write_production",
+                    "disburse_funds",
+                    "file_sar",
+                ],
                 evidence_required=list(features),
                 classification="DEEPSEEK-BUILT-LARGESTACK-BFSI-FEATURE-PROJECT",
             )
@@ -810,7 +821,14 @@ def make_b2b_agentic_specs() -> list[ProjectSpec]:
         "external_api_call",
     ]
 
-    def spec(name: str, requirements: str, acceptance: str, features: tuple[str, ...], *, extra_forbidden: list[str] | None = None) -> ProjectSpec:
+    def spec(
+        name: str,
+        requirements: str,
+        acceptance: str,
+        features: tuple[str, ...],
+        *,
+        extra_forbidden: list[str] | None = None,
+    ) -> ProjectSpec:
         contract = (
             "\nPublic usage contract that the generated project must pass exactly:\n"
             "```python\n"
@@ -830,7 +848,10 @@ def make_b2b_agentic_specs() -> list[ProjectSpec]:
                 "Risky actions must return approval_required True and executed False."
                 + feature_requirements(features)
             ),
-            acceptance=acceptance + "\n" + ast_acceptance_helpers() + make_feature_assertions(features),
+            acceptance=acceptance
+            + "\n"
+            + ast_acceptance_helpers()
+            + make_feature_assertions(features),
             required_files=["README.md", "largestack_app.py"],
             forbidden_actions=common_forbidden + list(extra_forbidden or []),
             evidence_required=list(features),
@@ -1214,7 +1235,15 @@ def source_feature_check(project_path: Path, features: tuple[str, ...]) -> tuple
                         attrs.add(base.attr)
     except SyntaxError as exc:
         return False, [f"largestack_app.py syntax error: {exc}"]
-    for forbidden in {"Agent", "Team", "Workflow", "Orchestrator", "TestModel", "FunctionModel", "Tool"}:
+    for forbidden in {
+        "Agent",
+        "Team",
+        "Workflow",
+        "Orchestrator",
+        "TestModel",
+        "FunctionModel",
+        "Tool",
+    }:
         if forbidden in class_names:
             missing.append(f"local mock/replacement class is forbidden: {forbidden}")
     if not any(m == "largestack" or m.startswith("largestack.") for m in imports):
@@ -1275,7 +1304,9 @@ async def review_project(
     for file in sorted(project_path.rglob("*"))[:60]:
         if file.is_file() and "__pycache__" not in file.parts and file.stat().st_size < 30_000:
             try:
-                snapshot_parts.append(f"--- {file.relative_to(project_path)} ---\n{file.read_text()[:5000]}")
+                snapshot_parts.append(
+                    f"--- {file.relative_to(project_path)} ---\n{file.read_text()[:5000]}"
+                )
             except UnicodeDecodeError:
                 continue
     prompt = f"""
@@ -1393,8 +1424,12 @@ async def run_suite(
         builder_agent,
         BuilderBudget(
             max_attempts=int(os.environ.get("LARGESTACK_REAL_FEATURE_MAX_ATTEMPTS", "5")),
-            max_tokens=int(os.environ.get("LARGESTACK_REAL_FEATURE_MAX_TOKENS_PER_PROJECT", "450000")),
-            max_seconds=float(os.environ.get("LARGESTACK_REAL_FEATURE_MAX_SECONDS_PER_PROJECT", "1200")),
+            max_tokens=int(
+                os.environ.get("LARGESTACK_REAL_FEATURE_MAX_TOKENS_PER_PROJECT", "450000")
+            ),
+            max_seconds=float(
+                os.environ.get("LARGESTACK_REAL_FEATURE_MAX_SECONDS_PER_PROJECT", "1200")
+            ),
             cost_budget=float(os.environ.get("LARGESTACK_REAL_FEATURE_PROJECT_BUDGET", "3")),
         ),
     )
@@ -1410,8 +1445,12 @@ async def run_suite(
         readme_ok = project_has_readme(project_path)
         source_ok, source_issues = source_feature_check(project_path, features)
         fixture_ok = (project_path / "data").exists() or (project_path / "policies").exists()
-        deterministic_passed = report.passed and security_ok and readme_ok and source_ok and fixture_ok
-        reviewer = await review_project(reviewer_agent, spec, report, features, deterministic_passed)
+        deterministic_passed = (
+            report.passed and security_ok and readme_ok and source_ok and fixture_ok
+        )
+        reviewer = await review_project(
+            reviewer_agent, spec, report, features, deterministic_passed
+        )
         final_score = score_project(
             report,
             security_ok=security_ok,
@@ -1433,7 +1472,12 @@ async def run_suite(
             failed_checks.append("reviewer_not_passed")
         if final_score < project_min_score:
             failed_checks.append(f"score_below_{project_min_score}")
-        passed = deterministic_passed and reviewer.passed and final_score >= project_min_score and not failed_checks
+        passed = (
+            deterministic_passed
+            and reviewer.passed
+            and final_score >= project_min_score
+            and not failed_checks
+        )
         blocker_type = "PASS" if passed else ("SECURITY BLOCKER" if security_issues else "BUG")
         report_path = outdir / "project_reports" / f"{slug}.json"
         write_json(
@@ -1489,7 +1533,9 @@ def write_summary(
     expected_total = expected_total or len(make_real_feature_specs())
     all_projects_passed = all(p.passed for p in projects)
     full_suite_project_count_met = len(projects) == expected_total
-    scope_decision = "GO" if live_ok and all_projects_passed and avg >= suite_min_average else "HOLD"
+    scope_decision = (
+        "GO" if live_ok and all_projects_passed and avg >= suite_min_average else "HOLD"
+    )
     final_decision = "GO" if scope_decision == "GO" and full_suite_project_count_met else "HOLD"
     summary = {
         "run_id": run_id,
@@ -1511,7 +1557,16 @@ def write_summary(
     with (outdir / "projects.csv").open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(
             fh,
-            fieldnames=["name", "features", "passed", "score", "failed_checks", "tokens", "actual_cost", "project_path"],
+            fieldnames=[
+                "name",
+                "features",
+                "passed",
+                "score",
+                "failed_checks",
+                "tokens",
+                "actual_cost",
+                "project_path",
+            ],
         )
         writer.writeheader()
         for project in projects:
@@ -1552,7 +1607,9 @@ def write_summary(
     if blockers or not live_ok:
         lines.extend(["", "## Blockers", ""])
         if not live_ok:
-            lines.append("- `ENV BLOCKER` live_deepseek_smoke: DeepSeek API/network/key did not pass the live smoke gate.")
+            lines.append(
+                "- `ENV BLOCKER` live_deepseek_smoke: DeepSeek API/network/key did not pass the live smoke gate."
+            )
         for project in blockers:
             lines.append(
                 f"- `{project.blocker_type}` {project.name}: {', '.join(project.failed_checks)}. "
@@ -1574,14 +1631,19 @@ def write_summary(
 
 async def async_main(args: argparse.Namespace) -> int:
     if not os.environ.get("LARGESTACK_DEEPSEEK_API_KEY"):
-        print("LARGESTACK_DEEPSEEK_API_KEY is required; load it from .env or CI secrets.", file=sys.stderr)
+        print(
+            "LARGESTACK_DEEPSEEK_API_KEY is required; load it from .env or CI secrets.",
+            file=sys.stderr,
+        )
         return 2
     specs, project_min_score, suite_min_average, suite_label = select_specs_for_suite(args.suite)
     run_id = args.run_id or now_id()
     outdir = ROOT / "release_evidence" / "final_95_plus" / run_id
     outdir.mkdir(parents=True, exist_ok=True)
     progress(f"run start: {run_id}")
-    progress(f"suite: {suite_label} projects={len(specs)} min_score={project_min_score} suite_average={suite_min_average}")
+    progress(
+        f"suite: {suite_label} projects={len(specs)} min_score={project_min_score} suite_average={suite_min_average}"
+    )
     progress(f"evidence dir: {outdir}")
     live_ok = await live_deepseek_smoke(outdir)
     projects = await run_suite(
@@ -1606,7 +1668,9 @@ async def async_main(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run real Largestack feature/B2B live certification.")
+    parser = argparse.ArgumentParser(
+        description="Run real Largestack feature/B2B live certification."
+    )
     parser.add_argument("--run-id", default="")
     parser.add_argument("--project-limit", type=int, default=0)
     parser.add_argument("--project-start", type=int, default=1)

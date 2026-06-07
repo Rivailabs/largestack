@@ -33,6 +33,7 @@ Templates included:
 These are NOT prompts that try to make the LLM "smart" — they're
 plain instructions that scope behavior cleanly.
 """
+
 from __future__ import annotations
 from typing import Any
 
@@ -207,9 +208,7 @@ def role_prompt(role: str) -> str:
     """
     key = role.lower().strip()
     if key not in ROLES:
-        raise ValueError(
-            f"unknown role {role!r}; valid roles: {sorted(ROLES.keys())}"
-        )
+        raise ValueError(f"unknown role {role!r}; valid roles: {sorted(ROLES.keys())}")
     return ROLES[key]
 
 
@@ -227,6 +226,7 @@ def role_agent(role: str, *, llm: str, name: str | None = None, **kwargs) -> Any
         Agent instance.
     """
     from largestack.agent import Agent
+
     instructions = role_prompt(role)
     return Agent(
         name=name or role,

@@ -2,6 +2,7 @@
 interface. Regression guard for GoogleProvider's broken httpx.Timeout (which
 raised on construction, making Gemini unusable despite a "partial" matrix status).
 """
+
 from __future__ import annotations
 
 import glob
@@ -20,8 +21,11 @@ _MODULES = sorted(
 def _provider_class(mod_name):
     m = importlib.import_module(mod_name)
     return next(
-        (c for n, c in inspect.getmembers(m, inspect.isclass)
-         if n.endswith("Provider") and c.__module__ == mod_name),
+        (
+            c
+            for n, c in inspect.getmembers(m, inspect.isclass)
+            if n.endswith("Provider") and c.__module__ == mod_name
+        ),
         None,
     )
 
@@ -32,8 +36,12 @@ def test_provider_constructs_and_has_interface(mod_name):
     if cls is None:
         pytest.skip(f"no Provider class in {mod_name}")
     inst = None
-    for args in [("dummy-key",), ("dummy-key", "https://example.test"),
-                 ("dummy-key", "dummy-2"), ("us-east-1",)]:
+    for args in [
+        ("dummy-key",),
+        ("dummy-key", "https://example.test"),
+        ("dummy-key", "dummy-2"),
+        ("us-east-1",),
+    ]:
         try:
             inst = cls(*args)
             break

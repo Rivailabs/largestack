@@ -5,6 +5,7 @@ Runs only when QDRANT_URL or LARGESTACK_QDRANT_URL is provided. This keeps the
 normal test suite deterministic while giving release engineers a real-service
 check for Docker/Qdrant or managed Qdrant environments.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -29,11 +30,15 @@ async def main() -> int:
         print(f"FAIL: QdrantStore import failed: {exc}", file=sys.stderr)
         return 2
 
-    store = QdrantStore(url=url, collection="largestack_release_gate", dim=3, create_collection=True)
-    await store.upsert([
-        {"id": 1, "vector": [0.1, 0.2, 0.3], "metadata": {"text": "hello"}},
-        {"id": 2, "vector": [0.3, 0.2, 0.1], "metadata": {"text": "world"}},
-    ])
+    store = QdrantStore(
+        url=url, collection="largestack_release_gate", dim=3, create_collection=True
+    )
+    await store.upsert(
+        [
+            {"id": 1, "vector": [0.1, 0.2, 0.3], "metadata": {"text": "hello"}},
+            {"id": 2, "vector": [0.3, 0.2, 0.1], "metadata": {"text": "world"}},
+        ]
+    )
     results = await store.query([0.1, 0.2, 0.3], top_k=1)
     assert results, "Qdrant returned no results"
     print("PASS: external vector DB E2E returned", results[0])

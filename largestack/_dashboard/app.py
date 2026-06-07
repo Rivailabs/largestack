@@ -9,6 +9,7 @@ v0.3.6: HTML escaping on every DB-derived string injected into HTML responses
 to prevent XSS via agent names, trace content, event names, etc. CSP header
 added to all HTML routes.
 """
+
 from __future__ import annotations
 import html as _html
 import json, os, sqlite3, time
@@ -47,6 +48,7 @@ def _build_csp_header(nonce: str) -> str:
 
 def _generate_nonce() -> str:
     import secrets
+
     # 16 bytes → 22 base64 chars; per-request, never reused.
     return secrets.token_urlsafe(16)
 
@@ -93,6 +95,7 @@ def _build_protected_deps():
     if os.environ.get("LARGESTACK_RBAC_ENABLED", "").lower() in ("1", "true", "yes"):
         try:
             from largestack._enterprise.rbac import require_permission, get_default_rbac
+
             deps.append(Depends(require_permission(get_default_rbac(), "agent.read")))
         except Exception as e:
             env = os.environ.get("LARGESTACK_ENV", "development").lower()
@@ -102,16 +105,19 @@ def _build_protected_deps():
                     "Refusing to start dashboard with authz disabled."
                 ) from e
             import logging
+
             logging.getLogger("largestack.dashboard").warning(
                 "LARGESTACK_RBAC_ENABLED=1 but RBAC wiring failed (%s). "
-                "Continuing without RBAC enforcement (development mode).", e
+                "Continuing without RBAC enforcement (development mode).",
+                e,
             )
     return deps
+
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Largestack AI Dashboard")
     app.add_middleware(_SecurityHeadersMiddleware)
-    
+
     TRACE_DB = os.path.expanduser("~/.largestack/traces.db")
     AUDIT_DB = os.path.expanduser("~/.largestack/audit.db")
 
@@ -165,12 +171,14 @@ def create_app() -> FastAPI:
     }"""
 
     def _db_query(db_path, sql, params=()):
-        if not os.path.exists(db_path): return []
+        if not os.path.exists(db_path):
+            return []
         try:
             with sqlite3.connect(db_path, timeout=0.2) as db:
                 db.row_factory = sqlite3.Row
                 return [dict(r) for r in db.execute(sql, params).fetchall()]
-        except Exception: return []
+        except Exception:
+            return []
 
     def layout(title, content, active="", api_key="", nonce=""):
         """Render dashboard HTML.
@@ -183,9 +191,19 @@ def create_app() -> FastAPI:
         the CSP. The middleware sets ``request.state.csp_nonce`` and the
         route handlers thread it through here.
         """
-        nav_items = [("Overview","/"),("Traces","/traces"),("Costs","/costs"),("Agents","/agents"),
-            ("Tools","/tools"),("Guards","/guards"),("Memory","/memory"),("Metrics","/metrics"),
-            ("Alerts","/alerts"),("Settings","/settings")]
+        nav_items = [
+            ("Overview", "/"),
+            ("Traces", "/traces"),
+            ("Costs", "/costs"),
+            ("Agents", "/agents"),
+            ("Tools", "/tools"),
+            ("Guards", "/guards"),
+            ("Memory", "/memory"),
+            ("Metrics", "/metrics"),
+            ("Alerts", "/alerts"),
+            ("Settings", "/settings"),
+        ]
+
         # v0.4.0: aria-current on active link, role=navigation on nav
         def nav_link(name, url):
             active_class = "active" if url == active else ""
@@ -202,7 +220,6 @@ def create_app() -> FastAPI:
         <a href="#main-content" class="skip-link">Skip to main content</a>
         <nav class="nav" role="navigation" aria-label="Dashboard sections"><h1>Largestack AI</h1>{nav}</nav>
         <main id="main-content" class="content" role="main" aria-label="{_esc(title)}">{content}</main></body></html>"""
-
 
     def _verified_api_key(request: Request) -> str:
         """v0.3.9: returns the X-API-Key header value AFTER the auth dep has
@@ -221,6 +238,7 @@ def create_app() -> FastAPI:
         package_error = None
         try:
             import largestack as package
+
             package_version = getattr(package, "__version__", "unknown")
         except Exception as e:
             package_error = e
@@ -250,31 +268,39 @@ def create_app() -> FastAPI:
     def overview(request: Request):
         nonce = getattr(request.state, "csp_nonce", "")
         # KPIs
-        traces = _db_query(TRACE_DB, "SELECT COUNT(*) as n FROM traces WHERE timestamp > ?", (time.time()-86400,))
-        audits = _db_query(AUDIT_DB, "SELECT SUM(cost) as c, COUNT(*) as n FROM audit_log WHERE timestamp > ?", (time.time()-86400,))
-        
+        traces = _db_query(
+            TRACE_DB, "SELECT COUNT(*) as n FROM traces WHERE timestamp > ?", (time.time() - 86400,)
+        )
+        audits = _db_query(
+            AUDIT_DB,
+            "SELECT SUM(cost) as c, COUNT(*) as n FROM audit_log WHERE timestamp > ?",
+            (time.time() - 86400,),
+        )
+
         trace_count = traces[0]["n"] if traces else 0
         total_cost = (audits[0]["c"] or 0) if audits else 0
         audit_count = (audits[0]["n"] or 0) if audits else 0
-        
+
         # Cost over time (hourly buckets last 24h)
-        cost_rows = _db_query(AUDIT_DB,
+        cost_rows = _db_query(
+            AUDIT_DB,
             "SELECT CAST((timestamp - ?) / 3600 AS INTEGER) as h, SUM(cost) as c, COUNT(*) as n "
             "FROM audit_log WHERE timestamp > ? GROUP BY h ORDER BY h",
-            (time.time()-86400, time.time()-86400))
+            (time.time() - 86400, time.time() - 86400),
+        )
 
-        labels = [f"-{23-r['h']}h" for r in cost_rows] or ["No data"]
+        labels = [f"-{23 - r['h']}h" for r in cost_rows] or ["No data"]
         data = [round(r["c"] or 0, 4) for r in cost_rows] or [0]
         # v1.1.1: real per-hour run counts (was hardcoded [1] per bucket).
         run_data = [r["n"] or 0 for r in cost_rows] or [0]
-        
+
         content = f"""
         <h2>Last 24 Hours</h2>
         <div class="grid">
           <div class="card"><div class="label">Agent Runs</div><div class="stat">{trace_count}</div></div>
           <div class="card"><div class="label">Audit Events</div><div class="stat">{audit_count}</div></div>
           <div class="card"><div class="label">Total Cost</div><div class="stat">${total_cost:.4f}</div></div>
-          <div class="card"><div class="label">Avg Cost/Run</div><div class="stat">${total_cost/max(trace_count,1):.5f}</div></div>
+          <div class="card"><div class="label">Avg Cost/Run</div><div class="stat">${total_cost / max(trace_count, 1):.5f}</div></div>
         </div>
         <div class="grid grid-2">
           <div class="card card-chart">
@@ -331,14 +357,17 @@ def create_app() -> FastAPI:
         if not rows:
             content = '<div class="card"><div class="empty">No traces yet. Run an agent to see data here.</div></div>'
         else:
-            tbody = "".join(f"""<tr>
-                <td>{_esc(time.strftime('%H:%M:%S', time.localtime(r.get('timestamp',0))))}</td>
-                <td>{_esc(r.get('agent','-'))}</td>
-                <td>{_esc((r.get('task','') or '')[:60])}</td>
-                <td>{r.get('duration_ms',0):.0f}ms</td>
-                <td>${r.get('cost',0):.5f}</td>
-                <td>{_esc(r.get('turns','-'))}</td>
-                </tr>""" for r in rows)
+            tbody = "".join(
+                f"""<tr>
+                <td>{_esc(time.strftime("%H:%M:%S", time.localtime(r.get("timestamp", 0))))}</td>
+                <td>{_esc(r.get("agent", "-"))}</td>
+                <td>{_esc((r.get("task", "") or "")[:60])}</td>
+                <td>{r.get("duration_ms", 0):.0f}ms</td>
+                <td>${r.get("cost", 0):.5f}</td>
+                <td>{_esc(r.get("turns", "-"))}</td>
+                </tr>"""
+                for r in rows
+            )
             content = f"""<div class="card">
                 <table>
                   <thead><tr><th>Time</th><th>Agent</th><th>Task</th><th>Duration</th><th>Cost</th><th>Turns</th></tr></thead>
@@ -353,11 +382,13 @@ def create_app() -> FastAPI:
         # Cost by model. v1.1.1: source from `traces` (has model+cost+per-run rows).
         # The old audit_log query referenced a non-existent `model` column and
         # silently returned nothing.
-        rows = _db_query(TRACE_DB,
+        rows = _db_query(
+            TRACE_DB,
             "SELECT model, SUM(cost) as c, COUNT(*) as n FROM traces "
             "WHERE timestamp > ? AND model IS NOT NULL GROUP BY model ORDER BY c DESC",
-            (time.time() - 7*86400,))
-        
+            (time.time() - 7 * 86400,),
+        )
+
         if not rows:
             content = '<div class="card"><div class="empty">No cost data. Run some agents first.</div></div>'
         else:
@@ -372,7 +403,7 @@ def create_app() -> FastAPI:
               <div class="card">
                 <table>
                   <thead><tr><th>Model</th><th>Calls</th><th>Total Cost</th></tr></thead>
-                  <tbody>{"".join(f"<tr><td>{_esc(l)}</td><td>{r['n']}</td><td>${c:.4f}</td></tr>" for l,c,r in zip(labels,costs,rows))}</tbody>
+                  <tbody>{"".join(f"<tr><td>{_esc(l)}</td><td>{r['n']}</td><td>${c:.4f}</td></tr>" for l, c, r in zip(labels, costs, rows))}</tbody>
                 </table>
               </div>
             </div>
@@ -395,19 +426,24 @@ def create_app() -> FastAPI:
     @app.get("/agents", response_class=HTMLResponse, dependencies=_build_protected_deps())
     def agents(request: Request):
         nonce = getattr(request.state, "csp_nonce", "")
-        rows = _db_query(TRACE_DB,
+        rows = _db_query(
+            TRACE_DB,
             "SELECT agent, COUNT(*) as n, AVG(duration_ms) as d, SUM(cost) as c "
             "FROM traces WHERE timestamp > ? GROUP BY agent ORDER BY n DESC",
-            (time.time() - 7*86400,))
+            (time.time() - 7 * 86400,),
+        )
         if not rows:
             content = '<div class="card"><div class="empty">No agent activity yet.</div></div>'
         else:
-            tbody = "".join(f"""<tr>
-                <td><strong>{_esc(r.get('agent','-'))}</strong></td>
-                <td>{r['n']}</td>
-                <td>{r.get('d',0):.0f}ms</td>
-                <td>${r.get('c',0):.4f}</td>
-                </tr>""" for r in rows)
+            tbody = "".join(
+                f"""<tr>
+                <td><strong>{_esc(r.get("agent", "-"))}</strong></td>
+                <td>{r["n"]}</td>
+                <td>{r.get("d", 0):.0f}ms</td>
+                <td>${r.get("c", 0):.4f}</td>
+                </tr>"""
+                for r in rows
+            )
             content = f"""<div class="card">
                 <h2>Agent Performance (Last 7 Days)</h2>
                 <table>
@@ -422,8 +458,10 @@ def create_app() -> FastAPI:
         nonce = getattr(request.state, "csp_nonce", "")
         # v1.1.1: correct column is event_type (not `event`). Populated when
         # LARGESTACK_AUDIT_EVENTS=1 records per-tool-call audit rows.
-        rows = _db_query(AUDIT_DB,
-            "SELECT action as tool, COUNT(*) as n FROM audit_log WHERE event_type='tool.call' GROUP BY action ORDER BY n DESC LIMIT 20")
+        rows = _db_query(
+            AUDIT_DB,
+            "SELECT action as tool, COUNT(*) as n FROM audit_log WHERE event_type='tool.call' GROUP BY action ORDER BY n DESC LIMIT 20",
+        )
         if not rows:
             content = '<div class="card"><div class="empty">No tool calls recorded.</div></div>'
         else:
@@ -454,8 +492,10 @@ def create_app() -> FastAPI:
         nonce = getattr(request.state, "csp_nonce", "")
         # v1.1.1: correct column is event_type (not `event`). Populated when
         # LARGESTACK_AUDIT_EVENTS=1 records guard-block audit rows.
-        rows = _db_query(AUDIT_DB,
-            "SELECT action as event, COUNT(*) as n FROM audit_log WHERE event_type LIKE 'guard.%' GROUP BY action")
+        rows = _db_query(
+            AUDIT_DB,
+            "SELECT action as event, COUNT(*) as n FROM audit_log WHERE event_type LIKE 'guard.%' GROUP BY action",
+        )
         if not rows:
             content = '<div class="card"><div class="empty">No guardrail events. All requests passed cleanly.</div></div>'
         else:
@@ -486,16 +526,21 @@ def create_app() -> FastAPI:
     def metrics(request: Request):
         nonce = getattr(request.state, "csp_nonce", "")
         # p50/p95/p99 latency
-        rows = _db_query(TRACE_DB,
+        rows = _db_query(
+            TRACE_DB,
             "SELECT duration_ms FROM traces WHERE timestamp > ? ORDER BY duration_ms",
-            (time.time() - 86400,))
+            (time.time() - 86400,),
+        )
         durations = sorted([r["duration_ms"] for r in rows if r.get("duration_ms")])
         if not durations:
             content = '<div class="card"><div class="empty">No metrics yet.</div></div>'
         else:
+
             def pct(arr, p):
-                if not arr: return 0
+                if not arr:
+                    return 0
                 return arr[min(int(len(arr) * p / 100), len(arr) - 1)]
+
             p50, p95, p99 = pct(durations, 50), pct(durations, 95), pct(durations, 99)
             content = f"""
             <h2>Latency Percentiles (24h)</h2>
@@ -506,7 +551,9 @@ def create_app() -> FastAPI:
               <div class="card"><div class="label">Total Requests</div><div class="stat">{len(durations)}</div></div>
             </div>
             """
-        return layout("Metrics", content, "/metrics", api_key=_verified_api_key(request), nonce=nonce)
+        return layout(
+            "Metrics", content, "/metrics", api_key=_verified_api_key(request), nonce=nonce
+        )
 
     @app.get("/alerts", response_class=HTMLResponse, dependencies=_build_protected_deps())
     def alerts(request: Request):
@@ -515,23 +562,32 @@ def create_app() -> FastAPI:
         # Check circuit breaker states, recent errors
         # v1.1.1: failed runs are recorded as event_type='agent.run', action='failed'
         # (the old event='agent.error' column/value never existed).
-        errs = _db_query(AUDIT_DB, "SELECT COUNT(*) as n FROM audit_log WHERE event_type='agent.run' AND action='failed' AND timestamp > ?",
-                        (time.time() - 3600,))
+        errs = _db_query(
+            AUDIT_DB,
+            "SELECT COUNT(*) as n FROM audit_log WHERE event_type='agent.run' AND action='failed' AND timestamp > ?",
+            (time.time() - 3600,),
+        )
         err_count = errs[0]["n"] if errs else 0
         if err_count > 10:
             alerts_list.append(("err", f"High error rate: {err_count} errors in last hour"))
-        
+
         # High cost alert
-        cost_rows = _db_query(AUDIT_DB, "SELECT SUM(cost) as c FROM audit_log WHERE timestamp > ?", (time.time() - 3600,))
+        cost_rows = _db_query(
+            AUDIT_DB,
+            "SELECT SUM(cost) as c FROM audit_log WHERE timestamp > ?",
+            (time.time() - 3600,),
+        )
         hour_cost = (cost_rows[0]["c"] or 0) if cost_rows else 0
         if hour_cost > 10:
             alerts_list.append(("warn", f"High cost: ${hour_cost:.2f} in last hour"))
-        
+
         if not alerts_list:
             content = '<div class="card"><div class="empty">No active alerts.</div></div>'
         else:
-            items = "".join(f'<div class="card"><span class="tag tag-{_esc(lvl)}">{_esc(lvl.upper())}</span> {_esc(msg)}</div>' 
-                           for lvl, msg in alerts_list)
+            items = "".join(
+                f'<div class="card"><span class="tag tag-{_esc(lvl)}">{_esc(lvl.upper())}</span> {_esc(msg)}</div>'
+                for lvl, msg in alerts_list
+            )
             content = f'<div class="grid">{items}</div>'
         return layout("Alerts", content, "/alerts", api_key=_verified_api_key(request), nonce=nonce)
 
@@ -539,24 +595,33 @@ def create_app() -> FastAPI:
     def settings(request: Request):
         nonce = getattr(request.state, "csp_nonce", "")
         from largestack._core.config import get_config
+
         cfg = get_config()
         content = f"""<div class="card">
             <h2>Configuration</h2>
             <table>
-                <tr><td>Default Provider</td><td>{_esc(getattr(cfg, 'default_provider', '-'))}</td></tr>
-                <tr><td>Default Model</td><td>{_esc(getattr(cfg, 'default_model', '-'))}</td></tr>
-                <tr><td>Semantic Cache</td><td>{_esc(getattr(cfg, 'semantic_cache', False))}</td></tr>
-                <tr><td>Max Turns</td><td>{_esc(getattr(cfg, 'max_turns', 25))}</td></tr>
-                <tr><td>Cost Budget</td><td>${_esc(getattr(cfg, 'cost_budget', 5.0))}</td></tr>
+                <tr><td>Default Provider</td><td>{_esc(getattr(cfg, "default_provider", "-"))}</td></tr>
+                <tr><td>Default Model</td><td>{_esc(getattr(cfg, "default_model", "-"))}</td></tr>
+                <tr><td>Semantic Cache</td><td>{_esc(getattr(cfg, "semantic_cache", False))}</td></tr>
+                <tr><td>Max Turns</td><td>{_esc(getattr(cfg, "max_turns", 25))}</td></tr>
+                <tr><td>Cost Budget</td><td>${_esc(getattr(cfg, "cost_budget", 5.0))}</td></tr>
             </table>
         </div>"""
-        return layout("Settings", content, "/settings", api_key=_verified_api_key(request), nonce=nonce)
+        return layout(
+            "Settings", content, "/settings", api_key=_verified_api_key(request), nonce=nonce
+        )
 
     @app.get("/api/metrics", response_class=JSONResponse, dependencies=_build_protected_deps())
     def api_metrics(request: Request):
         """JSON API for programmatic access."""
-        traces = _db_query(TRACE_DB, "SELECT COUNT(*) as n FROM traces WHERE timestamp > ?", (time.time()-86400,))
-        audits = _db_query(AUDIT_DB, "SELECT SUM(cost) as c FROM audit_log WHERE timestamp > ?", (time.time()-86400,))
+        traces = _db_query(
+            TRACE_DB, "SELECT COUNT(*) as n FROM traces WHERE timestamp > ?", (time.time() - 86400,)
+        )
+        audits = _db_query(
+            AUDIT_DB,
+            "SELECT SUM(cost) as c FROM audit_log WHERE timestamp > ?",
+            (time.time() - 86400,),
+        )
         return {
             "traces_24h": traces[0]["n"] if traces else 0,
             "cost_24h": (audits[0]["c"] or 0) if audits else 0,
@@ -570,6 +635,7 @@ def create_app() -> FastAPI:
     if os.environ.get("LARGESTACK_DASHBOARD_SPA", "").lower() in ("1", "true", "yes"):
         from pathlib import Path as _P
         from fastapi.staticfiles import StaticFiles
+
         spa_dist = _P(__file__).parent / "spa" / "dist"
         if spa_dist.is_dir():
             app.mount("/spa", StaticFiles(directory=str(spa_dist), html=True), name="spa")
@@ -577,6 +643,7 @@ def create_app() -> FastAPI:
             log.info(f"SPA mounted at /spa/ from {spa_dist}")
         else:
             import logging as _l
+
             _l.getLogger("largestack.dashboard").warning(
                 "LARGESTACK_DASHBOARD_SPA=1 but %s does not exist. "
                 "Run: cd largestack/_dashboard/spa && npm install && npm run build",

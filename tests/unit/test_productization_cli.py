@@ -1,4 +1,5 @@
 """Productization tests for the beginner-facing Largestack AI CLI."""
+
 from __future__ import annotations
 
 import json
@@ -145,11 +146,19 @@ def test_add_commands_update_project_yaml(tmp_path, monkeypatch):
     assert runner.invoke(app, ["add", "knowledge", str(source)]).exit_code == 0
     assert (project / "app" / "rag" / "knowledge" / "policy.md").exists()
 
-    assert runner.invoke(app, ["add", "agent", "auditor", "--role", "Audit final answers"]).exit_code == 0
+    assert (
+        runner.invoke(app, ["add", "agent", "auditor", "--role", "Audit final answers"]).exit_code
+        == 0
+    )
     agents = yaml.safe_load((project / "agents.yaml").read_text())
     assert any(agent["id"] == "auditor" for agent in agents["agents"])
 
-    assert runner.invoke(app, ["add", "tool", "lookup_customer", "--approval", "require_approval"]).exit_code == 0
+    assert (
+        runner.invoke(
+            app, ["add", "tool", "lookup_customer", "--approval", "require_approval"]
+        ).exit_code
+        == 0
+    )
     tools = yaml.safe_load((project / "tools.yaml").read_text())
     assert any(tool["id"] == "lookup_customer" for tool in tools["tools"])
 

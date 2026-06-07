@@ -3,16 +3,14 @@
 Doesn't require helm CLI — validates chart structure and required content
 so we catch regressions when files are added/renamed.
 """
+
 from pathlib import Path
 
 import pytest
 import yaml
 
 
-CHART_DIR = (
-    Path(__file__).resolve().parent.parent.parent
-    / "deploy" / "helm" / "largestack"
-)
+CHART_DIR = Path(__file__).resolve().parent.parent.parent / "deploy" / "helm" / "largestack"
 
 
 def test_chart_yaml_present_and_valid():
@@ -27,9 +25,17 @@ def test_values_yaml_required_keys():
     """values.yaml must declare every key the templates reference."""
     values = yaml.safe_load((CHART_DIR / "values.yaml").read_text())
     required_top = [
-        "image", "replicaCount", "resources", "service", "ingress",
-        "autoscaling", "largestack", "otel", "podSecurityContext",
-        "securityContext", "serviceAccount",
+        "image",
+        "replicaCount",
+        "resources",
+        "service",
+        "ingress",
+        "autoscaling",
+        "largestack",
+        "otel",
+        "podSecurityContext",
+        "securityContext",
+        "serviceAccount",
     ]
     for key in required_top:
         assert key in values, f"missing required values key: {key}"
@@ -46,8 +52,13 @@ def test_values_yaml_required_keys():
 def test_required_templates_present():
     """All expected templates must exist."""
     required = [
-        "deployment.yaml", "service.yaml", "configmap.yaml",
-        "serviceaccount.yaml", "ingress.yaml", "hpa.yaml", "_helpers.tpl",
+        "deployment.yaml",
+        "service.yaml",
+        "configmap.yaml",
+        "serviceaccount.yaml",
+        "ingress.yaml",
+        "hpa.yaml",
+        "_helpers.tpl",
     ]
     for name in required:
         path = CHART_DIR / "templates" / name

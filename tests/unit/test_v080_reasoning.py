@@ -1,4 +1,5 @@
 """v0.8.0: Reasoning pattern tests (CoT, Self-Ask, Plan-and-Execute, Reflexion)."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
@@ -8,16 +9,14 @@ import pytest
 
 # -------------------- ChainOfThought --------------------
 
+
 @pytest.mark.asyncio
 async def test_cot_extracts_final_answer():
     from largestack._core.reasoning import ChainOfThought
 
     fake_result = MagicMock()
     fake_result.content = (
-        "Reasoning:\n"
-        "17 * 23 = 17 * 20 + 17 * 3 = 340 + 51 = 391\n\n"
-        "Final Answer:\n"
-        "391"
+        "Reasoning:\n17 * 23 = 17 * 20 + 17 * 3 = 340 + 51 = 391\n\nFinal Answer:\n391"
     )
     agent = MagicMock()
     agent.run = AsyncMock(return_value=fake_result)
@@ -48,6 +47,7 @@ async def test_cot_handles_missing_final_answer_section():
 
 
 # -------------------- SelfAsk --------------------
+
 
 @pytest.mark.asyncio
 async def test_self_ask_decomposes_and_synthesizes():
@@ -82,6 +82,7 @@ Richard Nixon was president when the moon landing occurred."""
 @pytest.mark.asyncio
 async def test_self_ask_handles_partial_format():
     from largestack._core.reasoning import SelfAsk
+
     fake_result = MagicMock()
     fake_result.content = "Just a plain response without sections."
     agent = MagicMock()
@@ -94,6 +95,7 @@ async def test_self_ask_handles_partial_format():
 
 
 # -------------------- PlanAndExecute --------------------
+
 
 @pytest.mark.asyncio
 async def test_plan_and_execute_full_flow():
@@ -132,6 +134,7 @@ async def test_plan_and_execute_full_flow():
 @pytest.mark.asyncio
 async def test_plan_and_execute_respects_max_steps():
     from largestack._core.reasoning import PlanAndExecute
+
     plan_text = "\n".join(f"{i}. step {i}" for i in range(1, 11))
     plan_response = MagicMock()
     plan_response.content = plan_text
@@ -157,6 +160,7 @@ async def test_plan_and_execute_handles_step_failure():
     plan_response.content = "1. step a\n2. step b"
 
     call_count = [0]
+
     async def exec_fn(*a, **kw):
         call_count[0] += 1
         if call_count[0] == 1:
@@ -179,6 +183,7 @@ async def test_plan_and_execute_handles_step_failure():
 async def test_plan_and_execute_no_plan_returns_empty():
     """If planner produces nothing parseable, no steps run."""
     from largestack._core.reasoning import PlanAndExecute
+
     plan_response = MagicMock()
     plan_response.content = "I don't know how to plan this."
 
@@ -195,6 +200,7 @@ async def test_plan_and_execute_no_plan_returns_empty():
 
 
 # -------------------- Reflexion --------------------
+
 
 @pytest.mark.asyncio
 async def test_reflexion_stops_on_approved():
@@ -247,6 +253,7 @@ async def test_reflexion_caps_at_max_iterations():
     from largestack._core.reasoning import Reflexion
 
     answer_count = [0]
+
     async def agent_run(*a, **kw):
         answer_count[0] += 1
         return MagicMock(content=f"attempt {answer_count[0]}")
@@ -268,6 +275,7 @@ async def test_reflexion_caps_at_max_iterations():
 async def test_reflexion_history_tracked():
     """History should record all attempts and critiques."""
     from largestack._core.reasoning import Reflexion
+
     agent = MagicMock()
     agent.run = AsyncMock(return_value=MagicMock(content="x"))
     critic = MagicMock()

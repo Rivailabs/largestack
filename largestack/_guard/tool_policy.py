@@ -1,4 +1,5 @@
 """Risk-aware tool action policy decisions."""
+
 from __future__ import annotations
 
 import json

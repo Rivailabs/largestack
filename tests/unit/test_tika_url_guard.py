@@ -1,4 +1,5 @@
 """The Tika server URL must reject non-HTTP(S) schemes (basic SSRF guard)."""
+
 from __future__ import annotations
 
 import pytest

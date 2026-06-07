@@ -4,6 +4,7 @@ v0.3.12: web_fetch now uses the shared SSRF validator. Previously
 follow_redirects=True with no host check meant any LLM tool call could hit
 metadata IPs or internal services, defeating the v0.3.11 fix to http_tool.
 """
+
 from __future__ import annotations
 import os
 import re
@@ -14,9 +15,11 @@ from largestack._core.tools import tool
 from largestack._core.builtin_tools._url_validator import validate_url
 
 
-_FOLLOW_REDIRECTS = os.environ.get(
-    "LARGESTACK_HTTP_TOOL_FOLLOW_REDIRECTS", ""
-).lower() in ("1", "true", "yes")
+_FOLLOW_REDIRECTS = os.environ.get("LARGESTACK_HTTP_TOOL_FOLLOW_REDIRECTS", "").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 
 @tool(timeout=15)
@@ -36,15 +39,13 @@ async def web_search(query: str, max_results: int = 5) -> str:
         async with httpx.AsyncClient(timeout=10) as c:
             r = await c.post(
                 url,
-                json={"api_key": tavily_key, "query": query,
-                      "max_results": max_results},
+                json={"api_key": tavily_key, "query": query, "max_results": max_results},
             )
             data = r.json()
             results = []
             for item in data.get("results", [])[:max_results]:
                 results.append(
-                    f"**{item['title']}**\n{item['url']}\n"
-                    f"{item.get('content','')[:200]}"
+                    f"**{item['title']}**\n{item['url']}\n{item.get('content', '')[:200]}"
                 )
             return "\n\n".join(results) or "No results found."
 
@@ -60,9 +61,7 @@ async def web_search(query: str, max_results: int = 5) -> str:
         if abstract:
             return abstract
         related = [
-            t.get("Text", "")
-            for t in data.get("RelatedTopics", [])[:max_results]
-            if t.get("Text")
+            t.get("Text", "") for t in data.get("RelatedTopics", [])[:max_results] if t.get("Text")
         ]
         return "\n".join(related) or (
             f"Search results for '{query}' — use web_fetch on specific URLs for details."
@@ -86,9 +85,7 @@ async def web_fetch(url: str) -> str:
         return f"Request blocked: {err}"
 
     try:
-        async with httpx.AsyncClient(
-            follow_redirects=_FOLLOW_REDIRECTS, timeout=15
-        ) as c:
+        async with httpx.AsyncClient(follow_redirects=_FOLLOW_REDIRECTS, timeout=15) as c:
             r = await c.get(url, headers={"User-Agent": "LargestackAI/0.1"})
             r.raise_for_status()
             html = r.text

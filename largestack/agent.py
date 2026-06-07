@@ -7,6 +7,7 @@ Features:
 - Completion/error callbacks
 - Session-based chat
 """
+
 from __future__ import annotations
 import logging
 
@@ -22,29 +23,47 @@ from largestack._guard.pipeline import GuardrailPipeline
 from largestack._memory.buffer import ConversationMemory
 from largestack.types import AgentResult
 
+
 class Agent:
     """AI Agent with tracing, cost control, guardrails, and structured output.
 
     Usage:
         agent = Agent(name="helper", llm="openai/gpt-4o-mini")
         result = await agent.run("Hello!")
-        
+
         # Structured output
         result = await agent.run("Analyze data", response_model=MySchema)
-        
+
         # Smart routing
         agent = Agent(name="auto", llm="auto")
     """
-    def __init__(self, name: str, instructions: str = "You are a helpful assistant.",
-                 llm: str|None=None, tools: list|None=None, guardrails: Any=None,
-                 memory: Any=None, steering: list|None=None, cost_budget: float|None=None,
-                 max_turns: int|None=None, tool_permissions: dict|None=None,
-                 shared_memory: Any=None, retries: int=0, fallback: Any=None,
-                 on_complete: Any=None, on_error: Any=None, tool_policy: Any=None, **kw):
+
+    def __init__(
+        self,
+        name: str,
+        instructions: str = "You are a helpful assistant.",
+        llm: str | None = None,
+        tools: list | None = None,
+        guardrails: Any = None,
+        memory: Any = None,
+        steering: list | None = None,
+        cost_budget: float | None = None,
+        max_turns: int | None = None,
+        tool_permissions: dict | None = None,
+        shared_memory: Any = None,
+        retries: int = 0,
+        fallback: Any = None,
+        on_complete: Any = None,
+        on_error: Any = None,
+        tool_policy: Any = None,
+        **kw,
+    ):
         self.config = get_config()
         self.tool_policy = tool_policy  # optional ToolAccessPolicy (rate + param validation)
-        self.name = name; self.instructions = instructions
-        self.llm = llm or self.config.default_llm; self.tools = tools or []
+        self.name = name
+        self.instructions = instructions
+        self.llm = llm or self.config.default_llm
+        self.tools = tools or []
         self.memory = memory if memory is not None else ConversationMemory()
         self.shared_memory = shared_memory  # SharedMemorySpace for cross-agent data
         self.cost_budget = cost_budget if cost_budget is not None else self.config.cost_budget
@@ -58,11 +77,14 @@ class Agent:
         if self.config.trace_enabled:
             try:
                 from largestack._observe.tracer import setup_tracing
+
                 setup_tracing(self.config.trace_db_path)
-            except Exception as _e: log.debug(f"tracing setup failed: {_e}")
+            except Exception as _e:
+                log.debug(f"tracing setup failed: {_e}")
 
         self._reg = ToolRegistry()
-        for t in self.tools: self._reg.register(t)
+        for t in self.tools:
+            self._reg.register(t)
         self._steering_rules = steering or []
         self._steer = SteeringEngine(self._steering_rules)
 
@@ -80,11 +102,21 @@ class Agent:
 
         self._gw = LLMGateway(self.config)
         self.tool_permissions = tool_permissions  # store for engine rebuild on registry change
-        self._engine = AgentEngine(name=name, instructions=instructions, llm=self.llm,
-            gateway=self._gw, tool_registry=self._reg, steering_engine=self._steer,
-            config=self.config, tool_permissions=tool_permissions, guardrails=self._guards,
-            memory=self.memory, max_turns=self.max_turns, cost_budget=self.cost_budget,
-            tool_policy=self.tool_policy)
+        self._engine = AgentEngine(
+            name=name,
+            instructions=instructions,
+            llm=self.llm,
+            gateway=self._gw,
+            tool_registry=self._reg,
+            steering_engine=self._steer,
+            config=self.config,
+            tool_permissions=tool_permissions,
+            guardrails=self._guards,
+            memory=self.memory,
+            max_turns=self.max_turns,
+            cost_budget=self.cost_budget,
+            tool_policy=self.tool_policy,
+        )
 
     @property
     def _tool_registry(self):
@@ -98,20 +130,27 @@ class Agent:
         ``None`` if no guardrails were configured.
         """
         return self._guards
-    
+
     @_tool_registry.setter
     def _tool_registry(self, registry):
         """Allow decorator API to inject its own registry."""
         self._reg = registry
         # Rebuild engine with new registry
-        self._engine = AgentEngine(name=self.name, instructions=self.instructions, llm=self.llm,
-            gateway=self._gw, tool_registry=self._reg, steering_engine=self._steer,
-            config=self.config, tool_permissions=getattr(self, "tool_permissions", None),
-            guardrails=self._guards, memory=self.memory,
-            max_turns=self.max_turns, cost_budget=self.cost_budget,
-            tool_policy=getattr(self, "tool_policy", None))
-    
-
+        self._engine = AgentEngine(
+            name=self.name,
+            instructions=self.instructions,
+            llm=self.llm,
+            gateway=self._gw,
+            tool_registry=self._reg,
+            steering_engine=self._steer,
+            config=self.config,
+            tool_permissions=getattr(self, "tool_permissions", None),
+            guardrails=self._guards,
+            memory=self.memory,
+            max_turns=self.max_turns,
+            cost_budget=self.cost_budget,
+            tool_policy=getattr(self, "tool_policy", None),
+        )
 
     async def aclose(self) -> None:
         """Close owned async provider/client resources.
@@ -142,14 +181,21 @@ class Agent:
 
             # Close common nested owners/clients.
             for name in (
-                "_gw", "gateway",
-                "_engine", "engine",
-                "_provider", "provider",
-                "_llm_provider", "llm_provider",
-                "_client", "client",
+                "_gw",
+                "gateway",
+                "_engine",
+                "engine",
+                "_provider",
+                "provider",
+                "_llm_provider",
+                "llm_provider",
+                "_client",
+                "client",
                 "_c",
-                "_llm", "llm",
-                "_router", "router",
+                "_llm",
+                "llm",
+                "_router",
+                "router",
             ):
                 child = getattr(obj, name, None)
                 if child is not None and child is not obj:
@@ -169,13 +215,19 @@ class Agent:
             await asyncio.sleep(0)
             await asyncio.sleep(0.20)
 
-    async def run(self, task: str, response_model: Type[BaseModel] | None = None, images: list[str] | None = None, **kw) -> AgentResult | BaseModel:
+    async def run(
+        self,
+        task: str,
+        response_model: Type[BaseModel] | None = None,
+        images: list[str] | None = None,
+        **kw,
+    ) -> AgentResult | BaseModel:
         """Run agent on task. Optionally parse into Pydantic model.
-        
+
         Args:
             task: The task/question
             response_model: If set, parse response into this Pydantic model
-        
+
         v0.3.6: Per-run cost tracking — does NOT reset shared gateway cost tracker.
         Two concurrent runs on the same gateway no longer overwrite each other's
         cost data. Per-call cost is read off each `ChatResponse.cost` and
@@ -184,22 +236,28 @@ class Agent:
         # v0.3.6: do NOT reset shared self._gw.cost_tracker — concurrent runs
         # on the same gateway would race. Per-run cost is computed from the
         # response objects in the engine.execute() loop.
-        
+
         # Vision support — multimodal messages WITH guardrails
         if images:
             from largestack._core.vision import build_vision_messages
             from largestack.testing import _capture_message  # v0.3.10
+
             msgs = build_vision_messages(task, images, self.instructions)
             for _m in msgs:
                 _capture_message(_m)  # v0.3.10
             # Run input guardrails on vision content too
             if self._guards:
-                text_msgs = [{"role": m.get("role","user"), "content": task} for m in msgs if m.get("role") == "user"]
+                text_msgs = [
+                    {"role": m.get("role", "user"), "content": task}
+                    for m in msgs
+                    if m.get("role") == "user"
+                ]
                 await self._guards.check_input(text_msgs)
             # v0.3.10: honor Agent.override() on the vision path too
             if getattr(self._engine, "_test_model", None) is not None:
                 raw = await self._engine._test_model.chat(messages=msgs, model=self.llm, tools=None)
                 from largestack._core.engine import _adapt_test_model_response
+
                 resp = _adapt_test_model_response(raw, self.llm)
             else:
                 resp = await self._gw.chat(model=self.llm, messages=msgs, agent_name=self.name)
@@ -207,46 +265,60 @@ class Agent:
             # Run output guardrails
             if self._guards:
                 await self._guards.check_output(resp)
-            result = AgentResult(content=resp.content, agent_name=self.name,
-                total_cost=resp.cost, trace_id="vision", duration_ms=resp.latency_ms)
+            result = AgentResult(
+                content=resp.content,
+                agent_name=self.name,
+                total_cost=resp.cost,
+                trace_id="vision",
+                duration_ms=resp.latency_ms,
+            )
             if self.shared_memory:
                 await self.shared_memory.put(f"{self.name}_output", result.content)
-            if self._on_complete: self._safe_callback(self._on_complete, result)
+            if self._on_complete:
+                self._safe_callback(self._on_complete, result)
             return result
-        
+
         last_error = None
         for attempt in range(1 + self.retries):  # 1 initial + N retries
             try:
                 if response_model:
                     from largestack._core.structured import run_structured
+
                     result = await run_structured(self, task, response_model, max_retries=2, **kw)
-                    if self._on_complete: self._safe_callback(self._on_complete, result)
+                    if self._on_complete:
+                        self._safe_callback(self._on_complete, result)
                     return result
-                
+
                 result = await self._engine.execute(task, **kw)
-                
+
                 # Write to shared memory if configured
                 if self.shared_memory:
                     import asyncio
+
                     await self.shared_memory.put(f"{self.name}_output", result.content)
                     await self.shared_memory.put(f"{self.name}_result", result)
-                
-                if self._on_complete: self._safe_callback(self._on_complete, result)
+
+                if self._on_complete:
+                    self._safe_callback(self._on_complete, result)
                 return result
             except Exception as e:
                 last_error = e
-                if self._on_error: self._safe_callback(self._on_error, e)
+                if self._on_error:
+                    self._safe_callback(self._on_error, e)
                 if attempt < self.retries:
-                    import logging; logging.getLogger("largestack.agent").warning(
-                        f"Agent '{self.name}' attempt {attempt+1}/{self.retries} failed: {e}")
-        
+                    import logging
+
+                    logging.getLogger("largestack.agent").warning(
+                        f"Agent '{self.name}' attempt {attempt + 1}/{self.retries} failed: {e}"
+                    )
+
         # Try fallback agent
         if self.fallback:
             try:
                 return await self.fallback.run(task, response_model=response_model, **kw)
             except Exception:
                 pass
-        
+
         raise last_error
 
     def run_sync(
@@ -279,6 +351,7 @@ class Agent:
             RuntimeError: if called from an already-running event loop.
         """
         import asyncio
+
         try:
             # If a loop is running, asyncio.get_running_loop() returns it
             asyncio.get_running_loop()
@@ -288,20 +361,22 @@ class Agent:
             )
         except RuntimeError as e:
             # No running loop — safe to spin one up
-            if "no running event loop" not in str(e).lower() and "no current event loop" not in str(e).lower():
+            if (
+                "no running event loop" not in str(e).lower()
+                and "no current event loop" not in str(e).lower()
+            ):
                 if "cannot be called from an active" in str(e):
                     raise  # propagate our own error message
                 # Otherwise fall through (some Python versions raise different messages)
-        return asyncio.run(
-            self.run(task, response_model=response_model, images=images, **kw)
-        )
+        return asyncio.run(self.run(task, response_model=response_model, images=images, **kw))
 
     async def stream(self, task: str, **kw) -> AsyncIterator[str]:
-        async for tok in self._engine.stream(task, **kw): yield tok
+        async for tok in self._engine.stream(task, **kw):
+            yield tok
 
     def clone(self, **overrides) -> "Agent":
         """Clone with all attributes forwarded. Overrides take precedence.
-        
+
         Note: steering rules forward via stored list (not the SteeringEngine instance).
         v0.3.10: removed dead `response_model` key — there is no `_response_model`
         attribute on Agent (response_model is per-call, not per-instance).
@@ -329,17 +404,20 @@ class Agent:
 
     def _safe_callback(self, cb, data):
         import asyncio
+
         try:
             if asyncio.iscoroutinefunction(cb):
                 # Hold reference + log exceptions
-                if not hasattr(self, '_callback_tasks'):
+                if not hasattr(self, "_callback_tasks"):
                     self._callback_tasks = set()
                 task = asyncio.create_task(cb(data))
                 self._callback_tasks.add(task)
+
                 def _on_done(t):
                     self._callback_tasks.discard(t)
                     if t.exception():
                         log.warning(f"Callback failed: {t.exception()}")
+
                 task.add_done_callback(_on_done)
             else:
                 cb(data)
@@ -349,38 +427,80 @@ class Agent:
     def _default_guards(self) -> GuardrailPipeline:
         guards = []
         if self.config.pii_detection:
-            from largestack._guard.pii import PIIGuard; guards.append(PIIGuard(action="warn"))
+            from largestack._guard.pii import PIIGuard
+
+            guards.append(PIIGuard(action="warn"))
         if self.config.injection_detection:
-            from largestack._guard.injection import InjectionGuard; guards.append(InjectionGuard())
+            from largestack._guard.injection import InjectionGuard
+
+            guards.append(InjectionGuard())
         if self.config.hallucination_detection:
-            from largestack._guard.hallucination import HallucinationGuard; guards.append(HallucinationGuard())
+            from largestack._guard.hallucination import HallucinationGuard
+
+            guards.append(HallucinationGuard())
         if self.config.toxicity_detection:
-            from largestack._guard.toxicity import ToxicityGuard; guards.append(ToxicityGuard())
+            from largestack._guard.toxicity import ToxicityGuard
+
+            guards.append(ToxicityGuard())
         if self.config.topic_blocklist:
             from largestack._guard.topic import TopicGuard
+
             guards.append(TopicGuard(blocklist=self.config.topic_blocklist.split(",")))
         return GuardrailPipeline(guards)
 
     def _build_guards(self, config) -> GuardrailPipeline:
         if isinstance(config, list):
             guards = []
-            valid_names = {"pii", "pii_ml", "injection", "prompt_guard", "hallucination",
-                           "nli_hallucination", "toxicity", "topic"}
+            valid_names = {
+                "pii",
+                "pii_ml",
+                "injection",
+                "prompt_guard",
+                "hallucination",
+                "nli_hallucination",
+                "toxicity",
+                "topic",
+            }
             for name in config:
-                if name == "pii": from largestack._guard.pii import PIIGuard; guards.append(PIIGuard())
-                elif name == "pii_ml": from largestack._guard.pii_ml import EnhancedPIIGuard; guards.append(EnhancedPIIGuard())
-                elif name == "injection": from largestack._guard.injection import InjectionGuard; guards.append(InjectionGuard())
-                elif name == "prompt_guard": from largestack._guard.prompt_guard import PromptGuard2; guards.append(PromptGuard2())
-                elif name == "hallucination": from largestack._guard.hallucination import HallucinationGuard; guards.append(HallucinationGuard())
-                elif name == "nli_hallucination": from largestack._guard.nli_hallucination import NLIHallucinationGuard; guards.append(NLIHallucinationGuard())
-                elif name == "toxicity": from largestack._guard.toxicity import ToxicityGuard; guards.append(ToxicityGuard())
-                elif name == "topic": from largestack._guard.topic import TopicGuard; guards.append(TopicGuard())
+                if name == "pii":
+                    from largestack._guard.pii import PIIGuard
+
+                    guards.append(PIIGuard())
+                elif name == "pii_ml":
+                    from largestack._guard.pii_ml import EnhancedPIIGuard
+
+                    guards.append(EnhancedPIIGuard())
+                elif name == "injection":
+                    from largestack._guard.injection import InjectionGuard
+
+                    guards.append(InjectionGuard())
+                elif name == "prompt_guard":
+                    from largestack._guard.prompt_guard import PromptGuard2
+
+                    guards.append(PromptGuard2())
+                elif name == "hallucination":
+                    from largestack._guard.hallucination import HallucinationGuard
+
+                    guards.append(HallucinationGuard())
+                elif name == "nli_hallucination":
+                    from largestack._guard.nli_hallucination import NLIHallucinationGuard
+
+                    guards.append(NLIHallucinationGuard())
+                elif name == "toxicity":
+                    from largestack._guard.toxicity import ToxicityGuard
+
+                    guards.append(ToxicityGuard())
+                elif name == "topic":
+                    from largestack._guard.topic import TopicGuard
+
+                    guards.append(TopicGuard())
                 else:
                     raise ValueError(f"Unknown guardrail '{name}'. Valid: {sorted(valid_names)}")
             return GuardrailPipeline(guards)
         return GuardrailPipeline()
 
-    def __repr__(self): return f"Agent(name='{self.name}', llm='{self.llm}', tools={self._reg.list_names()})"
+    def __repr__(self):
+        return f"Agent(name='{self.name}', llm='{self.llm}', tools={self._reg.list_names()})"
 
     # ------------------------------------------------------------------
     # Test override (v0.3.10)

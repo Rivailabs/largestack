@@ -5,6 +5,7 @@ with tools, PII + injection guardrails, persistent memory, per-request cost
 budgeting and retries, and a safety-first system prompt. For a production build,
 migrate to the typed decorator API (`largestack.decorators.Agent`) per AGENTS.md.
 """
+
 from __future__ import annotations
 
 from pydantic import BaseModel
@@ -24,6 +25,7 @@ class JarvisReply(BaseModel):
     turn_cost: float = 0.0
     total_cost: float = 0.0
     trace_id: str | None = None
+
 
 INSTRUCTIONS = """You are Jarvis, a careful and friendly personal assistant.
 

@@ -1,4 +1,5 @@
 """Offline quickstart: runs without provider keys or network."""
+
 from pathlib import Path
 import sys
 
@@ -10,7 +11,12 @@ from largestack.testing import TestModel
 
 
 async def main():
-    agent = Agent(name="offline", instructions="Reply briefly.", llm="deepseek/deepseek-chat", guardrails=False)
+    agent = Agent(
+        name="offline",
+        instructions="Reply briefly.",
+        llm="deepseek/deepseek-chat",
+        guardrails=False,
+    )
     model = TestModel(custom_output_text="Offline TestModel response: agent flow works.")
     with agent.override(model=model):
         result = await agent.run("Hello offline agent")

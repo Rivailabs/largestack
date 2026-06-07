@@ -52,11 +52,15 @@ def test_parse_model_json_extracts_fenced_payload_after_prose_and_braces():
 
 def test_safe_write_files_blocks_absolute_paths(tmp_path):
     with pytest.raises(ValueError):
-        safe_write_files(tmp_path, [GeneratedFile.model_construct(path="/tmp/bad.py", content="x=1")])
+        safe_write_files(
+            tmp_path, [GeneratedFile.model_construct(path="/tmp/bad.py", content="x=1")]
+        )
 
 
 def test_safe_write_files_normalizes_root_pytest_files(tmp_path):
-    written = safe_write_files(tmp_path, [GeneratedFile(path="test_app.py", content="def test_ok():\n    assert True\n")])
+    written = safe_write_files(
+        tmp_path, [GeneratedFile(path="test_app.py", content="def test_ok():\n    assert True\n")]
+    )
 
     assert written == ["tests/test_app.py"]
     assert (tmp_path / "tests" / "test_app.py").exists()
@@ -67,7 +71,10 @@ def test_validation_and_feedback_reports_acceptance_failure(tmp_path):
         tmp_path,
         [
             GeneratedFile(path="app.py", content="def add(a, b):\n    return a - b\n"),
-            GeneratedFile(path="tests/test_app.py", content="from app import add\n\ndef test_add():\n    assert add(1, 1) == 0\n"),
+            GeneratedFile(
+                path="tests/test_app.py",
+                content="from app import add\n\ndef test_add():\n    assert add(1, 1) == 0\n",
+            ),
         ],
     )
 
@@ -85,12 +92,17 @@ def test_feedback_prefers_hidden_acceptance_over_generated_tests(tmp_path):
         tmp_path,
         [
             GeneratedFile(path="app.py", content="def ok():\n    return True\n"),
-            GeneratedFile(path="tests/test_app.py", content="from app import ok\n\ndef test_wrong():\n    assert ok() is False\n"),
+            GeneratedFile(
+                path="tests/test_app.py",
+                content="from app import ok\n\ndef test_wrong():\n    assert ok() is False\n",
+            ),
         ],
     )
 
     validation = validate_project(tmp_path, "from app import ok\nassert ok() is True\n")
-    feedback = build_failure_feedback(validation, json_valid=True, files=["app.py", "tests/test_app.py"])
+    feedback = build_failure_feedback(
+        validation, json_valid=True, files=["app.py", "tests/test_app.py"]
+    )
 
     assert validation.acceptance_passed is True
     assert validation.pytest_passed is False
@@ -118,7 +130,14 @@ def test_noop_memory_isolates_agent_history():
 
 def test_autonomous_builder_repairs_with_patch(tmp_path):
     responses = [
-        _json({"project_name": "calc", "summary": "tiny", "files": ["app.py"], "tests": ["tests/test_app.py"]}),
+        _json(
+            {
+                "project_name": "calc",
+                "summary": "tiny",
+                "files": ["app.py"],
+                "tests": ["tests/test_app.py"],
+            }
+        ),
         _json(
             {
                 "notes": "initial",
@@ -134,13 +153,25 @@ def test_autonomous_builder_repairs_with_patch(tmp_path):
         _json(
             {
                 "notes": "fixed add",
-                "files": [{"path": "app.py", "content": "def add(a, b):\n    return a + b\n", "reason": "acceptance expected sum"}],
+                "files": [
+                    {
+                        "path": "app.py",
+                        "content": "def add(a, b):\n    return a + b\n",
+                        "reason": "acceptance expected sum",
+                    }
+                ],
             }
         ),
     ]
     agent = make_static_agent(responses)
-    builder = AutonomousProjectBuilder(agent, BuilderBudget(max_attempts=3, max_tokens=20_000, max_seconds=60))
-    spec = ProjectSpec(name="calc", requirements="Create add(a,b).", acceptance="from app import add\nassert add(1, 2) == 3\n")
+    builder = AutonomousProjectBuilder(
+        agent, BuilderBudget(max_attempts=3, max_tokens=20_000, max_seconds=60)
+    )
+    spec = ProjectSpec(
+        name="calc",
+        requirements="Create add(a,b).",
+        acceptance="from app import add\nassert add(1, 2) == 3\n",
+    )
 
     report = asyncio.run(builder.build(spec, tmp_path))
 
@@ -153,21 +184,37 @@ def test_autonomous_builder_repairs_with_patch(tmp_path):
 
 def test_autonomous_builder_regenerates_when_initial_json_has_no_files(tmp_path):
     responses = [
-        _json({"project_name": "calc", "summary": "tiny", "files": ["app.py"], "tests": ["tests/test_app.py"]}),
+        _json(
+            {
+                "project_name": "calc",
+                "summary": "tiny",
+                "files": ["app.py"],
+                "tests": ["tests/test_app.py"],
+            }
+        ),
         "I cannot provide JSON for this one.",
         _json(
             {
                 "notes": "regenerated",
                 "files": [
                     {"path": "app.py", "content": "def add(a, b):\n    return a + b\n"},
-                    {"path": "tests/test_app.py", "content": "from app import add\n\ndef test_add():\n    assert add(1, 2) == 3\n"},
+                    {
+                        "path": "tests/test_app.py",
+                        "content": "from app import add\n\ndef test_add():\n    assert add(1, 2) == 3\n",
+                    },
                 ],
             }
         ),
     ]
     agent = make_static_agent(responses)
-    builder = AutonomousProjectBuilder(agent, BuilderBudget(max_attempts=3, max_tokens=20_000, max_seconds=60))
-    spec = ProjectSpec(name="calc", requirements="Create add(a,b).", acceptance="from app import add\nassert add(1, 2) == 3\n")
+    builder = AutonomousProjectBuilder(
+        agent, BuilderBudget(max_attempts=3, max_tokens=20_000, max_seconds=60)
+    )
+    spec = ProjectSpec(
+        name="calc",
+        requirements="Create add(a,b).",
+        acceptance="from app import add\nassert add(1, 2) == 3\n",
+    )
 
     report = asyncio.run(builder.build(spec, tmp_path))
 
@@ -180,15 +227,28 @@ def test_autonomous_builder_regenerates_when_initial_json_has_no_files(tmp_path)
 
 def test_autonomous_builder_fails_honestly_after_budget(tmp_path):
     responses = [
-        _json({"project_name": "bad", "summary": "tiny", "files": ["app.py"], "tests": ["tests/test_app.py"]}),
+        _json(
+            {
+                "project_name": "bad",
+                "summary": "tiny",
+                "files": ["app.py"],
+                "tests": ["tests/test_app.py"],
+            }
+        ),
         _json({"notes": "bad", "files": [{"path": "app.py", "content": "def nope(:\n    pass\n"}]}),
     ]
     agent = make_static_agent(responses)
-    builder = AutonomousProjectBuilder(agent, BuilderBudget(max_attempts=1, max_tokens=20_000, max_seconds=60))
+    builder = AutonomousProjectBuilder(
+        agent, BuilderBudget(max_attempts=1, max_tokens=20_000, max_seconds=60)
+    )
     spec = ProjectSpec(name="bad", requirements="Create valid Python.", acceptance="import app\n")
 
     report = asyncio.run(builder.build(spec, tmp_path))
 
     assert report.passed is False
     assert report.validation.compile_passed is False
-    assert report.attempts[0].failure_summary in {"compile", "missing_files,compile", "compile,pytest,acceptance"}
+    assert report.attempts[0].failure_summary in {
+        "compile",
+        "missing_files,compile",
+        "compile,pytest,acceptance",
+    }

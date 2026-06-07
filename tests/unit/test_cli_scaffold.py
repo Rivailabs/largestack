@@ -1,4 +1,5 @@
 """Tests for largestack new/init production scaffolding."""
+
 from pathlib import Path
 import os
 import pytest
@@ -75,6 +76,7 @@ def test_scaffold_creates_agent_project():
     finally:
         os.chdir(old_cwd)
         import shutil
+
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
@@ -108,6 +110,7 @@ def test_scaffold_creates_support_ticket_template():
     finally:
         os.chdir(old_cwd)
         import shutil
+
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
@@ -154,6 +157,7 @@ def test_scaffold_creates_product_templates(template):
     finally:
         os.chdir(old_cwd)
         import shutil
+
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 

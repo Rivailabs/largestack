@@ -3,6 +3,7 @@
 These tests protect the developer-facing API so the framework has one simple
 entry point for common multi-agent automation patterns.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -16,13 +17,23 @@ def run(coro):
 
 def test_orchestrator_supported_strategies_include_public_patterns():
     strategies = set(Orchestrator.supported_strategies())
-    assert {"sequential", "parallel", "dag", "state_machine", "router", "supervisor", "map_reduce"} <= strategies
+    assert {
+        "sequential",
+        "parallel",
+        "dag",
+        "state_machine",
+        "router",
+        "supervisor",
+        "map_reduce",
+    } <= strategies
 
 
 def test_orchestrator_describe_is_machine_readable():
     a = Agent(name="extractor")
     b = Agent(name="validator")
-    orch = Orchestrator(strategy="dag", agents=[a, b], flow=[("extractor", "validator")], cost_budget=1.5)
+    orch = Orchestrator(
+        strategy="dag", agents=[a, b], flow=[("extractor", "validator")], cost_budget=1.5
+    )
     desc = orch.describe()
     assert desc["strategy"] == "dag"
     assert desc["agents"] == ["extractor", "validator"]
@@ -40,7 +51,10 @@ def test_router_strategy_dispatches_to_specialist():
         routes={"billing": billing, "technical": technical},
         default_route="technical",
     )
-    with classifier.override(model=TestModel("billing")), billing.override(model=TestModel("billing done")):
+    with (
+        classifier.override(model=TestModel("billing")),
+        billing.override(model=TestModel("billing done")),
+    ):
         result = run(orch.run("I was charged twice"))
     assert result.strategy == "router"
     assert result.output == "billing done"
@@ -57,13 +71,17 @@ def test_supervisor_strategy_routes_to_specialist():
         routes={"writer": writer, "reviewer": reviewer},
         max_iterations=2,
     )
+
     # First routing step chooses writer. Second supervisor response finishes.
     def supervisor_fn(messages, info):
         if info["attempt"] == 1:
             return "writer\nDraft a concise note"
         return "FINAL_ANSWER"
 
-    with supervisor.override(model=FunctionModel(supervisor_fn)), writer.override(model=TestModel("draft complete")):
+    with (
+        supervisor.override(model=FunctionModel(supervisor_fn)),
+        writer.override(model=TestModel("draft complete")),
+    ):
         result = run(orch.run("prepare a note"))
     assert result.strategy == "supervisor"
     assert result.output == "draft complete"

@@ -6,6 +6,7 @@ AND LARGESTACK_ENV != "production", auth is bypassed with a loud warning logged 
 This is intentionally minimal — no JWT/OIDC. For real auth, wire to your IdP
 in front of this server (Caddy/Cloudflare/Traefik with auth_request, etc.).
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -48,7 +49,7 @@ def verify_api_key(request: Request) -> None:
     if is_production():
         raise HTTPException(
             status_code=401,
-            detail="Dashboard requires authentication. Set LARGESTACK_DASHBOARD_KEY env var."
+            detail="Dashboard requires authentication. Set LARGESTACK_DASHBOARD_KEY env var.",
         )
 
     if not _warned_once:

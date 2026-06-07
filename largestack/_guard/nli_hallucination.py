@@ -4,6 +4,7 @@ The AUC≈0.81 figure refers to the published DeBERTa-v3-large-MNLI model. The m
 loads only when transformers is installed (else keyword fallback). Decomposes a
 response into claims and checks each against context via NLI entailment.
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -12,9 +13,10 @@ from largestack.errors import GuardrailBlockedError
 
 log = logging.getLogger("largestack.nli")
 
+
 class NLIHallucinationGuard(HallucinationGuard):
     """DeBERTa NLI-based hallucination detection."""
-    
+
     def __init__(
         self,
         threshold: float = 0.5,
@@ -28,6 +30,7 @@ class NLIHallucinationGuard(HallucinationGuard):
         self.model_revision = revision or os.environ.get("LARGESTACK_NLI_MODEL_REVISION", "main")
 
         from largestack._guard.config import ml_guards_enabled
+
         nli_enabled = ml_guards_enabled("LARGESTACK_ENABLE_NLI_GUARD")
         if not nli_enabled:
             log.info("NLI model loading skipped; set LARGESTACK_ENABLE_NLI_GUARD=1 to enable it")
@@ -71,11 +74,13 @@ class NLIHallucinationGuard(HallucinationGuard):
         """
         if not self._nli_model:
             return self._keyword_nli(premise, hypothesis)
-        
+
         try:
             import torch
-            inputs = self._nli_tokenizer(premise, hypothesis, return_tensors="pt",
-                                          truncation=True, max_length=512)
+
+            inputs = self._nli_tokenizer(
+                premise, hypothesis, return_tensors="pt", truncation=True, max_length=512
+            )
             with torch.no_grad():
                 outputs = self._nli_model(**inputs)
                 probs = torch.softmax(outputs.logits, dim=-1)[0]
@@ -87,7 +92,7 @@ class NLIHallucinationGuard(HallucinationGuard):
                 }
         except Exception:
             return self._keyword_nli(premise, hypothesis)
-    
+
     def _keyword_nli(self, premise: str, hypothesis: str) -> dict:
         """Fallback: keyword overlap as proxy for entailment."""
         p_words = set(premise.lower().split())
@@ -98,17 +103,17 @@ class NLIHallucinationGuard(HallucinationGuard):
             "neutral": (1 - overlap) * 0.5,
             "contradiction": (1 - overlap) * 0.5,
         }
-    
+
     def check_faithfulness_nli(self, response: str, context: str) -> float:
         """Score faithfulness using NLI on decomposed claims."""
         claims = self._decompose_claims(response)
         if not claims:
             return 1.0
-        
+
         entailed = 0
         for claim in claims:
             result = self.check_nli(premise=context, hypothesis=claim)
             if result["entailment"] > 0.5:
                 entailed += 1
-        
+
         return entailed / len(claims)

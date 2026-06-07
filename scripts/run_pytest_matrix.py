@@ -5,6 +5,7 @@ This is a release-gate fallback for constrained CI/sandbox environments where
 one global pytest command can hang without revealing the responsible file. It
 uses pytest's normal runner, but isolates files so failures/timeouts are clear.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,7 +18,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("paths", nargs="*", default=["tests"], help="test paths to discover")
     parser.add_argument("--timeout", type=int, default=120, help="seconds per test file")
-    parser.add_argument("--fail-fast", action="store_true", help="stop at first failed/timed-out file")
+    parser.add_argument(
+        "--fail-fast", action="store_true", help="stop at first failed/timed-out file"
+    )
     args = parser.parse_args()
 
     files: list[Path] = []

@@ -1,4 +1,5 @@
 """Provider fallback example using configured provider keys."""
+
 from pathlib import Path
 import os
 import sys
@@ -18,8 +19,12 @@ def fallback_model(primary: str) -> str:
 
 async def main():
     primary_model = select_model()
-    fallback = Agent(name="fallback", llm=fallback_model(primary_model), guardrails=False, cost_budget=0.10)
-    primary = Agent(name="primary", llm=primary_model, fallback=fallback, guardrails=False, cost_budget=0.10)
+    fallback = Agent(
+        name="fallback", llm=fallback_model(primary_model), guardrails=False, cost_budget=0.10
+    )
+    primary = Agent(
+        name="primary", llm=primary_model, fallback=fallback, guardrails=False, cost_budget=0.10
+    )
     try:
         result = await primary.run("What is Python? Answer in one sentence.", timeout=90)
         print(result.content)

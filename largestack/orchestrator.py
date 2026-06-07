@@ -14,6 +14,7 @@ Use this when you want a clean application-level API:
 
 For highly customized orchestration, the underlying modules remain available.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -153,6 +154,7 @@ class Orchestrator:
 
     def _checkpoint_manager(self):
         from largestack._state.checkpoint import CheckpointManager
+
         if self.checkpoint_db_path:
             return CheckpointManager(self.checkpoint_db_path)
         return CheckpointManager()
@@ -194,7 +196,9 @@ class Orchestrator:
                     raw=state.get("raw"),
                 )
 
-        self._save_checkpoint("started", {"strategy": self.strategy, "task": task, "metadata": self.describe()})
+        self._save_checkpoint(
+            "started", {"strategy": self.strategy, "task": task, "metadata": self.describe()}
+        )
         try:
             if self.strategy in {"sequential", "parallel"}:
                 result = await self._run_team(task, **kwargs)
@@ -209,17 +213,22 @@ class Orchestrator:
             else:
                 raise AssertionError(f"unreachable strategy: {self.strategy}")
         except Exception as exc:
-            self._save_checkpoint("failed", {"strategy": self.strategy, "error": str(exc), "task": task})
+            self._save_checkpoint(
+                "failed", {"strategy": self.strategy, "error": str(exc), "task": task}
+            )
             raise
 
-        self._save_checkpoint("completed", {
-            "strategy": result.strategy,
-            "output": result.output,
-            "trace_id": result.trace_id,
-            "total_cost": result.total_cost,
-            "steps": result.steps,
-            "metadata": result.metadata,
-        })
+        self._save_checkpoint(
+            "completed",
+            {
+                "strategy": result.strategy,
+                "output": result.output,
+                "trace_id": result.trace_id,
+                "total_cost": result.total_cost,
+                "steps": result.steps,
+                "metadata": result.metadata,
+            },
+        )
         if self.durable:
             result.metadata = {**result.metadata, "durable": True, "thread_id": self.thread_id}
         return result
@@ -237,7 +246,13 @@ class Orchestrator:
             on_error=self.on_error,
             retries_per_agent=self.retries_per_agent,
         )
-        prompt = task if isinstance(task, str) else task.get("task", str(task)) if isinstance(task, dict) else str(task)
+        prompt = (
+            task
+            if isinstance(task, str)
+            else task.get("task", str(task))
+            if isinstance(task, dict)
+            else str(task)
+        )
         raw = await team.run(prompt, **kwargs)
         return OrchestratorResult(
             output=getattr(raw, "content", raw),
@@ -282,11 +297,19 @@ class Orchestrator:
 
         routes = self.routes or self.agent_map
         if not routes:
-            raise ValueError("Router orchestration requires routes={name: agent} or agents={name: agent}")
+            raise ValueError(
+                "Router orchestration requires routes={name: agent} or agents={name: agent}"
+            )
         classifier = self.classifier or (self.agents[0] if self.agents else None)
         if classifier is None:
             raise ValueError("Router orchestration requires classifier=<Agent>")
-        prompt = task if isinstance(task, str) else task.get("task", str(task)) if isinstance(task, dict) else str(task)
+        prompt = (
+            task
+            if isinstance(task, str)
+            else task.get("task", str(task))
+            if isinstance(task, dict)
+            else str(task)
+        )
         default = self.default_route or next(iter(routes.keys()))
         router = Router(classifier=classifier, routes=dict(routes), default=default)
         raw = await router.run(prompt)
@@ -312,7 +335,13 @@ class Orchestrator:
             raise ValueError("Supervisor orchestration requires supervisor_agent=<Agent>")
         if not specialists:
             raise ValueError("Supervisor orchestration requires specialist routes/agents")
-        prompt = task if isinstance(task, str) else task.get("task", str(task)) if isinstance(task, dict) else str(task)
+        prompt = (
+            task
+            if isinstance(task, str)
+            else task.get("task", str(task))
+            if isinstance(task, dict)
+            else str(task)
+        )
         descriptions = {
             name: getattr(agent, "instructions", "") or f"Specialist agent {name}"
             for name, agent in specialists.items()

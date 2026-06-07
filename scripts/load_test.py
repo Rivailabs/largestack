@@ -13,6 +13,7 @@ matter is an ops exercise.
     python scripts/load_test.py --n 1000 --concurrency 50
     python scripts/load_test.py --n 200 --concurrency 10 --llm ollama/qwen2.5:0.5b
 """
+
 from __future__ import annotations
 import argparse, asyncio, time
 
@@ -28,11 +29,15 @@ async def _run_one(agent, task: str) -> tuple[bool, float]:
 
 async def main(n: int, concurrency: int, llm: str | None):
     from largestack import Agent
-    agent = Agent(name="load", instructions="Reply briefly.", llm=llm, guardrails=["pii", "injection"])
+
+    agent = Agent(
+        name="load", instructions="Reply briefly.", llm=llm, guardrails=["pii", "injection"]
+    )
     use_test = llm is None
     ctx = None
     if use_test:
         from largestack.testing import TestModel
+
         ctx = agent.override(model=TestModel(custom_output_text="ok"))
         ctx.__enter__()
     sem = asyncio.Semaphore(concurrency)
@@ -43,7 +48,8 @@ async def main(n: int, concurrency: int, llm: str | None):
         nonlocal ok
         async with sem:
             success, dt = await _run_one(agent, f"request {i}: summarize policy")
-            latencies.append(dt); ok += int(success)
+            latencies.append(dt)
+            ok += int(success)
 
     t0 = time.perf_counter()
     await asyncio.gather(*[_task(i) for i in range(n)])
@@ -53,16 +59,21 @@ async def main(n: int, concurrency: int, llm: str | None):
     await agent.aclose()
 
     latencies.sort()
-    def pct(p): return latencies[min(int(len(latencies) * p / 100), len(latencies) - 1)] if latencies else 0.0
+
+    def pct(p):
+        return (
+            latencies[min(int(len(latencies) * p / 100), len(latencies) - 1)] if latencies else 0.0
+        )
+
     print("LOAD TEST RESULT")
     print(f"  mode         : {'TestModel (framework overhead)' if use_test else llm}")
     print(f"  requests     : {n}  (concurrency {concurrency})")
     print(f"  success      : {ok}/{n}")
     print(f"  wall time    : {wall:.2f}s")
     print(f"  throughput   : {n / wall:.1f} req/s")
-    print(f"  latency p50  : {pct(50)*1000:.1f} ms")
-    print(f"  latency p95  : {pct(95)*1000:.1f} ms")
-    print(f"  latency p99  : {pct(99)*1000:.1f} ms")
+    print(f"  latency p50  : {pct(50) * 1000:.1f} ms")
+    print(f"  latency p95  : {pct(95) * 1000:.1f} ms")
+    print(f"  latency p99  : {pct(99) * 1000:.1f} ms")
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ Usage:
 Requires a provider key, e.g.:
     export LARGESTACK_DEEPSEEK_API_KEY="sk-..."
 """
+
 from __future__ import annotations
 
 import argparse
@@ -76,7 +77,9 @@ async def run_interactive() -> None:
                 continue
             out = await jarvis.ask(msg)
             print(f"Jarvis: {out.reply}")
-            print(f"\033[90m  · tools: {out.tools_used or '—'} · total ${out.total_cost:.6f}\033[0m")
+            print(
+                f"\033[90m  · tools: {out.tools_used or '—'} · total ${out.total_cost:.6f}\033[0m"
+            )
     finally:
         await jarvis.close()
     print("Bye.")
@@ -91,7 +94,7 @@ def main() -> int:
     if not has_api_key():
         print(
             f"No API key for model '{MODEL}'.\n"
-            "Set one first, e.g.:  export LARGESTACK_DEEPSEEK_API_KEY=\"sk-...\"",
+            'Set one first, e.g.:  export LARGESTACK_DEEPSEEK_API_KEY="sk-..."',
             file=sys.stderr,
         )
         return 2

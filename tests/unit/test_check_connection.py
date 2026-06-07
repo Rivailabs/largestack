@@ -1,6 +1,7 @@
 """check_connection() must report a clear failure (not hang/raise) when a provider
 is unreachable / has no key — so users can verify each provider with their own key.
 """
+
 from __future__ import annotations
 
 import os
@@ -19,4 +20,5 @@ async def test_reports_failure_without_key():
 
 def test_check_connection_is_public():
     import largestack
+
     assert hasattr(largestack, "check_connection")

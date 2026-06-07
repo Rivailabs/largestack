@@ -6,6 +6,7 @@ Covers:
 - SPA build artifact mount
 - Permissions-Policy header
 """
+
 from __future__ import annotations
 
 import os
@@ -19,10 +20,12 @@ from fastapi.testclient import TestClient
 # Rate limiter — Redis backend with graceful fallback
 # ---------------------------------------------------------------------------
 
+
 def test_rate_limiter_inprocess_default(monkeypatch):
     """Default backend is in-process when no env override."""
     monkeypatch.delenv("LARGESTACK_RATE_LIMIT_BACKEND", raising=False)
     from largestack._dashboard.rate_limit import _get_limiter, reset_for_tests, InProcessRateLimiter
+
     reset_for_tests()
     limiter = _get_limiter()
     assert isinstance(limiter, InProcessRateLimiter)
@@ -35,11 +38,12 @@ def test_rate_limiter_inprocess_enforces_burst(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RATE_LIMIT_BURST", "5")
     monkeypatch.setenv("LARGESTACK_RATE_LIMIT_PER_MINUTE", "1")  # very slow refill
     from largestack._dashboard.rate_limit import _get_limiter, reset_for_tests
+
     reset_for_tests()
     limiter = _get_limiter()
     # First 5 should succeed, 6th rejected
     for i in range(5):
-        assert limiter.check("test_key"), f"request {i+1} should be allowed"
+        assert limiter.check("test_key"), f"request {i + 1} should be allowed"
     assert not limiter.check("test_key"), "6th request should be rate-limited"
     reset_for_tests()
 
@@ -50,6 +54,7 @@ def test_rate_limiter_redis_backend_falls_back_when_redis_missing(monkeypatch):
     monkeypatch.setenv("LARGESTACK_RATE_LIMIT_BACKEND", "redis")
     monkeypatch.setenv("LARGESTACK_REDIS_URL", "redis://nonexistent.invalid:6379/0")
     from largestack._dashboard.rate_limit import _get_limiter, reset_for_tests, RedisRateLimiter
+
     reset_for_tests()
     limiter = _get_limiter()
     assert isinstance(limiter, RedisRateLimiter)
@@ -68,6 +73,7 @@ def test_rate_limiter_disable_bypass(monkeypatch):
     class FakeReq:
         headers = {"X-API-Key": "test"}
         client = None
+
     # Should not raise even after many calls
     for _ in range(100):
         rate_limit_dependency(FakeReq())  # no exception
@@ -76,6 +82,7 @@ def test_rate_limiter_disable_bypass(monkeypatch):
 def test_rate_limiter_module_exports():
     """Confirm the public API is intact."""
     from largestack._dashboard import rate_limit
+
     assert hasattr(rate_limit, "rate_limit_dependency")
     assert hasattr(rate_limit, "RateLimiter")  # backwards-compat alias
     assert hasattr(rate_limit, "InProcessRateLimiter")
@@ -86,9 +93,11 @@ def test_rate_limiter_module_exports():
 # Nonce-based CSP — must drop 'unsafe-inline'
 # ---------------------------------------------------------------------------
 
+
 def test_dashboard_csp_uses_nonce_not_unsafe_inline():
     """CSP header must contain a nonce-* token and NOT 'unsafe-inline'."""
     from largestack._dashboard.app import create_app
+
     client = TestClient(create_app())
     r = client.get("/")
     csp = r.headers.get("Content-Security-Policy", "")
@@ -100,6 +109,7 @@ def test_dashboard_csp_uses_nonce_not_unsafe_inline():
 def test_dashboard_csp_nonce_changes_per_request():
     """Each request must get a fresh, different nonce."""
     from largestack._dashboard.app import create_app
+
     client = TestClient(create_app())
     r1 = client.get("/")
     r2 = client.get("/")
@@ -119,15 +129,17 @@ def test_dashboard_csp_nonce_changes_per_request():
 def test_dashboard_html_inline_scripts_have_nonce():
     """Every <style> and <script> tag in the response must have a nonce attribute."""
     from largestack._dashboard.app import create_app
+
     client = TestClient(create_app())
     r = client.get("/")
     html = r.text
     # Strict check: every <script> and <style> must have a nonce
     # (excluding the closing tags)
     import re
+
     for tag in re.finditer(r"<(script|style)([^>]*)>", html):
         attrs = tag.group(2)
-        assert 'nonce=' in attrs, (
+        assert "nonce=" in attrs, (
             f"Tag without nonce will be blocked by CSP: <{tag.group(1)}{attrs}>"
         )
 
@@ -135,6 +147,7 @@ def test_dashboard_html_inline_scripts_have_nonce():
 def test_dashboard_csp_nonce_matches_html_nonce():
     """The nonce in the CSP header must match the one in inline tags."""
     from largestack._dashboard.app import create_app
+
     client = TestClient(create_app())
     r = client.get("/")
     csp = r.headers.get("Content-Security-Policy", "")
@@ -149,18 +162,19 @@ def test_dashboard_csp_nonce_matches_html_nonce():
 
     # Extract nonce from a script tag
     import re
+
     m = re.search(r'<script\s+[^>]*nonce="([^"]+)"', r.text)
     assert m, "no <script nonce=...> in HTML"
     html_nonce = m.group(1)
     assert csp_nonce == html_nonce, (
-        f"CSP nonce {csp_nonce!r} != HTML nonce {html_nonce!r} — "
-        "browser will block the script"
+        f"CSP nonce {csp_nonce!r} != HTML nonce {html_nonce!r} — browser will block the script"
     )
 
 
 def test_dashboard_security_headers_complete():
     """All defense-in-depth security headers are present."""
     from largestack._dashboard.app import create_app
+
     client = TestClient(create_app())
     r = client.get("/")
     expected = [
@@ -179,6 +193,7 @@ def test_dashboard_security_headers_complete():
 def test_dashboard_csp_drops_object_src():
     """v0.4.0 CSP must explicitly forbid <object>/<embed>/<applet>."""
     from largestack._dashboard.app import create_app
+
     client = TestClient(create_app())
     r = client.get("/")
     csp = r.headers["Content-Security-Policy"]
@@ -188,6 +203,7 @@ def test_dashboard_csp_drops_object_src():
 # ---------------------------------------------------------------------------
 # SPA build pipeline
 # ---------------------------------------------------------------------------
+
 
 def test_spa_directory_structure_present():
     """The SPA build pipeline files must exist."""
@@ -204,6 +220,7 @@ def test_spa_directory_structure_present():
 def test_spa_package_json_has_required_deps():
     """package.json declares react, react-dom, recharts, vite."""
     import json
+
     repo = Path(__file__).resolve().parent.parent.parent
     pkg = json.loads((repo / "largestack" / "_dashboard" / "spa" / "package.json").read_text())
     assert "react" in pkg["dependencies"]
@@ -219,19 +236,20 @@ def test_spa_not_mounted_by_default(monkeypatch):
     """SPA only mounts when LARGESTACK_DASHBOARD_SPA=1."""
     monkeypatch.delenv("LARGESTACK_DASHBOARD_SPA", raising=False)
     from largestack._dashboard.app import create_app
+
     app = create_app()
     routes = [getattr(r, "path", "") for r in app.routes]
-    assert not any(r.startswith("/spa") for r in routes), (
-        "SPA mounted without opt-in"
-    )
+    assert not any(r.startswith("/spa") for r in routes), "SPA mounted without opt-in"
 
 
 def test_spa_mount_skipped_gracefully_when_dist_missing(monkeypatch, caplog):
     """LARGESTACK_DASHBOARD_SPA=1 but dist/ missing → log warning, don't crash."""
     import logging
+
     monkeypatch.setenv("LARGESTACK_DASHBOARD_SPA", "1")
     caplog.set_level(logging.WARNING, logger="largestack.dashboard")
     from largestack._dashboard.app import create_app
+
     app = create_app()  # must not raise
     # Optional: confirm a warning was logged
     routes = [getattr(r, "path", "") for r in app.routes]

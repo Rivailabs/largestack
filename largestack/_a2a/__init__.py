@@ -25,6 +25,7 @@ can install the official SDK and use LARGESTACK agents as task handlers.
 Zero external deps for the core types + client. Server uses ``aiohttp``
 if available; falls back to a stdlib-only test server.
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -40,10 +41,13 @@ log = logging.getLogger("largestack.a2a")
 # -------------------- Domain types --------------------
 
 TaskState = Literal[
-    "submitted", "working", "input-required", "completed",
-    "failed", "canceled",
+    "submitted",
+    "working",
+    "input-required",
+    "completed",
+    "failed",
+    "canceled",
 ]
-
 
 
 def _require_http_url(url: str) -> str:
@@ -59,6 +63,7 @@ def _require_http_url(url: str) -> str:
 @dataclass
 class AgentSkill:
     """A single capability advertised by an agent."""
+
     id: str
     name: str
     description: str = ""
@@ -69,6 +74,7 @@ class AgentSkill:
 @dataclass
 class AgentCapabilities:
     """What protocol features the agent supports."""
+
     streaming: bool = False
     push_notifications: bool = False
     state_transition_history: bool = True
@@ -80,6 +86,7 @@ class AgentCard:
 
     Spec: https://a2a-protocol.org/latest/specification/agent-card/
     """
+
     name: str
     description: str
     url: str  # base URL where the agent is hosted
@@ -110,20 +117,16 @@ class AgentCard:
 
         # Re-hydrate nested types
         if "capabilities" in clean and isinstance(clean["capabilities"], dict):
-            cap_valid = {
-                f.name for f in AgentCapabilities.__dataclass_fields__.values()
-            }
-            clean["capabilities"] = AgentCapabilities(**{
-                k: v for k, v in clean["capabilities"].items()
-                if k in cap_valid
-            })
+            cap_valid = {f.name for f in AgentCapabilities.__dataclass_fields__.values()}
+            clean["capabilities"] = AgentCapabilities(
+                **{k: v for k, v in clean["capabilities"].items() if k in cap_valid}
+            )
         if "skills" in clean and isinstance(clean["skills"], list):
-            skill_valid = {
-                f.name for f in AgentSkill.__dataclass_fields__.values()
-            }
+            skill_valid = {f.name for f in AgentSkill.__dataclass_fields__.values()}
             clean["skills"] = [
                 AgentSkill(**{k: v for k, v in s.items() if k in skill_valid})
-                if isinstance(s, dict) else s
+                if isinstance(s, dict)
+                else s
                 for s in clean["skills"]
             ]
         return cls(**clean)
@@ -132,6 +135,7 @@ class AgentCard:
 @dataclass
 class A2AMessage:
     """A single message in a task conversation."""
+
     role: Literal["user", "agent"]
     parts: list[dict[str, Any]] = field(default_factory=list)
     timestamp: float = field(default_factory=lambda: time.time())
@@ -142,15 +146,13 @@ class A2AMessage:
 
     def get_text(self) -> str:
         """Concatenate all text parts."""
-        return "\n".join(
-            p.get("text", "") for p in self.parts
-            if p.get("type") == "text"
-        )
+        return "\n".join(p.get("text", "") for p in self.parts if p.get("type") == "text")
 
 
 @dataclass
 class A2ATask:
     """A2A task lifecycle object."""
+
     id: str
     state: TaskState = "submitted"
     messages: list[A2AMessage] = field(default_factory=list)
@@ -180,7 +182,8 @@ class A2ATask:
             "state": self.state,
             "messages": [
                 {
-                    "role": m.role, "parts": m.parts,
+                    "role": m.role,
+                    "parts": m.parts,
                     "timestamp": m.timestamp,
                 }
                 for m in self.messages
@@ -228,7 +231,8 @@ class A2AServer:
         self._lock = asyncio.Lock()
 
     async def submit_task(
-        self, input_text: str,
+        self,
+        input_text: str,
         *,
         task_id: str | None = None,
         metadata: dict[str, Any] | None = None,
@@ -276,7 +280,8 @@ class A2AServer:
         async with self._lock:
             now = time.time()
             to_delete = [
-                tid for tid, t in self._tasks.items()
+                tid
+                for tid, t in self._tasks.items()
                 if t.state in ("completed", "failed", "canceled")
                 and (now - t.updated_at) > self.task_ttl_seconds
             ]
@@ -287,7 +292,9 @@ class A2AServer:
     # -------------------- HTTP request handlers --------------------
 
     async def handle_request(
-        self, method: str, path: str,
+        self,
+        method: str,
+        path: str,
         body: dict[str, Any] | None = None,
     ) -> tuple[int, dict[str, Any]]:
         """Generic request dispatcher. Returns (status_code, body_dict).
@@ -308,7 +315,8 @@ class A2AServer:
                 if isinstance(msg, dict):
                     parts = msg.get("parts", [])
                     input_text = "\n".join(
-                        p.get("text", "") for p in parts
+                        p.get("text", "")
+                        for p in parts
                         if isinstance(p, dict) and p.get("type") == "text"
                     )
             if not input_text:
@@ -322,16 +330,15 @@ class A2AServer:
 
         # Query task
         if method == "GET" and path.startswith("/tasks/"):
-            task_id = path[len("/tasks/"):].split("/")[0]
+            task_id = path[len("/tasks/") :].split("/")[0]
             task = await self.get_task(task_id)
             if not task:
                 return 404, {"error": f"task {task_id} not found"}
             return 200, task.to_dict()
 
         # Cancel task
-        if method == "POST" and path.startswith("/tasks/") \
-                and path.endswith("/cancel"):
-            task_id = path[len("/tasks/"):-len("/cancel")]
+        if method == "POST" and path.startswith("/tasks/") and path.endswith("/cancel"):
+            task_id = path[len("/tasks/") : -len("/cancel")]
             ok = await self.cancel_task(task_id)
             if not ok:
                 return 400, {"error": "cannot cancel task"}
@@ -341,6 +348,7 @@ class A2AServer:
 
 
 # -------------------- Client --------------------
+
 
 class A2AClient:
     """Client for invoking a remote A2A agent.
@@ -372,7 +380,9 @@ class A2AClient:
         return h
 
     async def _post_json(
-        self, path: str, body: dict[str, Any],
+        self,
+        path: str,
+        body: dict[str, Any],
     ) -> tuple[int, dict[str, Any]]:
         url = self.base_url + path
         try:
@@ -382,14 +392,17 @@ class A2AClient:
 
         async with aiohttp.ClientSession(headers=self._headers) as s:
             async with s.post(
-                url, json=body, timeout=aiohttp.ClientTimeout(
+                url,
+                json=body,
+                timeout=aiohttp.ClientTimeout(
                     total=self.timeout,
                 ),
             ) as resp:
                 return resp.status, await resp.json()
 
     async def _get_json(
-        self, path: str,
+        self,
+        path: str,
     ) -> tuple[int, dict[str, Any]]:
         url = self.base_url + path
         try:
@@ -399,12 +412,15 @@ class A2AClient:
 
         async with aiohttp.ClientSession(headers=self._headers) as s:
             async with s.get(
-                url, timeout=aiohttp.ClientTimeout(total=self.timeout),
+                url,
+                timeout=aiohttp.ClientTimeout(total=self.timeout),
             ) as resp:
                 return resp.status, await resp.json()
 
     async def _post_json_urllib(
-        self, url: str, body: dict[str, Any],
+        self,
+        url: str,
+        body: dict[str, Any],
     ) -> tuple[int, dict[str, Any]]:
         """stdlib fallback. Synchronous, run in thread."""
         import urllib.error
@@ -429,14 +445,17 @@ class A2AClient:
         return await asyncio.to_thread(_do)
 
     async def _get_json_urllib(
-        self, url: str,
+        self,
+        url: str,
     ) -> tuple[int, dict[str, Any]]:
         import urllib.error
         import urllib.request
 
         def _do():
             req = urllib.request.Request(
-                url, headers=self._headers, method="GET",
+                url,
+                headers=self._headers,
+                method="GET",
             )
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout) as r:  # nosec B310
@@ -455,13 +474,13 @@ class A2AClient:
         """Fetch the agent's AgentCard."""
         status, body = await self._get_json("/.well-known/agent.json")
         if status != 200:
-            raise RuntimeError(
-                f"discover failed: HTTP {status} - {body.get('error', '')}"
-            )
+            raise RuntimeError(f"discover failed: HTTP {status} - {body.get('error', '')}")
         return AgentCard.from_dict(body)
 
     async def send_task(
-        self, input_text: str, *,
+        self,
+        input_text: str,
+        *,
         task_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> A2ATask:
@@ -473,9 +492,7 @@ class A2AClient:
             body["metadata"] = metadata
         status, resp = await self._post_json("/tasks/send", body)
         if status != 200:
-            raise RuntimeError(
-                f"send_task failed: HTTP {status} - {resp.get('error', '')}"
-            )
+            raise RuntimeError(f"send_task failed: HTTP {status} - {resp.get('error', '')}")
         return _task_from_dict(resp)
 
     async def get_task(self, task_id: str) -> A2ATask | None:
@@ -483,9 +500,7 @@ class A2AClient:
         if status == 404:
             return None
         if status != 200:
-            raise RuntimeError(
-                f"get_task failed: HTTP {status} - {resp.get('error', '')}"
-            )
+            raise RuntimeError(f"get_task failed: HTTP {status} - {resp.get('error', '')}")
         return _task_from_dict(resp)
 
     async def cancel_task(self, task_id: str) -> bool:
@@ -498,11 +513,13 @@ def _task_from_dict(d: dict[str, Any]) -> A2ATask:
     msgs = []
     for m in d.get("messages", []):
         if isinstance(m, dict):
-            msgs.append(A2AMessage(
-                role=m.get("role", "user"),
-                parts=m.get("parts", []),
-                timestamp=m.get("timestamp", time.time()),
-            ))
+            msgs.append(
+                A2AMessage(
+                    role=m.get("role", "user"),
+                    parts=m.get("parts", []),
+                    timestamp=m.get("timestamp", time.time()),
+                )
+            )
     return A2ATask(
         id=d.get("id", ""),
         state=d.get("state", "submitted"),
@@ -516,6 +533,7 @@ def _task_from_dict(d: dict[str, Any]) -> A2ATask:
 
 
 # -------------------- LARGESTACK-side helpers --------------------
+
 
 def expose_largestack_agent(
     largestack_agent,

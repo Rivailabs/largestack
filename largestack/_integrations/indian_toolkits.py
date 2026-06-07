@@ -11,6 +11,7 @@ NBFC, LegalDocs.in, and CA Practice Management projects.
 - ``eSignToolkit`` — Aadhaar-based eSign workflows
 - ``KYCToolkit`` — PAN, Aadhaar OKYC verification
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -41,6 +42,7 @@ def _aadhaar_redact(aadhaar: str) -> str:
 
 # -------------------- UPI Toolkit --------------------
 
+
 class UPIToolkit:
     """UPI integration via Razorpay (the canonical Indian aggregator).
 
@@ -60,9 +62,7 @@ class UPIToolkit:
         key_secret: str | None = None,
     ):
         self.key_id = key_id or os.environ.get("LARGESTACK_RAZORPAY_KEY_ID", "")
-        self.key_secret = key_secret or os.environ.get(
-            "LARGESTACK_RAZORPAY_KEY_SECRET", ""
-        )
+        self.key_secret = key_secret or os.environ.get("LARGESTACK_RAZORPAY_KEY_SECRET", "")
         self.base_url = "https://api.razorpay.com/v1"
         self._tools = self._build_tools()
 
@@ -84,51 +84,56 @@ class UPIToolkit:
             if err:
                 return err
             if "@" not in vpa or len(vpa) < 5:
-                return json.dumps({
-                    "vpa": vpa, "valid": False,
-                    "reason": "invalid VPA format",
-                })
+                return json.dumps(
+                    {
+                        "vpa": vpa,
+                        "valid": False,
+                        "reason": "invalid VPA format",
+                    }
+                )
             try:
-                async with httpx.AsyncClient(
-                    timeout=30, auth=(tk.key_id, tk.key_secret)
-                ) as client:
+                async with httpx.AsyncClient(timeout=30, auth=(tk.key_id, tk.key_secret)) as client:
                     r = await client.post(
                         f"{tk.base_url}/payments/validate/vpa",
                         json={"vpa": vpa},
                     )
                     if r.status_code == 200:
                         data = r.json()
-                        return json.dumps({
-                            "vpa": vpa, "valid": True,
-                            "customer_name": data.get("customer_name", ""),
-                        })
+                        return json.dumps(
+                            {
+                                "vpa": vpa,
+                                "valid": True,
+                                "customer_name": data.get("customer_name", ""),
+                            }
+                        )
                     if r.status_code == 400:
-                        return json.dumps({
-                            "vpa": vpa, "valid": False,
-                            "reason": "invalid VPA",
-                        })
+                        return json.dumps(
+                            {
+                                "vpa": vpa,
+                                "valid": False,
+                                "reason": "invalid VPA",
+                            }
+                        )
                     return f"error: HTTP {r.status_code}: {r.text[:200]}"
             except Exception as e:
                 return f"error: {e}"
 
         @tool(
             name="upi_create_payment_intent",
-            description=(
-                "Create a UPI payment request. Returns payment_id + UPI intent."
-            ),
+            description=("Create a UPI payment request. Returns payment_id + UPI intent."),
             timeout=30,
         )
         async def create_upi_payment_intent(
-            amount_paise: int, vpa: str, description: str = "Payment",
+            amount_paise: int,
+            vpa: str,
+            description: str = "Payment",
             currency: str = "INR",
         ) -> str:
             err = tk._check_auth()
             if err:
                 return err
             try:
-                async with httpx.AsyncClient(
-                    timeout=30, auth=(tk.key_id, tk.key_secret)
-                ) as client:
+                async with httpx.AsyncClient(timeout=30, auth=(tk.key_id, tk.key_secret)) as client:
                     order_r = await client.post(
                         f"{tk.base_url}/orders",
                         json={
@@ -143,20 +148,26 @@ class UPIToolkit:
                     pay_r = await client.post(
                         f"{tk.base_url}/payments/create/upi",
                         json={
-                            "amount": int(amount_paise), "currency": currency,
-                            "order_id": order.get("id"), "method": "upi",
-                            "vpa": vpa, "description": description,
+                            "amount": int(amount_paise),
+                            "currency": currency,
+                            "order_id": order.get("id"),
+                            "method": "upi",
+                            "vpa": vpa,
+                            "description": description,
                         },
                     )
                     if pay_r.status_code >= 400:
                         return f"error: UPI HTTP {pay_r.status_code}"
                     pay = pay_r.json()
-                    return json.dumps({
-                        "order_id": order.get("id"),
-                        "payment_id": pay.get("razorpay_payment_id", pay.get("id")),
-                        "amount_paise": amount_paise, "vpa": vpa,
-                        "status": pay.get("status", "created"),
-                    })
+                    return json.dumps(
+                        {
+                            "order_id": order.get("id"),
+                            "payment_id": pay.get("razorpay_payment_id", pay.get("id")),
+                            "amount_paise": amount_paise,
+                            "vpa": vpa,
+                            "status": pay.get("status", "created"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -169,21 +180,21 @@ class UPIToolkit:
             if err:
                 return err
             try:
-                async with httpx.AsyncClient(
-                    timeout=30, auth=(tk.key_id, tk.key_secret)
-                ) as client:
+                async with httpx.AsyncClient(timeout=30, auth=(tk.key_id, tk.key_secret)) as client:
                     r = await client.get(f"{tk.base_url}/payments/{payment_id}")
                     if r.status_code >= 400:
                         return f"error: HTTP {r.status_code}"
                     p = r.json()
-                    return json.dumps({
-                        "payment_id": payment_id,
-                        "status": p.get("status"),
-                        "amount": p.get("amount"),
-                        "method": p.get("method"),
-                        "vpa": p.get("vpa"),
-                        "captured": p.get("captured"),
-                    })
+                    return json.dumps(
+                        {
+                            "payment_id": payment_id,
+                            "status": p.get("status"),
+                            "amount": p.get("amount"),
+                            "method": p.get("method"),
+                            "vpa": p.get("vpa"),
+                            "captured": p.get("captured"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -195,15 +206,21 @@ class UPIToolkit:
 
 # -------------------- GST Toolkit --------------------
 
+
 class GSTToolkit:
     """GST gov.in lookup + verification toolkit (via MasterGST aggregator)."""
 
     def __init__(
-        self, api_key: str | None = None, *, provider: str = "mastergst",
+        self,
+        api_key: str | None = None,
+        *,
+        provider: str = "mastergst",
     ):
-        self.api_key = api_key or os.environ.get(
-            "LARGESTACK_GST_API_KEY"
-        ) or os.environ.get("MASTERGST_API_KEY", "")
+        self.api_key = (
+            api_key
+            or os.environ.get("LARGESTACK_GST_API_KEY")
+            or os.environ.get("MASTERGST_API_KEY", "")
+        )
         self.provider = provider
         self.base_urls = {
             "mastergst": "https://api.mastergst.com/public/search",
@@ -227,34 +244,45 @@ class GSTToolkit:
         async def validate_gstin(gstin: str) -> str:
             gstin = gstin.upper().strip()
             if not GSTIN_PATTERN.match(gstin):
-                return json.dumps({
-                    "gstin": gstin, "valid_format": False,
-                    "reason": "invalid GSTIN format",
-                })
+                return json.dumps(
+                    {
+                        "gstin": gstin,
+                        "valid_format": False,
+                        "reason": "invalid GSTIN format",
+                    }
+                )
             err = tk._check_auth()
             if err:
-                return json.dumps({
-                    "gstin": gstin, "valid_format": True,
-                    "lookup": "skipped", "error": err,
-                })
+                return json.dumps(
+                    {
+                        "gstin": gstin,
+                        "valid_format": True,
+                        "lookup": "skipped",
+                        "error": err,
+                    }
+                )
             base = tk.base_urls[tk.provider]
             try:
                 async with httpx.AsyncClient(timeout=30) as client:
                     r = await client.get(
-                        base, params={"gstin": gstin},
+                        base,
+                        params={"gstin": gstin},
                         headers={"x-api-key": tk.api_key},
                     )
                     if r.status_code != 200:
                         return f"error: GST HTTP {r.status_code}"
                     data = r.json()
-                    return json.dumps({
-                        "gstin": gstin, "valid_format": True,
-                        "legal_name": data.get("lgnm") or data.get("legal_name"),
-                        "trade_name": data.get("tradeNam") or data.get("trade_name"),
-                        "status": data.get("sts") or data.get("status"),
-                        "registration_date": data.get("rgdt"),
-                        "constitution": data.get("ctb"),
-                    })
+                    return json.dumps(
+                        {
+                            "gstin": gstin,
+                            "valid_format": True,
+                            "legal_name": data.get("lgnm") or data.get("legal_name"),
+                            "trade_name": data.get("tradeNam") or data.get("trade_name"),
+                            "status": data.get("sts") or data.get("status"),
+                            "registration_date": data.get("rgdt"),
+                            "constitution": data.get("ctb"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -264,7 +292,9 @@ class GSTToolkit:
             timeout=30,
         )
         async def check_return_status(
-            gstin: str, financial_year: str, return_type: str = "GSTR3B",
+            gstin: str,
+            financial_year: str,
+            return_type: str = "GSTR3B",
         ) -> str:
             gstin = gstin.upper().strip()
             if not GSTIN_PATTERN.match(gstin):
@@ -281,11 +311,14 @@ class GSTToolkit:
                     )
                     if r.status_code != 200:
                         return f"error: HTTP {r.status_code}"
-                    return json.dumps({
-                        "gstin": gstin, "fy": financial_year,
-                        "return_type": return_type,
-                        "filings": r.json().get("filings", []),
-                    })
+                    return json.dumps(
+                        {
+                            "gstin": gstin,
+                            "fy": financial_year,
+                            "return_type": return_type,
+                            "filings": r.json().get("filings", []),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -296,6 +329,7 @@ class GSTToolkit:
 
 
 # -------------------- MCA Toolkit --------------------
+
 
 class MCAToolkit:
     """Ministry of Corporate Affairs lookup (via Probe42 aggregator)."""
@@ -321,10 +355,13 @@ class MCAToolkit:
         async def lookup_company(cin: str) -> str:
             cin = cin.upper().strip()
             if not CIN_PATTERN.match(cin):
-                return json.dumps({
-                    "cin": cin, "valid_format": False,
-                    "reason": "CIN must be 21 chars",
-                })
+                return json.dumps(
+                    {
+                        "cin": cin,
+                        "valid_format": False,
+                        "reason": "CIN must be 21 chars",
+                    }
+                )
             err = tk._check_auth()
             if err:
                 return err
@@ -339,14 +376,17 @@ class MCAToolkit:
                     if r.status_code != 200:
                         return f"error: HTTP {r.status_code}"
                     data = r.json()
-                    return json.dumps({
-                        "cin": cin, "found": True,
-                        "company_name": data.get("company_name"),
-                        "incorporation_date": data.get("date_of_incorporation"),
-                        "status": data.get("company_status"),
-                        "category": data.get("company_category"),
-                        "paid_up_capital": data.get("paid_up_capital"),
-                    })
+                    return json.dumps(
+                        {
+                            "cin": cin,
+                            "found": True,
+                            "company_name": data.get("company_name"),
+                            "incorporation_date": data.get("date_of_incorporation"),
+                            "status": data.get("company_status"),
+                            "category": data.get("company_category"),
+                            "paid_up_capital": data.get("paid_up_capital"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -358,10 +398,13 @@ class MCAToolkit:
         async def check_director(din: str) -> str:
             din = din.strip()
             if not re.match(r"^[0-9]{8}$", din):
-                return json.dumps({
-                    "din": din, "valid_format": False,
-                    "reason": "DIN must be 8 digits",
-                })
+                return json.dumps(
+                    {
+                        "din": din,
+                        "valid_format": False,
+                        "reason": "DIN must be 8 digits",
+                    }
+                )
             err = tk._check_auth()
             if err:
                 return err
@@ -376,12 +419,15 @@ class MCAToolkit:
                     if r.status_code != 200:
                         return f"error: HTTP {r.status_code}"
                     data = r.json()
-                    return json.dumps({
-                        "din": din, "found": True,
-                        "name": data.get("director_name"),
-                        "status": data.get("status"),
-                        "associated_companies": data.get("companies", []),
-                    })
+                    return json.dumps(
+                        {
+                            "din": din,
+                            "found": True,
+                            "name": data.get("director_name"),
+                            "status": data.get("status"),
+                            "associated_companies": data.get("companies", []),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -393,24 +439,26 @@ class MCAToolkit:
 
 # -------------------- DigiLocker Toolkit --------------------
 
+
 class DigiLockerToolkit:
     """DigiLocker integration scaffold."""
 
     def __init__(
-        self, client_id: str | None = None, client_secret: str | None = None,
-        *, sandbox: bool = True,
+        self,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        *,
+        sandbox: bool = True,
     ):
-        self.client_id = client_id or os.environ.get(
-            "LARGESTACK_DIGILOCKER_CLIENT_ID", ""
-        )
+        self.client_id = client_id or os.environ.get("LARGESTACK_DIGILOCKER_CLIENT_ID", "")
         self.client_secret = client_secret or os.environ.get(
             "LARGESTACK_DIGILOCKER_CLIENT_SECRET", ""
         )
         self.sandbox = sandbox
         self.base_url = (
             "https://api-sandbox.digitallocker.gov.in/public/oauth2/1"
-            if sandbox else
-            "https://api.digitallocker.gov.in/public/oauth2/1"
+            if sandbox
+            else "https://api.digitallocker.gov.in/public/oauth2/1"
         )
         self._tools = self._build_tools()
 
@@ -443,16 +491,20 @@ class DigiLockerToolkit:
                         return f"error: HTTP {r.status_code}"
                     data = r.json()
                     items = data.get("items", []) if isinstance(data, dict) else data
-                    return json.dumps({
-                        "documents": [
-                            {
-                                "uri": d.get("uri"), "name": d.get("name"),
-                                "doctype": d.get("doctype"),
-                                "issuer": d.get("issuer"),
-                                "date": d.get("date"),
-                            } for d in (items or [])
-                        ]
-                    })
+                    return json.dumps(
+                        {
+                            "documents": [
+                                {
+                                    "uri": d.get("uri"),
+                                    "name": d.get("name"),
+                                    "doctype": d.get("doctype"),
+                                    "issuer": d.get("issuer"),
+                                    "date": d.get("date"),
+                                }
+                                for d in (items or [])
+                            ]
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -466,6 +518,7 @@ class DigiLockerToolkit:
             if err:
                 return err
             import base64 as _b64
+
             try:
                 async with httpx.AsyncClient(timeout=60) as client:
                     r = await client.get(
@@ -474,11 +527,14 @@ class DigiLockerToolkit:
                     )
                     if r.status_code != 200:
                         return f"error: HTTP {r.status_code}"
-                    return json.dumps({
-                        "uri": uri, "size_bytes": len(r.content),
-                        "content_type": r.headers.get("content-type"),
-                        "content_b64": _b64.b64encode(r.content).decode(),
-                    })
+                    return json.dumps(
+                        {
+                            "uri": uri,
+                            "size_bytes": len(r.content),
+                            "content_type": r.headers.get("content-type"),
+                            "content_b64": _b64.b64encode(r.content).decode(),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -490,6 +546,7 @@ class DigiLockerToolkit:
 
 # -------------------- eSign Toolkit --------------------
 
+
 class eSignToolkit:
     """Aadhaar-based eSign integration (eMudhra / NSDL)."""
 
@@ -497,12 +554,11 @@ class eSignToolkit:
         self,
         client_id: str | None = None,
         client_secret: str | None = None,
-        *, provider: str = "emudhra",
+        *,
+        provider: str = "emudhra",
     ):
         self.client_id = client_id or os.environ.get("LARGESTACK_ESIGN_CLIENT_ID", "")
-        self.client_secret = client_secret or os.environ.get(
-            "LARGESTACK_ESIGN_CLIENT_SECRET", ""
-        )
+        self.client_secret = client_secret or os.environ.get("LARGESTACK_ESIGN_CLIENT_SECRET", "")
         self.provider = provider
         self.base_urls = {
             "emudhra": "https://esign.emudhra.com/v3",
@@ -527,7 +583,9 @@ class eSignToolkit:
             timeout=30,
         )
         async def initiate_esign(
-            document_url: str, signer_name: str, signer_email: str,
+            document_url: str,
+            signer_name: str,
+            signer_email: str,
             callback_url: str = "",
         ) -> str:
             err = tk._check_auth()
@@ -553,11 +611,13 @@ class eSignToolkit:
                     if r.status_code >= 400:
                         return f"error: eSign HTTP {r.status_code}: {r.text[:200]}"
                     data = r.json()
-                    return json.dumps({
-                        "request_id": data.get("request_id"),
-                        "signing_url": data.get("url"),
-                        "expires_at": data.get("expires_at"),
-                    })
+                    return json.dumps(
+                        {
+                            "request_id": data.get("request_id"),
+                            "signing_url": data.get("url"),
+                            "expires_at": data.get("expires_at"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -582,12 +642,14 @@ class eSignToolkit:
                     if r.status_code >= 400:
                         return f"error: HTTP {r.status_code}"
                     data = r.json()
-                    return json.dumps({
-                        "request_id": request_id,
-                        "status": data.get("status"),
-                        "signed_document_url": data.get("signed_document_url"),
-                        "signed_at": data.get("signed_at"),
-                    })
+                    return json.dumps(
+                        {
+                            "request_id": request_id,
+                            "status": data.get("status"),
+                            "signed_document_url": data.get("signed_document_url"),
+                            "signed_at": data.get("signed_at"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -599,6 +661,7 @@ class eSignToolkit:
 
 # -------------------- KYC Toolkit (PAN + Aadhaar OKYC + AML) --------------------
 
+
 class KYCToolkit:
     """Indian KYC + AML toolkit (PAN + Aadhaar OKYC).
 
@@ -606,7 +669,10 @@ class KYCToolkit:
     """
 
     def __init__(
-        self, api_key: str | None = None, *, provider: str = "signzy",
+        self,
+        api_key: str | None = None,
+        *,
+        provider: str = "signzy",
     ):
         self.api_key = api_key or os.environ.get("LARGESTACK_KYC_API_KEY", "")
         self.provider = provider
@@ -632,16 +698,23 @@ class KYCToolkit:
         async def verify_pan(pan: str, full_name: str = "") -> str:
             pan = pan.upper().strip()
             if not PAN_PATTERN.match(pan):
-                return json.dumps({
-                    "pan": pan, "valid_format": False,
-                    "reason": "PAN must be 10 chars: 5 letters + 4 digits + 1 letter",
-                })
+                return json.dumps(
+                    {
+                        "pan": pan,
+                        "valid_format": False,
+                        "reason": "PAN must be 10 chars: 5 letters + 4 digits + 1 letter",
+                    }
+                )
             err = tk._check_auth()
             if err:
-                return json.dumps({
-                    "pan": pan, "valid_format": True, "verified": False,
-                    "error": err,
-                })
+                return json.dumps(
+                    {
+                        "pan": pan,
+                        "valid_format": True,
+                        "verified": False,
+                        "error": err,
+                    }
+                )
             base = tk.base_urls.get(tk.provider, tk.base_urls["signzy"])
             try:
                 async with httpx.AsyncClient(timeout=30) as client:
@@ -656,12 +729,15 @@ class KYCToolkit:
                     if r.status_code >= 400:
                         return f"error: HTTP {r.status_code}: {r.text[:200]}"
                     data = r.json()
-                    return json.dumps({
-                        "pan": pan, "valid_format": True,
-                        "verified": data.get("status") == "valid",
-                        "name_on_pan": data.get("name", ""),
-                        "name_match": data.get("name_match", False),
-                    })
+                    return json.dumps(
+                        {
+                            "pan": pan,
+                            "valid_format": True,
+                            "verified": data.get("status") == "valid",
+                            "name_on_pan": data.get("name", ""),
+                            "name_match": data.get("name_match", False),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -677,10 +753,12 @@ class KYCToolkit:
         async def initiate_aadhaar_okyc(aadhaar: str) -> str:
             aadhaar = aadhaar.replace(" ", "").strip()
             if not AADHAAR_PATTERN.match(aadhaar):
-                return json.dumps({
-                    "valid_format": False,
-                    "reason": "Aadhaar must be 12 digits, first digit 2-9",
-                })
+                return json.dumps(
+                    {
+                        "valid_format": False,
+                        "reason": "Aadhaar must be 12 digits, first digit 2-9",
+                    }
+                )
             err = tk._check_auth()
             if err:
                 return err
@@ -703,12 +781,14 @@ class KYCToolkit:
                         f"OKYC initiated for Aadhaar {_aadhaar_redact(aadhaar)}, "
                         f"request_id={data.get('request_id', 'unknown')}"
                     )
-                    return json.dumps({
-                        "request_id": data.get("request_id"),
-                        "aadhaar_masked": _aadhaar_redact(aadhaar),
-                        "otp_sent": data.get("otp_sent", True),
-                        "expires_in_seconds": data.get("expires_in", 300),
-                    })
+                    return json.dumps(
+                        {
+                            "request_id": data.get("request_id"),
+                            "aadhaar_masked": _aadhaar_redact(aadhaar),
+                            "otp_sent": data.get("otp_sent", True),
+                            "expires_in_seconds": data.get("expires_in", 300),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -738,15 +818,17 @@ class KYCToolkit:
                         return f"error: HTTP {r.status_code}"
                     data = r.json()
                     # Return data with Aadhaar masked
-                    return json.dumps({
-                        "request_id": request_id,
-                        "verified": data.get("status") == "success",
-                        "name": data.get("name"),
-                        "dob": data.get("dob"),
-                        "gender": data.get("gender"),
-                        "aadhaar_masked": _aadhaar_redact(data.get("aadhaar", "")),
-                        "address": data.get("address"),
-                    })
+                    return json.dumps(
+                        {
+                            "request_id": request_id,
+                            "verified": data.get("status") == "success",
+                            "name": data.get("name"),
+                            "dob": data.get("dob"),
+                            "gender": data.get("gender"),
+                            "aadhaar_masked": _aadhaar_redact(data.get("aadhaar", "")),
+                            "address": data.get("address"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -776,19 +858,24 @@ class KYCToolkit:
                     if r.status_code >= 400:
                         return f"error: HTTP {r.status_code}"
                     data = r.json()
-                    return json.dumps({
-                        "name": name,
-                        "matches_found": data.get("matches", 0),
-                        "pep_match": data.get("pep_match", False),
-                        "sanctions_match": data.get("sanctions_match", False),
-                        "adverse_media_match": data.get("adverse_media", False),
-                        "risk_level": data.get("risk_level", "low"),
-                    })
+                    return json.dumps(
+                        {
+                            "name": name,
+                            "matches_found": data.get("matches", 0),
+                            "pep_match": data.get("pep_match", False),
+                            "sanctions_match": data.get("sanctions_match", False),
+                            "adverse_media_match": data.get("adverse_media", False),
+                            "risk_level": data.get("risk_level", "low"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
         return [
-            verify_pan, initiate_aadhaar_okyc, verify_aadhaar_okyc_otp, aml_check,
+            verify_pan,
+            initiate_aadhaar_okyc,
+            verify_aadhaar_okyc_otp,
+            aml_check,
         ]
 
     def get_tools(self) -> list[Callable]:

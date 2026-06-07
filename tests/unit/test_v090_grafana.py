@@ -1,4 +1,5 @@
 """v0.9.0: Tests for pre-built Grafana dashboards."""
+
 from __future__ import annotations
 
 import json

@@ -6,6 +6,7 @@ LARGESTACK_ENABLE_PROMPT_GUARD_ML=1 (and transformers is installed); OTHERWISE t
 default is the regex/pattern fallback (largestack._guard.injection), which does NOT
 achieve those numbers.
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -14,9 +15,10 @@ from largestack.errors import GuardrailBlockedError
 
 log = logging.getLogger("largestack.prompt_guard")
 
+
 class PromptGuard2(InjectionGuard):
     """ML-based prompt injection detection using PromptGuard 2."""
-    
+
     def __init__(
         self,
         threshold: float = 0.85,
@@ -29,12 +31,17 @@ class PromptGuard2(InjectionGuard):
         self._model = None
         self._tokenizer = None
         self.model_name = model_name
-        self.model_revision = revision or os.environ.get("LARGESTACK_PROMPT_GUARD_MODEL_REVISION", "main")
+        self.model_revision = revision or os.environ.get(
+            "LARGESTACK_PROMPT_GUARD_MODEL_REVISION", "main"
+        )
 
         from largestack._guard.config import ml_guards_enabled
+
         ml_enabled = ml_guards_enabled("LARGESTACK_ENABLE_PROMPT_GUARD_ML")
         if not ml_enabled:
-            log.info("PromptGuard ML model loading skipped; set LARGESTACK_ENABLE_PROMPT_GUARD_ML=1 to enable it")
+            log.info(
+                "PromptGuard ML model loading skipped; set LARGESTACK_ENABLE_PROMPT_GUARD_ML=1 to enable it"
+            )
             return
 
         try:
@@ -58,6 +65,7 @@ class PromptGuard2(InjectionGuard):
         """Run PromptGuard 2 model. Returns injection probability 0-1."""
         try:
             import torch
+
             inputs = self._tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
             with torch.no_grad():
                 outputs = self._model(**inputs)

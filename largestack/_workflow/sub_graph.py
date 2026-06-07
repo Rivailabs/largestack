@@ -26,6 +26,7 @@ State propagation:
 - Inner result → merged into outer state (key collision: inner wins)
 - Optional ``state_mapping`` parameter to remap keys at the boundary
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -48,6 +49,7 @@ class SubWorkflowNode:
         passthrough: if True, outer state is also forwarded into inner
             (useful when inner needs context from outer)
     """
+
     workflow: Any  # Workflow instance (avoid import cycle)
     state_mapping: dict[str, str] = field(default_factory=dict)
     output_mapping: dict[str, str] = field(default_factory=dict)
@@ -55,7 +57,9 @@ class SubWorkflowNode:
     isolate_errors: bool = False
 
     async def __call__(
-        self, state: dict[str, Any] | None = None, **kwargs: Any,
+        self,
+        state: dict[str, Any] | None = None,
+        **kwargs: Any,
     ) -> dict[str, Any]:
         """Invoke the sub-workflow. Returns the combined state."""
         outer_state: dict[str, Any] = dict(state or {})
@@ -91,8 +95,7 @@ class SubWorkflowNode:
         # DAGWorkflow catches exceptions per-node and writes
         # ``<node>_error`` keys into the state — detect those.
         error_keys = [
-            k for k in inner_result.keys()
-            if k.endswith("_error") and not k.startswith("_")
+            k for k in inner_result.keys() if k.endswith("_error") and not k.startswith("_")
         ]
         if error_keys:
             first_err = inner_result[error_keys[0]]
@@ -106,9 +109,7 @@ class SubWorkflowNode:
                 isolated["_subgraph_error_type"] = "SubgraphNodeError"
                 return isolated
             else:
-                raise RuntimeError(
-                    f"sub-workflow node failed: {first_err}"
-                )
+                raise RuntimeError(f"sub-workflow node failed: {first_err}")
 
         # Apply output mapping
         if self.output_mapping:
@@ -159,13 +160,12 @@ def as_node(
     # Attach metadata for introspection
     _handler.sub_node = sub_node  # type: ignore[attr-defined]
     _handler.workflow = workflow  # type: ignore[attr-defined]
-    _handler.__name__ = (
-        f"sub_{getattr(workflow, 'name', 'workflow')}"
-    )
+    _handler.__name__ = f"sub_{getattr(workflow, 'name', 'workflow')}"
     return _handler
 
 
 # -------------------- Compose multiple workflows --------------------
+
 
 class WorkflowComposer:
     """Build a parent workflow from multiple sub-workflows declaratively.
@@ -197,14 +197,16 @@ class WorkflowComposer:
     ) -> "WorkflowComposer":
         if not node_name:
             raise ValueError("node_name is required")
-        self._sub_specs.append({
-            "node_name": node_name,
-            "workflow": workflow,
-            "deps": deps or [],
-            "state_mapping": state_mapping or {},
-            "output_mapping": output_mapping or {},
-            "isolate_errors": isolate_errors,
-        })
+        self._sub_specs.append(
+            {
+                "node_name": node_name,
+                "workflow": workflow,
+                "deps": deps or [],
+                "state_mapping": state_mapping or {},
+                "output_mapping": output_mapping or {},
+                "isolate_errors": isolate_errors,
+            }
+        )
         return self
 
     def add_node(
@@ -214,16 +216,19 @@ class WorkflowComposer:
         *,
         deps: list[str] | None = None,
     ) -> "WorkflowComposer":
-        self._scalar_nodes.append({
-            "node_name": node_name,
-            "handler": handler,
-            "deps": deps or [],
-        })
+        self._scalar_nodes.append(
+            {
+                "node_name": node_name,
+                "handler": handler,
+                "deps": deps or [],
+            }
+        )
         return self
 
     def build(self) -> Any:
         """Construct the parent ``Workflow`` from the spec."""
         from largestack.workflow import Workflow
+
         wf = Workflow(self.name, mode="dag")
 
         # Scalar nodes first

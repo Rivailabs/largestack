@@ -11,6 +11,7 @@ Three real bugs found and fixed:
 These are P1 developer-experience bugs: the framework would silently produce
 wrong/empty results instead of failing loudly with an actionable message.
 """
+
 from __future__ import annotations
 import asyncio
 
@@ -26,6 +27,7 @@ async def _h(state: dict) -> dict:
 # ---------------------------------------------------------------------------
 # Bug 1: duplicate node name
 # ---------------------------------------------------------------------------
+
 
 def test_duplicate_node_name_raises():
     wf = Workflow(name="t", mode="dag")
@@ -48,6 +50,7 @@ def test_duplicate_node_message_is_actionable():
 # ---------------------------------------------------------------------------
 # Bug 2: dependency cycle
 # ---------------------------------------------------------------------------
+
 
 def test_simple_cycle_raises():
     wf = Workflow(name="t", mode="dag")
@@ -81,6 +84,7 @@ def test_self_loop_cycle_raises():
 # Bug 3: missing dep reference
 # ---------------------------------------------------------------------------
 
+
 def test_missing_dep_raises():
     wf = Workflow(name="t", mode="dag")
     wf.add_node("a", _h, deps=["ghost"])
@@ -101,6 +105,7 @@ def test_missing_dep_message_names_the_missing_node():
 # ---------------------------------------------------------------------------
 # Sanity: valid graphs still run
 # ---------------------------------------------------------------------------
+
 
 def test_valid_dag_still_runs():
     wf = Workflow(name="t", mode="dag")
@@ -127,12 +132,13 @@ def test_diamond_dag_runs():
 # v1.0.0 ergonomic addition: Agent.guardrails public property
 # ---------------------------------------------------------------------------
 
+
 def test_agent_guardrails_public_attribute():
     """Configured guardrails should be accessible via a public attribute."""
     from largestack import Agent, create_guardrails
+
     g = create_guardrails(pii=True)
-    a = Agent(name="x", instructions="x",
-              llm="openai/gpt-4o-mini", guardrails=g)
+    a = Agent(name="x", instructions="x", llm="openai/gpt-4o-mini", guardrails=g)
     assert a.guardrails is g
 
 
@@ -140,9 +146,9 @@ def test_agent_guardrails_property_returns_pipeline():
     """When guardrails are configured, the property returns the pipeline."""
     from largestack import Agent, create_guardrails
     from largestack._guard.pipeline import GuardrailPipeline
+
     g = create_guardrails(pii=True, injection=True)
-    a = Agent(name="x", instructions="x",
-              llm="openai/gpt-4o-mini", guardrails=g)
+    a = Agent(name="x", instructions="x", llm="openai/gpt-4o-mini", guardrails=g)
     # The property always returns a pipeline (default or explicit)
     assert isinstance(a.guardrails, GuardrailPipeline)
     # When explicitly passed, the same object comes back

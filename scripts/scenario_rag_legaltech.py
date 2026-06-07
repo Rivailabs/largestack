@@ -10,11 +10,13 @@ Simulates a realistic legal-tech RAG flow:
   6. Verify retrieval quality (right docs come back)
   7. Studio export of the RAG flow
 """
+
 from __future__ import annotations
 
 # Ensure repo root is importable when this script is launched by path from CI or shell.
 import sys as _ls_sys
 from pathlib import Path as _LSPath
+
 _LS_ROOT = _LSPath(__file__).resolve().parents[1]
 if str(_LS_ROOT) not in _ls_sys.path:
     _ls_sys.path.insert(0, str(_LS_ROOT))
@@ -25,15 +27,20 @@ import time
 from pathlib import Path
 
 from largestack._memory.long_term import (
-    InMemoryLongTermStore, LongTermMemoryEntry,
+    InMemoryLongTermStore,
+    LongTermMemoryEntry,
 )
 from largestack._memory.vector_store import (
-    VectorMemoryStore, HashingEmbedder,
+    VectorMemoryStore,
+    HashingEmbedder,
 )
 from largestack._loaders.semantic_chunking import SemanticChunker
 from largestack._loaders.office import load_xlsx
 from largestack._studio import (
-    StudioBuilder, NodeSpec, EdgeSpec, ComplianceMarker,
+    StudioBuilder,
+    NodeSpec,
+    EdgeSpec,
+    ComplianceMarker,
 )
 
 
@@ -71,7 +78,8 @@ DOCS = [
             "as banks per RBI MD-NBFC-D."
         ),
         "metadata": {
-            "doc_type": "regulatory_circular", "regulator": "RBI",
+            "doc_type": "regulatory_circular",
+            "regulator": "RBI",
         },
     },
     {
@@ -102,7 +110,8 @@ DOCS = [
             "within 7 working days of detection."
         ),
         "metadata": {
-            "doc_type": "regulatory_summary", "regulator": "FIU-IND",
+            "doc_type": "regulatory_summary",
+            "regulator": "FIU-IND",
         },
     },
     {
@@ -151,7 +160,8 @@ async def main():
     # ---- Setup vector store ----
     embedder = HashingEmbedder(dim=256)
     store = VectorMemoryStore(
-        InMemoryLongTermStore(), embedder=embedder,
+        InMemoryLongTermStore(),
+        embedder=embedder,
     )
 
     # ---- Step 1: Semantic chunking ----
@@ -171,51 +181,48 @@ async def main():
             metadata={**doc["metadata"], "source": doc["id"]},
         )
         for idx, ch in enumerate(chunks):
-            await store.add(LongTermMemoryEntry(
-                id=f"{doc['id']}_chunk_{idx}",
-                tenant_id="legaltech",
-                user_id="rag_agent",
-                tier="archival",
-                scope="semantic",
-                content=ch.content,
-                metadata={**ch.metadata, "chunk_index": idx},
-                purpose="legal_research",
-                lawful_basis="legitimate_use",
-            ))
+            await store.add(
+                LongTermMemoryEntry(
+                    id=f"{doc['id']}_chunk_{idx}",
+                    tenant_id="legaltech",
+                    user_id="rag_agent",
+                    tier="archival",
+                    scope="semantic",
+                    content=ch.content,
+                    metadata={**ch.metadata, "chunk_index": idx},
+                    purpose="legal_research",
+                    lawful_basis="legitimate_use",
+                )
+            )
             total_chunks += 1
     chunk_time = time.time() - t0
     print(f"  Documents indexed:  {len(DOCS)}")
     print(f"  Total chunks:       {total_chunks}")
-    print(f"  Indexing time:      {chunk_time*1000:.0f}ms")
-    print(f"  Avg per doc:        {chunk_time*1000/len(DOCS):.0f}ms")
+    print(f"  Indexing time:      {chunk_time * 1000:.0f}ms")
+    print(f"  Avg per doc:        {chunk_time * 1000 / len(DOCS):.0f}ms")
 
     # ---- Step 2: Realistic queries ----
     print("\n--- Step 2: Realistic queries (retrieval quality) ---")
 
     queries = [
-        ("What is an NPA per RBI?",
-         ["rbi_circular_npa"]),
-        ("What does DPDP Section 8 require?",
-         ["dpdp_act_summary"]),
-        ("Show me Sachith's loan",
-         ["loan_agreement_001"]),
-        ("PMLA customer due diligence rules",
-         ["pmla_cdd_summary"]),
-        ("Aadhaar redaction policy",
-         ["kyc_aadhaar_redaction_policy"]),
+        ("What is an NPA per RBI?", ["rbi_circular_npa"]),
+        ("What does DPDP Section 8 require?", ["dpdp_act_summary"]),
+        ("Show me Sachith's loan", ["loan_agreement_001"]),
+        ("PMLA customer due diligence rules", ["pmla_cdd_summary"]),
+        ("Aadhaar redaction policy", ["kyc_aadhaar_redaction_policy"]),
     ]
 
     correct = 0
     for query, expected_sources in queries:
         results = await store.search(
-            tenant_id="legaltech", user_id="rag_agent",
-            query=query, limit=3,
+            tenant_id="legaltech",
+            user_id="rag_agent",
+            query=query,
+            limit=3,
         )
 
         # The expected source should be in the top-3
-        retrieved_sources = {
-            r.metadata.get("source", "") for r in results
-        }
+        retrieved_sources = {r.metadata.get("source", "") for r in results}
         hit = any(s in retrieved_sources for s in expected_sources)
         symbol = "✓" if hit else "✗"
         print(f"  {symbol} Q: {query}")
@@ -233,8 +240,10 @@ async def main():
     # ---- Step 3: Tenant isolation ----
     print("\n--- Step 3: Tenant isolation in RAG ---")
     other = await store.search(
-        tenant_id="other_tenant", user_id="rag_agent",
-        query="What is an NPA?", limit=3,
+        tenant_id="other_tenant",
+        user_id="rag_agent",
+        query="What is an NPA?",
+        limit=3,
     )
     assert len(other) == 0, "TENANT LEAK in RAG"
     print("  ✓ other tenant gets zero results")
@@ -250,16 +259,21 @@ async def main():
     studio.add_node(NodeSpec(id="retrieve", label="Retrieve Top-K", kind="tool"))
     studio.add_node(NodeSpec(id="answer", label="Synthesize", kind="end"))
     for src, dst in [
-        ("ingest", "chunk"), ("chunk", "embed"),
-        ("embed", "index"), ("query", "retrieve"),
+        ("ingest", "chunk"),
+        ("chunk", "embed"),
+        ("embed", "index"),
+        ("query", "retrieve"),
         ("retrieve", "answer"),
     ]:
         studio.add_edge(EdgeSpec(source=src, target=dst))
 
-    studio.add_compliance(ComplianceMarker(
-        name="DPDP_Act_2023", section="Section 7",
-        notes="Lawful basis: legitimate_use (legal research)",
-    ))
+    studio.add_compliance(
+        ComplianceMarker(
+            name="DPDP_Act_2023",
+            section="Section 7",
+            notes="Lawful basis: legitimate_use (legal research)",
+        )
+    )
 
     out = Path(tempfile.gettempdir()) / "largestack_smoke" / "rag_flow.html"
     out.parent.mkdir(exist_ok=True)
@@ -272,8 +286,8 @@ async def main():
     print("=" * 70)
     success = accuracy >= 80 and total_chunks > len(DOCS)
     print(f"  Retrieval accuracy:  {accuracy:.0f}%")
-    print(f"  Tenant isolation:    verified")
-    print(f"  Studio export:       OK")
+    print("  Tenant isolation:    verified")
+    print("  Studio export:       OK")
     if success:
         print("\n  ✅ RAG PIPELINE: scenario smoke test passed (beta)")
     else:
@@ -283,4 +297,5 @@ async def main():
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(asyncio.run(main()))

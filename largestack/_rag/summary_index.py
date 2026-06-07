@@ -13,6 +13,7 @@ Two advanced RAG patterns from LlamaIndex's playbook:
    answer "what's this document about?" with O(log N) LLM calls instead
    of O(N).
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -25,9 +26,11 @@ log = logging.getLogger("largestack.rag.summary_index")
 
 # -------------------- Document Summary Index --------------------
 
+
 @dataclass
 class DocumentEntry:
     """One document in the summary index."""
+
     doc_id: str
     summary: str
     summary_embedding: list[float] = field(default_factory=list)
@@ -94,8 +97,10 @@ class DocumentSummaryIndex:
             embedding = []
 
         self._docs[doc_id] = DocumentEntry(
-            doc_id=doc_id, summary=summary,
-            summary_embedding=embedding, chunks=list(chunks),
+            doc_id=doc_id,
+            summary=summary,
+            summary_embedding=embedding,
+            chunks=list(chunks),
             metadata=metadata or {},
         )
 
@@ -105,6 +110,7 @@ class DocumentSummaryIndex:
             return 0.0
         try:
             import math
+
             dot = sum(x * y for x, y in zip(a, b))
             na = math.sqrt(sum(x * x for x in a))
             nb = math.sqrt(sum(y * y for y in b))
@@ -175,6 +181,7 @@ class DocumentSummaryIndex:
 
 # -------------------- Tree Summarize --------------------
 
+
 async def tree_summarize(
     chunks: list[str],
     *,
@@ -230,6 +237,7 @@ async def tree_summarize(
 
 
 # -------------------- Combined: tree-summarize over a doc --------------------
+
 
 async def summarize_document(
     full_text: str,

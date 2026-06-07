@@ -15,6 +15,7 @@ and posts a comment::
 Used by the ``--baseline`` and ``--pr-comment`` flags on
 ``eval-block``.
 """
+
 from __future__ import annotations
 import json
 from dataclasses import dataclass, field
@@ -25,9 +26,10 @@ from typing import Any
 @dataclass
 class CaseDelta:
     """Per-case change between baseline and current."""
+
     name: str
     baseline_passed: bool | None  # None = case didn't exist in baseline
-    current_passed: bool | None   # None = case removed
+    current_passed: bool | None  # None = case removed
     is_regression: bool
     is_improvement: bool
     is_new: bool
@@ -37,6 +39,7 @@ class CaseDelta:
 @dataclass
 class EvalDelta:
     """Overall change between two eval reports."""
+
     baseline_pass_rate: float
     current_pass_rate: float
     baseline_total: int
@@ -62,6 +65,7 @@ class EvalDelta:
 
 
 # -------------------- Report parsing --------------------
+
 
 def _extract_case_results(report: dict[str, Any]) -> dict[str, bool]:
     """Pull ``{case_name: passed_bool}`` from any report shape."""
@@ -126,6 +130,7 @@ def _extract_summary(report: dict[str, Any]) -> tuple[float, int, int]:
 
 # -------------------- Diff computation --------------------
 
+
 def compute_eval_delta(
     baseline_report: dict[str, Any],
     current_report: dict[str, Any],
@@ -175,6 +180,7 @@ def compute_eval_delta(
 
 # -------------------- Markdown rendering --------------------
 
+
 def render_pr_comment_markdown(
     delta: EvalDelta,
     *,
@@ -202,9 +208,11 @@ def render_pr_comment_markdown(
     lines.append("|---|--:|--:|--:|")
     delta_pct = delta.pass_rate_delta * 100
     delta_str = (
-        f"🔻 {delta_pct:.1f}%" if delta_pct < -0.05 else
-        f"🔺 +{delta_pct:.1f}%" if delta_pct > 0.05 else
-        "—"
+        f"🔻 {delta_pct:.1f}%"
+        if delta_pct < -0.05
+        else f"🔺 +{delta_pct:.1f}%"
+        if delta_pct > 0.05
+        else "—"
     )
     lines.append(
         f"| Pass rate | {delta.baseline_pass_rate * 100:.1f}% "
@@ -261,9 +269,7 @@ def render_slack_message(
     """Render the diff as a plain-text Slack message (no markdown tables)."""
     lines: list[str] = []
     icon = "⚠️" if delta.is_overall_regression else "✅"
-    lines.append(
-        f"{icon} *Eval result — {suite_name}*"
-    )
+    lines.append(f"{icon} *Eval result — {suite_name}*")
     delta_pct = delta.pass_rate_delta * 100
     sign = "+" if delta_pct >= 0 else ""
     lines.append(
@@ -273,8 +279,7 @@ def render_slack_message(
     )
     if delta.regressions:
         lines.append(
-            f"🔴 {len(delta.regressions)} regression"
-            f"{'' if len(delta.regressions) == 1 else 's'}"
+            f"🔴 {len(delta.regressions)} regression{'' if len(delta.regressions) == 1 else 's'}"
         )
         for r in delta.regressions[:5]:
             lines.append(f"  • {r.name}")
@@ -287,6 +292,7 @@ def render_slack_message(
 
 
 # -------------------- Convenience loaders --------------------
+
 
 def load_report(path: str | Path) -> dict[str, Any]:
     """Load a JSON eval report from disk."""
@@ -315,7 +321,8 @@ def diff_report_files(
 
 
 __all__ = [
-    "CaseDelta", "EvalDelta",
+    "CaseDelta",
+    "EvalDelta",
     "compute_eval_delta",
     "render_pr_comment_markdown",
     "render_slack_message",

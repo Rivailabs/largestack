@@ -18,6 +18,7 @@ Optional dependencies:
 If neither is installed, ``load_*`` raises ``ImportError`` with
 install hint.
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -29,9 +30,11 @@ log = logging.getLogger("largestack.loaders.office")
 
 # -------------------- PPTX --------------------
 
+
 def _have_pptx() -> bool:
     try:
         import pptx  # noqa
+
         return True
     except ImportError:
         return False
@@ -45,8 +48,7 @@ async def load_pptx(path: str | Path) -> list[dict[str, Any]]:
     """
     if not _have_pptx():
         raise ImportError(
-            "python-pptx required for load_pptx. "
-            "Install with: pip install python-pptx"
+            "python-pptx required for load_pptx. Install with: pip install python-pptx"
         )
 
     p = Path(path)
@@ -70,9 +72,7 @@ def _load_pptx_sync(path: Path) -> list[dict[str, Any]]:
         for shape in slide.shapes:
             # Slide title
             if shape.has_text_frame:
-                tf_text = "\n".join(
-                    p.text for p in shape.text_frame.paragraphs
-                ).strip()
+                tf_text = "\n".join(p.text for p in shape.text_frame.paragraphs).strip()
                 if not tf_text:
                     continue
                 # First text frame in placeholder is usually the title
@@ -80,8 +80,11 @@ def _load_pptx_sync(path: Path) -> list[dict[str, Any]]:
                     not title
                     and getattr(shape, "is_placeholder", False)
                     and getattr(
-                        shape.placeholder_format, "idx", -1,
-                    ) == 0
+                        shape.placeholder_format,
+                        "idx",
+                        -1,
+                    )
+                    == 0
                 ):
                     title = tf_text
                 text_parts.append(tf_text)
@@ -99,30 +102,32 @@ def _load_pptx_sync(path: Path) -> list[dict[str, Any]]:
         notes = ""
         if slide.has_notes_slide:
             notes_tf = slide.notes_slide.notes_text_frame
-            notes = "\n".join(
-                p.text for p in notes_tf.paragraphs
-            ).strip()
+            notes = "\n".join(p.text for p in notes_tf.paragraphs).strip()
 
         content = "\n\n".join(t for t in text_parts if t).strip()
-        docs.append({
-            "content": content,
-            "metadata": {
-                "source": str(path),
-                "loader": "pptx",
-                "slide_number": idx,
-                "title": title,
-                "notes": notes,
-            },
-        })
+        docs.append(
+            {
+                "content": content,
+                "metadata": {
+                    "source": str(path),
+                    "loader": "pptx",
+                    "slide_number": idx,
+                    "title": title,
+                    "notes": notes,
+                },
+            }
+        )
 
     return docs
 
 
 # -------------------- XLSX --------------------
 
+
 def _have_openpyxl() -> bool:
     try:
         import openpyxl  # noqa
+
         return True
     except ImportError:
         return False
@@ -140,10 +145,7 @@ async def load_xlsx(
             of N rows each. Useful for very large sheets.
     """
     if not _have_openpyxl():
-        raise ImportError(
-            "openpyxl required for load_xlsx. "
-            "Install with: pip install openpyxl"
-        )
+        raise ImportError("openpyxl required for load_xlsx. Install with: pip install openpyxl")
 
     p = Path(path)
     if not p.exists():
@@ -153,7 +155,8 @@ async def load_xlsx(
 
 
 def _load_xlsx_sync(
-    path: Path, rows_per_doc: int | None,
+    path: Path,
+    rows_per_doc: int | None,
 ) -> list[dict[str, Any]]:
     import openpyxl
 
@@ -165,15 +168,17 @@ def _load_xlsx_sync(
         rows = list(ws.iter_rows(values_only=True))
 
         if not rows:
-            docs.append({
-                "content": "",
-                "metadata": {
-                    "source": str(path),
-                    "loader": "xlsx",
-                    "sheet": sheet_name,
-                    "row_count": 0,
-                },
-            })
+            docs.append(
+                {
+                    "content": "",
+                    "metadata": {
+                        "source": str(path),
+                        "loader": "xlsx",
+                        "sheet": sheet_name,
+                        "row_count": 0,
+                    },
+                }
+            )
             continue
 
         # First non-empty row as header
@@ -192,9 +197,7 @@ def _load_xlsx_sync(
                 lines.append(" | ".join(header))
                 lines.append("-" * min(120, len(lines[0])))
             for row in chunk:
-                cells = [
-                    "" if v is None else str(v) for v in row
-                ]
+                cells = ["" if v is None else str(v) for v in row]
                 # Pad/truncate to header length
                 if header and len(cells) < len(header):
                     cells = cells + [""] * (len(header) - len(cells))
@@ -202,30 +205,34 @@ def _load_xlsx_sync(
             return "\n".join(lines)
 
         if rows_per_doc is None or len(data_rows) <= rows_per_doc:
-            docs.append({
-                "content": render_chunk(data_rows),
-                "metadata": {
-                    "source": str(path),
-                    "loader": "xlsx",
-                    "sheet": sheet_name,
-                    "row_count": len(data_rows),
-                    "header": header,
-                },
-            })
-        else:
-            for i in range(0, len(data_rows), rows_per_doc):
-                chunk = data_rows[i : i + rows_per_doc]
-                docs.append({
-                    "content": render_chunk(chunk),
+            docs.append(
+                {
+                    "content": render_chunk(data_rows),
                     "metadata": {
                         "source": str(path),
                         "loader": "xlsx",
                         "sheet": sheet_name,
-                        "row_count": len(chunk),
-                        "row_offset": i,
+                        "row_count": len(data_rows),
                         "header": header,
                     },
-                })
+                }
+            )
+        else:
+            for i in range(0, len(data_rows), rows_per_doc):
+                chunk = data_rows[i : i + rows_per_doc]
+                docs.append(
+                    {
+                        "content": render_chunk(chunk),
+                        "metadata": {
+                            "source": str(path),
+                            "loader": "xlsx",
+                            "sheet": sheet_name,
+                            "row_count": len(chunk),
+                            "row_offset": i,
+                            "header": header,
+                        },
+                    }
+                )
 
     wb.close()
     return docs

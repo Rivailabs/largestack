@@ -1,4 +1,5 @@
 """Together AI provider — 200+ open source models."""
+
 from largestack._core.providers.openai_prov import OpenAIProvider
 
 MODELS = {
@@ -14,17 +15,20 @@ MODELS = {
     "deepseek-ai/DeepSeek-R1": {"context": 131072, "reasoning": True},
 }
 
+
 class TogetherProvider(OpenAIProvider):
     name = "together"
     default_model = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
     supported_models = list(MODELS.keys())
-    
+
     def __init__(self, api_key: str):
         super().__init__(api_key=api_key, base_url="https://api.together.xyz/v1")
-    
-    def count_tokens(self, text, model): return len(text) // 4
-    
+
+    def count_tokens(self, text, model):
+        return len(text) // 4
+
     def get_capabilities(self, model: str) -> dict:
         for k, v in MODELS.items():
-            if k in model: return v
+            if k in model:
+                return v
         return {"context": 32768, "max_output": 4096}

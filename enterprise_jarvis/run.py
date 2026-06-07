@@ -7,6 +7,7 @@ Usage:
 
 Requires a provider key, e.g.:  export LARGESTACK_DEEPSEEK_API_KEY="sk-..."
 """
+
 from __future__ import annotations
 
 import argparse
@@ -23,11 +24,20 @@ from ejarvis.context import Principal  # noqa: E402
 
 # (principal, message) — exercises RBAC, multi-tenant, RAG, approvals, audit.
 DEMO = [
-    (Principal("alice", "admin", "acme"), "How many annual leave days do I get? Check the knowledge base."),
+    (
+        Principal("alice", "admin", "acme"),
+        "How many annual leave days do I get? Check the knowledge base.",
+    ),
     (Principal("alice", "admin", "acme"), "Remember that my manager is Bob."),
-    (Principal("dave", "viewer", "acme"), "Raise a support ticket: my VPN is broken."),          # viewer → denied
-    (Principal("carol", "agent", "acme"), "Raise a support ticket: VPN is broken for the sales team."),
-    (Principal("carol", "agent", "acme"), "Please delete all production logs now."),               # → approval
+    (
+        Principal("dave", "viewer", "acme"),
+        "Raise a support ticket: my VPN is broken.",
+    ),  # viewer → denied
+    (
+        Principal("carol", "agent", "acme"),
+        "Raise a support ticket: VPN is broken for the sales team.",
+    ),
+    (Principal("carol", "agent", "acme"), "Please delete all production logs now."),  # → approval
     (Principal("alice", "admin", "acme"), "Show me the recent audit log."),
 ]
 
@@ -47,8 +57,10 @@ async def run_demo() -> None:
     # Typed (Pydantic) output path.
     jarvis = EnterpriseJarvis(Principal("alice", "admin", "acme"))
     t = await jarvis.triage("My laptop won't boot and I have a board demo in 1 hour.")
-    print(f"\n\033[1m[typed triage]\033[0m category={t.category} priority={t.priority} "
-          f"needs_approval={t.needs_approval}")
+    print(
+        f"\n\033[1m[typed triage]\033[0m category={t.category} priority={t.priority} "
+        f"needs_approval={t.needs_approval}"
+    )
     print(f"\033[90m  summary: {t.summary}\033[0m")
     # Show the persisted audit trail (proves tools ran + RBAC was enforced).
     print("\n=== audit trail (tenant acme) ===")
@@ -78,7 +90,7 @@ def main() -> int:
     elif args.once:
         asyncio.run(run_once(args.once, Principal(args.user, args.role, args.tenant)))
     else:
-        print("Use --demo or --once \"message\".", file=sys.stderr)
+        print('Use --demo or --once "message".', file=sys.stderr)
         return 1
     return 0
 

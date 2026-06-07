@@ -21,6 +21,7 @@ Both follow the same signature::
 
 Returned dicts have the original fields plus ``rerank_score``.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -45,6 +46,7 @@ def _doc_text(d: Any) -> str:
 
 
 # -------------------- Cohere Rerank --------------------
+
 
 async def cohere_rerank(
     query: str,
@@ -80,14 +82,15 @@ async def cohere_rerank(
     if not documents:
         return []
 
-    key = api_key or os.environ.get("LARGESTACK_COHERE_API_KEY") or os.environ.get("COHERE_API_KEY", "")
+    key = (
+        api_key
+        or os.environ.get("LARGESTACK_COHERE_API_KEY")
+        or os.environ.get("COHERE_API_KEY", "")
+    )
     if not key:
         log.warning("cohere_rerank: no API key, falling back to original order")
         # Wrap strings as dicts so output shape is consistent
-        normalized = [
-            d if isinstance(d, dict) else {"content": _doc_text(d)}
-            for d in documents
-        ]
+        normalized = [d if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents]
         return normalized[:top_k]
 
     # Build doc texts
@@ -113,17 +116,13 @@ async def cohere_rerank(
         if r.status_code >= 400:
             log.warning(f"cohere_rerank HTTP {r.status_code}: {r.text[:200]}")
             normalized = [
-                d if isinstance(d, dict) else {"content": _doc_text(d)}
-                for d in documents
+                d if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents
             ]
             return normalized[:top_k]
         data = r.json()
     except Exception as e:
         log.warning(f"cohere_rerank failed: {e}")
-        normalized = [
-            d if isinstance(d, dict) else {"content": _doc_text(d)}
-            for d in documents
-        ]
+        normalized = [d if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents]
         return normalized[:top_k]
 
     results = data.get("results") or []
@@ -205,10 +204,7 @@ async def rankgpt_rerank(
         text = getattr(result, "content", "") or ""
     except Exception as e:
         log.warning(f"rankgpt_rerank LLM failed: {e}")
-        normalized = [
-            d if isinstance(d, dict) else {"content": _doc_text(d)}
-            for d in documents
-        ]
+        normalized = [d if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents]
         return normalized[:top_k]
 
     # Parse ranking — accept "[3] > [1] > [4]" or "3, 1, 4" or "3 > 1 > 4"
@@ -241,6 +237,7 @@ async def rankgpt_rerank(
 
 # -------------------- v0.9.0: 3 more rerankers --------------------
 
+
 async def voyage_rerank(
     query: str,
     documents: list,
@@ -260,17 +257,21 @@ async def voyage_rerank(
     """
     if not documents:
         return []
-    api_key = api_key or os.environ.get("LARGESTACK_VOYAGE_API_KEY") or os.environ.get(
-        "VOYAGE_API_KEY", ""
+    api_key = (
+        api_key
+        or os.environ.get("LARGESTACK_VOYAGE_API_KEY")
+        or os.environ.get("VOYAGE_API_KEY", "")
     )
     if not api_key:
         log.debug("voyage_rerank: no API key, returning input unchanged")
-        return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                for d in documents[:top_k]]
+        return [
+            dict(d) if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents[:top_k]
+        ]
 
     doc_texts = [_doc_text(d) for d in documents]
     try:
         import httpx as _httpx
+
         async with _httpx.AsyncClient(timeout=30) as client:
             r = await client.post(
                 "https://api.voyageai.com/v1/rerank",
@@ -287,13 +288,16 @@ async def voyage_rerank(
             )
         if r.status_code != 200:
             log.warning(f"Voyage rerank HTTP {r.status_code}")
-            return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                    for d in documents[:top_k]]
+            return [
+                dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
+                for d in documents[:top_k]
+            ]
         data = r.json()
     except Exception as e:
         log.warning(f"Voyage rerank failed: {e}")
-        return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                for d in documents[:top_k]]
+        return [
+            dict(d) if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents[:top_k]
+        ]
 
     results = data.get("data", [])
     out = []
@@ -326,17 +330,19 @@ async def jina_rerank(
     """
     if not documents:
         return []
-    api_key = api_key or os.environ.get("LARGESTACK_JINA_API_KEY") or os.environ.get(
-        "JINA_API_KEY", ""
+    api_key = (
+        api_key or os.environ.get("LARGESTACK_JINA_API_KEY") or os.environ.get("JINA_API_KEY", "")
     )
     if not api_key:
         log.debug("jina_rerank: no API key, returning input unchanged")
-        return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                for d in documents[:top_k]]
+        return [
+            dict(d) if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents[:top_k]
+        ]
 
     doc_texts = [_doc_text(d) for d in documents]
     try:
         import httpx as _httpx
+
         async with _httpx.AsyncClient(timeout=30) as client:
             r = await client.post(
                 "https://api.jina.ai/v1/rerank",
@@ -353,13 +359,16 @@ async def jina_rerank(
             )
         if r.status_code != 200:
             log.warning(f"Jina rerank HTTP {r.status_code}")
-            return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                    for d in documents[:top_k]]
+            return [
+                dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
+                for d in documents[:top_k]
+            ]
         data = r.json()
     except Exception as e:
         log.warning(f"Jina rerank failed: {e}")
-        return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                for d in documents[:top_k]]
+        return [
+            dict(d) if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents[:top_k]
+        ]
 
     results = data.get("results", [])
     out = []
@@ -400,8 +409,9 @@ async def cross_encoder_rerank(
         from sentence_transformers import CrossEncoder
     except ImportError:
         log.warning("cross_encoder_rerank: sentence-transformers not installed")
-        return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                for d in documents[:top_k]]
+        return [
+            dict(d) if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents[:top_k]
+        ]
 
     try:
         if model not in _CE_MODELS:
@@ -410,17 +420,20 @@ async def cross_encoder_rerank(
         ce = _CE_MODELS[model]
     except Exception as e:
         log.warning(f"cross_encoder load failed: {e}")
-        return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                for d in documents[:top_k]]
+        return [
+            dict(d) if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents[:top_k]
+        ]
 
     pairs = [(query, _doc_text(d)) for d in documents]
     try:
         import asyncio as _asyncio
+
         scores = await _asyncio.to_thread(ce.predict, pairs)
     except Exception as e:
         log.warning(f"cross_encoder predict failed: {e}")
-        return [dict(d) if isinstance(d, dict) else {"content": _doc_text(d)}
-                for d in documents[:top_k]]
+        return [
+            dict(d) if isinstance(d, dict) else {"content": _doc_text(d)} for d in documents[:top_k]
+        ]
 
     indexed = sorted(
         enumerate(documents),

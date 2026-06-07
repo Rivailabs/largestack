@@ -3,6 +3,7 @@
 Stored as JSON on disk so it survives restarts. Deliberately simple and
 dependency-free — this is the 'memory' layer a real assistant needs.
 """
+
 from __future__ import annotations
 
 import json
@@ -38,6 +39,7 @@ def _write(path, data) -> None:
 
 # ---- Notes -----------------------------------------------------------------
 
+
 def add_note(text: str) -> int:
     """Append a note; returns the new note's 1-based index."""
     with _LOCK:
@@ -53,6 +55,7 @@ def get_notes() -> list[dict[str, Any]]:
 
 
 # ---- Facts (key/value) -----------------------------------------------------
+
 
 def set_fact(key: str, value: str) -> None:
     with _LOCK:
@@ -74,15 +77,21 @@ def all_facts() -> dict[str, str]:
 
 # ---- Approval queue (persisted) -------------------------------------------
 
+
 def add_approval(action: str, details: str = "") -> int:
     """Record a risky action as a PENDING approval; returns its id. Never executes it."""
     with _LOCK:
         items = _read(APPROVALS_FILE, [])
         rid = len(items) + 1
-        items.append({
-            "id": rid, "action": action.strip(), "details": details.strip(),
-            "status": "pending", "at": datetime.now().isoformat(timespec="seconds"),
-        })
+        items.append(
+            {
+                "id": rid,
+                "action": action.strip(),
+                "details": details.strip(),
+                "status": "pending",
+                "at": datetime.now().isoformat(timespec="seconds"),
+            }
+        )
         _write(APPROVALS_FILE, items)
         return rid
 

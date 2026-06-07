@@ -4,6 +4,7 @@ These run for real when LARGESTACK_DEEPSEEK_API_KEY is set (e.g. in CI via a
 repository secret) and skip cleanly otherwise. They prove the wedge actually
 works on the provider we promote — not just that the test suite is green.
 """
+
 from __future__ import annotations
 
 import os

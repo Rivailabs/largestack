@@ -1,4 +1,5 @@
 """v0.8.0: Graph workflow DSL tests."""
+
 from __future__ import annotations
 
 import pytest
@@ -7,6 +8,7 @@ from largestack._workflow import Graph, START, END
 
 
 # -------------------- Construction --------------------
+
 
 def test_add_node_validates():
     g = Graph()
@@ -59,6 +61,7 @@ def test_compile_requires_outgoing_edges():
 
 # -------------------- Sync nodes --------------------
 
+
 @pytest.mark.asyncio
 async def test_simple_linear_graph():
     """A → B → END"""
@@ -80,6 +83,7 @@ async def test_simple_linear_graph():
 @pytest.mark.asyncio
 async def test_node_returning_none_keeps_state():
     """A node returning None means it mutated state in place (or no change)."""
+
     def noop(state):
         state["touched"] = True
         return None
@@ -104,10 +108,12 @@ async def test_node_returning_invalid_type_raises():
 
 # -------------------- Async nodes --------------------
 
+
 @pytest.mark.asyncio
 async def test_async_node_works():
     async def slow_node(state):
         return {"async_ran": True}
+
     g = Graph().add_node("s", slow_node)
     g.set_entry("s").add_edge("s", END)
     result = await g.run({})
@@ -115,6 +121,7 @@ async def test_async_node_works():
 
 
 # -------------------- Conditional edges --------------------
+
 
 @pytest.mark.asyncio
 async def test_conditional_edges_branch_a():
@@ -160,6 +167,7 @@ async def test_conditional_edges_branch_b():
 @pytest.mark.asyncio
 async def test_async_router():
     """Router function may be async."""
+
     async def router(state):
         return "yes" if state["x"] > 0 else "no"
 
@@ -197,6 +205,7 @@ def test_cant_have_both_edge_kinds():
 
 # -------------------- Cycle protection --------------------
 
+
 @pytest.mark.asyncio
 async def test_max_iterations_prevents_runaway():
     """A cycle must terminate at max_iterations."""
@@ -212,6 +221,7 @@ async def test_max_iterations_prevents_runaway():
 
 
 # -------------------- Subgraphs --------------------
+
 
 @pytest.mark.asyncio
 async def test_subgraph_composition():
@@ -241,6 +251,7 @@ async def test_subgraph_composition():
 
 # -------------------- Mermaid output --------------------
 
+
 def test_mermaid_output_includes_nodes_and_edges():
     g = Graph()
     g.add_node("classify", lambda s: {})
@@ -261,6 +272,7 @@ def test_mermaid_output_includes_nodes_and_edges():
 
 
 # -------------------- Misc --------------------
+
 
 def test_repr_shows_counts():
     g = Graph()

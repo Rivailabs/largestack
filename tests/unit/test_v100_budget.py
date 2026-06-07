@@ -1,4 +1,5 @@
 """v0.10.0: Tests for per-tenant budget tracker."""
+
 from __future__ import annotations
 
 import pytest
@@ -6,9 +7,11 @@ import pytest
 
 # -------------------- MemoryBudgetStore --------------------
 
+
 @pytest.mark.asyncio
 async def test_memory_budget_store_basic():
     from largestack._core.budget import MemoryBudgetStore
+
     store = MemoryBudgetStore()
     assert await store.get("k") == 0.0
     new_val = await store.add("k", 5.0)
@@ -21,6 +24,7 @@ async def test_memory_budget_store_basic():
 @pytest.mark.asyncio
 async def test_memory_budget_store_reset():
     from largestack._core.budget import MemoryBudgetStore
+
     store = MemoryBudgetStore()
     await store.add("k", 10.0)
     await store.reset("k")
@@ -29,8 +33,10 @@ async def test_memory_budget_store_reset():
 
 # -------------------- BudgetLimit --------------------
 
+
 def test_budget_limit_window_key_for_day():
     from largestack._core.budget import BudgetLimit
+
     bl = BudgetLimit("tenant_a", "tokens", 1000.0, "day")
     key = bl.window_key()
     assert "tenant_a:tokens:day:" in key
@@ -38,6 +44,7 @@ def test_budget_limit_window_key_for_day():
 
 def test_budget_limit_window_key_for_month():
     from largestack._core.budget import BudgetLimit
+
     bl = BudgetLimit("tenant_a", "cost_usd", 100.0, "month")
     key = bl.window_key()
     # Month format: YYYYMM
@@ -50,15 +57,18 @@ def test_budget_limit_window_key_for_month():
 
 def test_budget_limit_window_key_for_total():
     from largestack._core.budget import BudgetLimit
+
     bl = BudgetLimit("tenant_a", "tokens", 999999.0, "total")
     assert bl.window_key() == "tenant_a:tokens:total"
 
 
 # -------------------- BudgetTracker --------------------
 
+
 @pytest.mark.asyncio
 async def test_budget_tracker_records_usage():
     from largestack._core.budget import BudgetTracker, BudgetLimit
+
     tracker = BudgetTracker()
     tracker.add_limit(BudgetLimit("acme", "tokens", 1_000_000, "day"))
 
@@ -73,8 +83,11 @@ async def test_budget_tracker_records_usage():
 @pytest.mark.asyncio
 async def test_budget_tracker_raises_when_exceeded():
     from largestack._core.budget import (
-        BudgetTracker, BudgetLimit, BudgetExceededError,
+        BudgetTracker,
+        BudgetLimit,
+        BudgetExceededError,
     )
+
     tracker = BudgetTracker()
     tracker.add_limit(BudgetLimit("small", "tokens", 1000, "day"))
 
@@ -89,8 +102,11 @@ async def test_budget_tracker_raises_when_exceeded():
 async def test_budget_tracker_atomic_no_partial_increment():
     """If any limit would be exceeded, NO counters increment."""
     from largestack._core.budget import (
-        BudgetTracker, BudgetLimit, BudgetExceededError,
+        BudgetTracker,
+        BudgetLimit,
+        BudgetExceededError,
     )
+
     tracker = BudgetTracker()
     tracker.add_limit(BudgetLimit("acme", "tokens", 100_000, "day"))
     tracker.add_limit(BudgetLimit("acme", "cost_usd", 10.0, "day"))
@@ -105,12 +121,13 @@ async def test_budget_tracker_atomic_no_partial_increment():
     # Verify tokens counter did NOT increment from the rejected call
     usage = await tracker.get_usage("acme")
     assert usage["tokens.day"]["used"] == 50_000  # unchanged
-    assert usage["cost_usd.day"]["used"] == 5.0   # unchanged
+    assert usage["cost_usd.day"]["used"] == 5.0  # unchanged
 
 
 @pytest.mark.asyncio
 async def test_budget_tracker_multiple_windows():
     from largestack._core.budget import BudgetTracker, BudgetLimit, BudgetExceededError
+
     tracker = BudgetTracker()
     # Daily limit smaller than monthly
     tracker.add_limit(BudgetLimit("t", "tokens", 100, "day"))
@@ -127,6 +144,7 @@ async def test_budget_tracker_multiple_windows():
 @pytest.mark.asyncio
 async def test_budget_tracker_get_usage():
     from largestack._core.budget import BudgetTracker, BudgetLimit
+
     tracker = BudgetTracker()
     tracker.add_limit(BudgetLimit("t", "tokens", 1000, "day"))
     tracker.add_limit(BudgetLimit("t", "cost_usd", 5.0, "day"))
@@ -143,6 +161,7 @@ async def test_budget_tracker_get_usage():
 @pytest.mark.asyncio
 async def test_budget_tracker_reset_tenant():
     from largestack._core.budget import BudgetTracker, BudgetLimit
+
     tracker = BudgetTracker()
     tracker.add_limit(BudgetLimit("t", "tokens", 1000, "day"))
     await tracker.check_and_record("t", tokens=500)
@@ -156,6 +175,7 @@ async def test_budget_tracker_reset_tenant():
 async def test_budget_tracker_unknown_tenant_no_op():
     """Unknown tenant has no limits → no enforcement."""
     from largestack._core.budget import BudgetTracker
+
     tracker = BudgetTracker()
     # Should not raise
     result = await tracker.check_and_record("unknown_tenant", tokens=99999999)
@@ -165,6 +185,7 @@ async def test_budget_tracker_unknown_tenant_no_op():
 @pytest.mark.asyncio
 async def test_budget_tracker_zero_values_dont_increment():
     from largestack._core.budget import BudgetTracker, BudgetLimit
+
     tracker = BudgetTracker()
     tracker.add_limit(BudgetLimit("t", "tokens", 1000, "day"))
     await tracker.check_and_record("t", tokens=0)
@@ -174,10 +195,12 @@ async def test_budget_tracker_zero_values_dont_increment():
 
 # -------------------- RedisBudgetStore --------------------
 
+
 @pytest.mark.asyncio
 async def test_redis_budget_store_handles_missing_redis():
     from largestack._core.budget import RedisBudgetStore
     import sys
+
     saved = sys.modules.pop("redis", None)
     saved_async = sys.modules.pop("redis.asyncio", None)
     sys.modules["redis"] = None

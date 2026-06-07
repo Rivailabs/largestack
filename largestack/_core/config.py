@@ -1,10 +1,12 @@
 """Hierarchical config: defaults → env (LARGESTACK_*) → yaml → code."""
+
 from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Optional
 import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class LargestackConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="LARGESTACK_", env_file=".env", extra="ignore")
@@ -56,7 +58,6 @@ class LargestackConfig(BaseSettings):
     langfuse_host: str = "https://cloud.langfuse.com"
     otlp_endpoint: str = "http://localhost:4317"
 
-
     # Observability
     trace_enabled: bool = True
     trace_db_path: str = "~/.largestack/traces.db"
@@ -89,14 +90,24 @@ class LargestackConfig(BaseSettings):
     @classmethod
     def load(cls, path: Optional[str] = None, **kw) -> "LargestackConfig":
         yd = {}
-        for p in [path, "largestack.yaml", "largestack.yml", os.path.expanduser("~/.largestack/config.yaml")]:
+        for p in [
+            path,
+            "largestack.yaml",
+            "largestack.yml",
+            os.path.expanduser("~/.largestack/config.yaml"),
+        ]:
             if p and Path(p).exists():
-                with open(p) as f: yd = yaml.safe_load(f) or {}
+                with open(p) as f:
+                    yd = yaml.safe_load(f) or {}
                 break
         return cls(**{**yd, **kw})
 
+
 _cfg: Optional[LargestackConfig] = None
+
+
 def get_config(**kw) -> LargestackConfig:
     global _cfg
-    if _cfg is None or kw: _cfg = LargestackConfig.load(**kw)
+    if _cfg is None or kw:
+        _cfg = LargestackConfig.load(**kw)
     return _cfg

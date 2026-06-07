@@ -3,6 +3,7 @@
 This module defines the shared vocabulary for risk-aware guardrails. It is
 intentionally behavior-free so existing guards can adopt it incrementally.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

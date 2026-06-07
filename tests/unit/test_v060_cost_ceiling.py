@@ -4,6 +4,7 @@ Tests that BudgetExceededError fires:
 - After a turn that pushes cumulative cost over budget (existing v0.4 behavior)
 - BEFORE the next turn's LLM call when already over budget (v0.6 new behavior)
 """
+
 from __future__ import annotations
 
 import pytest

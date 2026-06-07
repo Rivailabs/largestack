@@ -3,6 +3,7 @@
 Run from the bundle root:  cd jarvis_app && python -m pytest test_jarvis.py -q
 These need no API key — they exercise the tools and safety bounds directly.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -30,9 +31,7 @@ def test_calculator_basic():
 
 def test_calculator_refuses_pow_dos_without_hanging():
     # The bound must reject before computing — wrap in a timeout as a safety net.
-    out = asyncio.run(
-        asyncio.wait_for(_wrap(tools.calculate, expression="9**9**9"), timeout=5)
-    )
+    out = asyncio.run(asyncio.wait_for(_wrap(tools.calculate, expression="9**9**9"), timeout=5))
     assert "Error" in out
 
 

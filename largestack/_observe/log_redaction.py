@@ -11,6 +11,7 @@ Install once at process startup:
 The filter is conservative — it only redacts known patterns. False negatives
 (missed leaks) are possible; false positives are unlikely.
 """
+
 from __future__ import annotations
 import logging
 import re
@@ -34,7 +35,10 @@ _SECRET_PATTERNS = [
     # Bearer tokens (HTTP header form)
     (re.compile(r"Bearer\s+[A-Za-z0-9._\-+/=]{20,}"), "Bearer [REDACTED]"),
     # JWT (rough — three b64url segments separated by dots, last is signature)
-    (re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"), "[REDACTED:jwt]"),
+    (
+        re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"),
+        "[REDACTED:jwt]",
+    ),
 ]
 
 
@@ -48,7 +52,7 @@ def _redact_text(s: str) -> str:
 
 class RedactionFilter(logging.Filter):
     """Filter that redacts secrets from LogRecord.msg and args.
-    
+
     Returns True (keep record) always; mutation is the side effect.
     """
 
@@ -59,19 +63,19 @@ class RedactionFilter(logging.Filter):
         # Redact in args (used for %-formatted log messages)
         if record.args:
             if isinstance(record.args, dict):
-                record.args = {k: _redact_text(v) if isinstance(v, str) else v
-                                for k, v in record.args.items()}
+                record.args = {
+                    k: _redact_text(v) if isinstance(v, str) else v for k, v in record.args.items()
+                }
             elif isinstance(record.args, tuple):
                 record.args = tuple(
-                    _redact_text(v) if isinstance(v, str) else v
-                    for v in record.args
+                    _redact_text(v) if isinstance(v, str) else v for v in record.args
                 )
         return True
 
 
 def install_redaction_filter(logger_name: str | None = None) -> RedactionFilter:
     """Install the redaction filter on a logger (default: root).
-    
+
     Returns the installed filter so callers can remove it later if desired.
     Idempotent — installing twice on the same logger has no extra effect.
     """

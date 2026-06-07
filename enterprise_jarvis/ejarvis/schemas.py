@@ -1,4 +1,5 @@
 """Typed (Pydantic) outputs — the agent returns validated models, not raw dicts."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field

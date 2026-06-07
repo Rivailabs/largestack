@@ -3,6 +3,7 @@
 Honest about what it is — keyword scoring, not a vector DB. Returns (source, snippet)
 pairs so the agent can cite, and nothing when there's no relevant match.
 """
+
 from __future__ import annotations
 
 import re
@@ -22,7 +23,9 @@ def search(query: str, k: int = 2) -> list[tuple[str, str]]:
         if score:
             # Return the most relevant paragraph as the snippet.
             paras = [p.strip() for p in text.split("\n\n") if p.strip()]
-            best_para = max(paras, key=lambda p: sum(p.lower().count(w) for w in words)) if paras else text
+            best_para = (
+                max(paras, key=lambda p: sum(p.lower().count(w) for w in words)) if paras else text
+            )
             scored.append((score, doc.name, best_para[:400]))
     scored.sort(reverse=True)
     return [(src, snip) for _, src, snip in scored[:k]]

@@ -23,6 +23,7 @@ Or as a context manager::
     async with start_span("rag.retrieve", attributes={"k": 5}):
         results = await retriever(query)
 """
+
 from __future__ import annotations
 import contextlib
 import functools
@@ -82,12 +83,16 @@ def setup_otel(
 
     try:
         from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
         exporter = OTLPSpanExporter(
-            endpoint=endpoint, headers=headers, insecure=insecure,
+            endpoint=endpoint,
+            headers=headers,
+            insecure=insecure,
         )
     except ImportError:
         try:
             from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
             exporter = OTLPSpanExporter(endpoint=endpoint, headers=headers)
         except ImportError:
             log.warning("OTLP exporter not installed; tracing disabled")
@@ -113,7 +118,8 @@ def get_tracer():
 
 @contextlib.asynccontextmanager
 async def start_span(
-    name: str, attributes: dict | None = None,
+    name: str,
+    attributes: dict | None = None,
 ) -> AsyncIterator:
     """Start an OTEL span. Becomes a no-op if OTEL isn't initialized.
 
@@ -125,10 +131,18 @@ async def start_span(
     if _tracer is None:
         # No-op span
         class _NoOpSpan:
-            def set_attribute(self, *a, **kw): pass
-            def add_event(self, *a, **kw): pass
-            def record_exception(self, *a, **kw): pass
-            def set_status(self, *a, **kw): pass
+            def set_attribute(self, *a, **kw):
+                pass
+
+            def add_event(self, *a, **kw):
+                pass
+
+            def record_exception(self, *a, **kw):
+                pass
+
+            def set_status(self, *a, **kw):
+                pass
+
         yield _NoOpSpan()
         return
 
@@ -146,6 +160,7 @@ async def start_span(
                 span.record_exception(e)
                 # Try to set ERROR status if supported
                 from opentelemetry.trace import Status, StatusCode
+
                 span.set_status(Status(StatusCode.ERROR, str(e)))
             except ImportError:
                 pass
@@ -154,6 +169,7 @@ async def start_span(
 
 def trace_span(name: str | None = None, attributes: dict | None = None):
     """Decorator that wraps an async function in an OTEL span."""
+
     def decorator(fn: Callable[..., Any]):
         span_name = name or f"{fn.__module__}.{fn.__name__}"
 
@@ -167,12 +183,14 @@ def trace_span(name: str | None = None, attributes: dict | None = None):
                 except Exception:
                     pass
                 return await fn(*args, **kwargs)
+
         return wrapper
 
     return decorator
 
 
 # -------------------- Instrument LLM call helper --------------------
+
 
 @contextlib.asynccontextmanager
 async def trace_llm_call(
@@ -204,6 +222,7 @@ async def trace_llm_call(
 
 
 # -------------------- Instrument tool call helper --------------------
+
 
 @contextlib.asynccontextmanager
 async def trace_tool_call(

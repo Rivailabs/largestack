@@ -4,6 +4,7 @@ v0.5.0: keeps the lazy-HTTP-client init from the parent class. Azure's
 header swap (api-key instead of Authorization) is now done in a property
 override rather than at construction time.
 """
+
 from __future__ import annotations
 import httpx
 from largestack._core.providers.openai_prov import OpenAIProvider

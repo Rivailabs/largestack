@@ -8,7 +8,9 @@ from largestack.autonomous_builder import BuildReport, ValidationResult
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("final_95_plus_certify", ROOT / "scripts" / "final_95_plus_certify.py")
+SPEC = importlib.util.spec_from_file_location(
+    "final_95_plus_certify", ROOT / "scripts" / "final_95_plus_certify.py"
+)
 cert = importlib.util.module_from_spec(SPEC)
 assert SPEC and SPEC.loader
 sys.modules["final_95_plus_certify"] = cert
@@ -74,7 +76,9 @@ def test_reviewer_json_parses_fenced_output():
 
 
 def test_run_cmd_classifies_missing_binary_as_env_blocker(tmp_path):
-    gate = cert.run_cmd("missing_tool", ["largestack-definitely-missing-binary"], tmp_path, timeout=1)
+    gate = cert.run_cmd(
+        "missing_tool", ["largestack-definitely-missing-binary"], tmp_path, timeout=1
+    )
     assert gate.status == "FAIL"
     assert gate.blocker_type == "ENV BLOCKER"
     assert "missing command" in gate.reason

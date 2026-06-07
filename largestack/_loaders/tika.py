@@ -251,7 +251,9 @@ def _resolve_server_url(server_url: str | None) -> str:
     This must be TRUSTED configuration (your own Tika server), not untrusted user
     input. Non-HTTP(S) schemes are rejected as a basic SSRF guard (file://, etc.).
     """
-    resolved = (server_url or os.environ.get(TIKA_SERVER_URL_ENV) or DEFAULT_TIKA_SERVER_URL).rstrip("/")
+    resolved = (
+        server_url or os.environ.get(TIKA_SERVER_URL_ENV) or DEFAULT_TIKA_SERVER_URL
+    ).rstrip("/")
     if not resolved.startswith(("http://", "https://")):
         raise ValueError(f"Tika server URL must be http(s), got {resolved!r}")
     return resolved

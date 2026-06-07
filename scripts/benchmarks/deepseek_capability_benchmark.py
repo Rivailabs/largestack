@@ -295,7 +295,7 @@ def selected_scenarios() -> list[dict[str, str]]:
     end = int(os.environ.get("LARGESTACK_BENCHMARK_END_INDEX", str(len(SCENARIOS))))
     start = max(1, start)
     end = min(len(SCENARIOS), end)
-    return SCENARIOS[start - 1:end]
+    return SCENARIOS[start - 1 : end]
 
 
 def now_stamp() -> str:
@@ -484,7 +484,9 @@ async def main() -> None:
         f"mode={BENCHMARK_GUARDRAIL_MODE}",
         f"context={BENCHMARK_CONTEXT}",
     )
-    print("Benchmark uses warn/planning mode for architecture planning; critical abuse guardrails remain active.")
+    print(
+        "Benchmark uses warn/planning mode for architecture planning; critical abuse guardrails remain active."
+    )
 
     results = []
     scenarios = selected_scenarios()
@@ -495,13 +497,15 @@ async def main() -> None:
             results.append(await run_scenario(scenario, outdir))
         except Exception as exc:
             print(f"FAILED {scenario['id']}: {exc}")
-            results.append({
-                "id": scenario["id"],
-                "title": scenario["title"],
-                "difficulty": scenario["difficulty"],
-                "error": repr(exc),
-                "passed_basic_quality_gate": False,
-            })
+            results.append(
+                {
+                    "id": scenario["id"],
+                    "title": scenario["title"],
+                    "difficulty": scenario["difficulty"],
+                    "error": repr(exc),
+                    "passed_basic_quality_gate": False,
+                }
+            )
 
     passed_count = sum(1 for r in results if r.get("passed_basic_quality_gate"))
     total = len(results)
@@ -532,9 +536,7 @@ async def main() -> None:
     for r in results:
         status = "PASS" if r.get("passed_basic_quality_gate") else "CHECK"
         output_file = r.get("output_file", "")
-        md_lines.append(
-            f"| {r['title']} | {r['difficulty']} | {status} | `{output_file}` |"
-        )
+        md_lines.append(f"| {r['title']} | {r['difficulty']} | {status} | `{output_file}` |")
 
     (outdir / "SUMMARY.md").write_text("\n".join(md_lines), encoding="utf-8")
 

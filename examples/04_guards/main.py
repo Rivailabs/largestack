@@ -1,4 +1,5 @@
 """Guardrails example using the configured provider."""
+
 from pathlib import Path
 import sys
 
@@ -11,7 +12,13 @@ from largestack._guard.pii import PIIGuard
 
 async def main():
     guardrails = Guardrails(guards=[PIIGuard(action="warn"), InjectionGuard()])
-    agent = Agent(name="safe", instructions="Answer briefly and safely.", guardrails=guardrails, llm=select_model(), cost_budget=0.10)
+    agent = Agent(
+        name="safe",
+        instructions="Answer briefly and safely.",
+        guardrails=guardrails,
+        llm=select_model(),
+        cost_budget=0.10,
+    )
     try:
         result = await agent.run("What is machine learning?", timeout=90)
         print(f"Result: {result.content[:300]}")

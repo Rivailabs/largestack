@@ -30,6 +30,7 @@ Example::
     res = await rag.answer("What is our refund window?", user_id="alice")
     print(res.answer, res.grounded, res.citations, res.cost, res.trace_id)
 """
+
 from __future__ import annotations
 
 import logging
@@ -42,17 +43,18 @@ log = logging.getLogger("largestack.secure_rag")
 
 class SecureRagResult(BaseModel):
     """Structured outcome of a secure RAG query (never raises for policy decisions)."""
+
     answer: str = ""
-    allowed: bool = True                      # passed RBAC
-    denied_reason: str | None = None          # set when RBAC blocked
-    blocked_by_guardrail: str | None = None   # set when an input/output guard blocked
-    grounded: bool = False                    # groundedness >= threshold
-    groundedness: float = 0.0                 # faithfulness of answer vs retrieved chunks
+    allowed: bool = True  # passed RBAC
+    denied_reason: str | None = None  # set when RBAC blocked
+    blocked_by_guardrail: str | None = None  # set when an input/output guard blocked
+    grounded: bool = False  # groundedness >= threshold
+    groundedness: float = 0.0  # faithfulness of answer vs retrieved chunks
     citations: list[dict] = Field(default_factory=list)
     sources: list[dict] = Field(default_factory=list)
     cost: float = 0.0
     trace_id: str | None = None
-    sanitized: bool = False                   # True if output sanitization altered the answer
+    sanitized: bool = False  # True if output sanitization altered the answer
 
 
 class SecureRAGAgent:
@@ -108,11 +110,13 @@ class SecureRAGAgent:
         # before returning, so the wedge doesn't rely on the caller remembering to.
         self._sanitizer = OutputSanitizer() if sanitize_output else None
 
-        self._rag = create_rag(documents or [], top_k=top_k, dense=dense,
-                               embed_fn=embed_fn, reranker=reranker)
+        self._rag = create_rag(
+            documents or [], top_k=top_k, dense=dense, embed_fn=embed_fn, reranker=reranker
+        )
         self._agent = Agent(
             name="secure-rag",
-            instructions=instructions or (
+            instructions=instructions
+            or (
                 "Answer the user's question using ONLY the provided sources. "
                 "If the sources are insufficient, say so plainly. Be concise."
             ),
@@ -143,10 +147,16 @@ class SecureRAGAgent:
             return
         try:
             from largestack._core.engine import _get_audit
+
             a = _get_audit()
             if a:
-                a.log(event_type, action, agent_name="secure-rag", user_id=user_id or "",
-                      details={"detail": detail[:200]})
+                a.log(
+                    event_type,
+                    action,
+                    agent_name="secure-rag",
+                    user_id=user_id or "",
+                    details={"detail": detail[:200]},
+                )
         except Exception as e:  # never let auditing break the request
             log.debug(f"secure_rag audit failed: {e}")
 
@@ -170,13 +180,15 @@ class SecureRAGAgent:
             except GuardrailBlockedError as e:
                 gt = getattr(e, "guard_type", "guardrail")
                 self._audit("secure_rag.blocked", gt, user_id or "", query)
-                return SecureRagResult(allowed=True, blocked_by_guardrail=gt,
-                                       answer="Request blocked by input guardrails.")
+                return SecureRagResult(
+                    allowed=True,
+                    blocked_by_guardrail=gt,
+                    answer="Request blocked by input guardrails.",
+                )
 
         # 3. Hybrid retrieval (+ rerank) → trusted chunks
         chunks = self._rag.retrieve(query)
-        docs = [{"content": c["text"], "id": str(c.get("index", i))}
-                for i, c in enumerate(chunks)]
+        docs = [{"content": c["text"], "id": str(c.get("index", i))} for i, c in enumerate(chunks)]
         context = "\n\n".join(f"[Source {i + 1}] {c['text']}" for i, c in enumerate(chunks))
         if not chunks:
             context = "(no relevant sources found)"
@@ -192,8 +204,11 @@ class SecureRAGAgent:
             result = await self._agent.run(prompt)
         except GuardrailBlockedError as e:
             gt = getattr(e, "guard_type", "guardrail")
-            return SecureRagResult(allowed=True, blocked_by_guardrail=gt,
-                                   answer="Response blocked by output guardrails.")
+            return SecureRagResult(
+                allowed=True,
+                blocked_by_guardrail=gt,
+                answer="Response blocked by output guardrails.",
+            )
 
         answer = result.content or ""
 
@@ -208,8 +223,11 @@ class SecureRAGAgent:
                 cited = self._citer.cite(answer, docs)
                 cited_text = cited.text_with_citations or answer
                 citations = [
-                    {"sentence": c.sentence, "sources": c.source_doc_indices,
-                     "confidence": round(c.confidence, 3)}
+                    {
+                        "sentence": c.sentence,
+                        "sources": c.source_doc_indices,
+                        "confidence": round(c.confidence, 3),
+                    }
                     for c in cited.citations
                 ]
                 sources = cited.sources

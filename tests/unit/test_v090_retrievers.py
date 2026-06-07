@@ -1,4 +1,5 @@
 """v0.9.0: Tests for compression, self-query, ensemble-v2 retrievers."""
+
 from __future__ import annotations
 
 import json
@@ -9,20 +10,26 @@ import pytest
 
 # -------------------- Compression Retriever --------------------
 
+
 @pytest.mark.asyncio
 async def test_compression_extracts_relevant_sentences():
     from largestack._retrievers import compression_retrieve
 
     base_docs = [
-        {"id": "1", "content": "Random sentence. Relevant: pgvector uses HNSW indexes. Random again."},
+        {
+            "id": "1",
+            "content": "Random sentence. Relevant: pgvector uses HNSW indexes. Random again.",
+        },
         {"id": "2", "content": "Cooking recipes for pasta. Tomato sauce. Garlic."},
     ]
     retriever = AsyncMock(return_value=base_docs)
     compressor = MagicMock()
-    compressor.run = AsyncMock(side_effect=[
-        MagicMock(content="pgvector uses HNSW indexes."),
-        MagicMock(content="NONE"),  # cooking is not relevant
-    ])
+    compressor.run = AsyncMock(
+        side_effect=[
+            MagicMock(content="pgvector uses HNSW indexes."),
+            MagicMock(content="NONE"),  # cooking is not relevant
+        ]
+    )
 
     out = await compression_retrieve(
         "How does pgvector work?",
@@ -39,10 +46,13 @@ async def test_compression_extracts_relevant_sentences():
 @pytest.mark.asyncio
 async def test_compression_handles_no_base_results():
     from largestack._retrievers import compression_retrieve
+
     retriever = AsyncMock(return_value=[])
     compressor = MagicMock()
     out = await compression_retrieve(
-        "q", retriever=retriever, compressor_agent=compressor,
+        "q",
+        retriever=retriever,
+        compressor_agent=compressor,
     )
     assert out == []
 
@@ -57,7 +67,9 @@ async def test_compression_truncates_long_output():
     compressor.run = AsyncMock(return_value=MagicMock(content=long_content))
 
     out = await compression_retrieve(
-        "q", retriever=retriever, compressor_agent=compressor,
+        "q",
+        retriever=retriever,
+        compressor_agent=compressor,
         max_chars_per_doc=100,
     )
     assert len(out[0]["compressed_content"]) <= 200  # 100 + truncation marker
@@ -68,12 +80,15 @@ async def test_compression_truncates_long_output():
 async def test_compression_handles_compressor_failure():
     """If LLM fails, fall back to using truncated original content."""
     from largestack._retrievers import compression_retrieve
+
     retriever = AsyncMock(return_value=[{"id": "1", "content": "original content"}])
     compressor = MagicMock()
     compressor.run = AsyncMock(side_effect=RuntimeError("LLM down"))
 
     out = await compression_retrieve(
-        "q", retriever=retriever, compressor_agent=compressor,
+        "q",
+        retriever=retriever,
+        compressor_agent=compressor,
     )
     # Falls back to truncated original
     assert len(out) == 1
@@ -82,17 +97,22 @@ async def test_compression_handles_compressor_failure():
 
 # -------------------- Self-Query Retriever --------------------
 
+
 @pytest.mark.asyncio
 async def test_self_query_extracts_filters():
     from largestack._retrievers import self_query_retrieve
 
     parser = MagicMock()
-    parser.run = AsyncMock(return_value=MagicMock(
-        content='{"search_text": "blog posts about Rust", "filters": {"year": 2023, "type": "blog"}}'
-    ))
-    retriever = AsyncMock(return_value=[
-        {"id": "1", "content": "Rust blog post"},
-    ])
+    parser.run = AsyncMock(
+        return_value=MagicMock(
+            content='{"search_text": "blog posts about Rust", "filters": {"year": 2023, "type": "blog"}}'
+        )
+    )
+    retriever = AsyncMock(
+        return_value=[
+            {"id": "1", "content": "Rust blog post"},
+        ]
+    )
 
     out = await self_query_retrieve(
         "Find blog posts about Rust from 2023",
@@ -116,9 +136,11 @@ async def test_self_query_strips_unknown_filter_fields():
     from largestack._retrievers import self_query_retrieve
 
     parser = MagicMock()
-    parser.run = AsyncMock(return_value=MagicMock(
-        content='{"search_text": "x", "filters": {"year": 2023, "secret_field": "exfiltrate"}}'
-    ))
+    parser.run = AsyncMock(
+        return_value=MagicMock(
+            content='{"search_text": "x", "filters": {"year": 2023, "secret_field": "exfiltrate"}}'
+        )
+    )
     retriever = AsyncMock(return_value=[])
 
     await self_query_retrieve(
@@ -158,13 +180,15 @@ async def test_self_query_strips_code_fences():
     from largestack._retrievers import self_query_retrieve
 
     parser = MagicMock()
-    parser.run = AsyncMock(return_value=MagicMock(
-        content='```json\n{"search_text": "test", "filters": {}}\n```'
-    ))
+    parser.run = AsyncMock(
+        return_value=MagicMock(content='```json\n{"search_text": "test", "filters": {}}\n```')
+    )
     retriever = AsyncMock(return_value=[])
 
     await self_query_retrieve(
-        "q", retriever=retriever, parser_agent=parser,
+        "q",
+        retriever=retriever,
+        parser_agent=parser,
         metadata_fields={"y": "y"},
     )
     # Should NOT have raised; should have parsed despite the fences
@@ -173,21 +197,29 @@ async def test_self_query_strips_code_fences():
 
 # -------------------- Ensemble v2 Retriever --------------------
 
+
 @pytest.mark.asyncio
 async def test_ensemble_v2_rrf_fusion():
     from largestack._retrievers import ensemble_v2_retrieve
 
-    r1 = AsyncMock(return_value=[
-        {"id": "a", "score": 0.9},
-        {"id": "b", "score": 0.7},
-    ])
-    r2 = AsyncMock(return_value=[
-        {"id": "b", "score": 0.95},
-        {"id": "c", "score": 0.6},
-    ])
+    r1 = AsyncMock(
+        return_value=[
+            {"id": "a", "score": 0.9},
+            {"id": "b", "score": 0.7},
+        ]
+    )
+    r2 = AsyncMock(
+        return_value=[
+            {"id": "b", "score": 0.95},
+            {"id": "c", "score": 0.6},
+        ]
+    )
 
     out = await ensemble_v2_retrieve(
-        "q", retrievers=[(r1, 1.0), (r2, 1.0)], k=3, fusion="rrf",
+        "q",
+        retrievers=[(r1, 1.0), (r2, 1.0)],
+        k=3,
+        fusion="rrf",
     )
     # Doc b appears in both → highest fused score
     ids = [d["id"] for d in out]
@@ -218,7 +250,9 @@ async def test_ensemble_v2_max_score():
     r2 = AsyncMock(return_value=[{"id": "a", "score": 0.9}])
 
     out = await ensemble_v2_retrieve(
-        "q", retrievers=[(r1, 1.0), (r2, 1.0)], fusion="max_score",
+        "q",
+        retrievers=[(r1, 1.0), (r2, 1.0)],
+        fusion="max_score",
     )
     # Max of 0.3 and 0.9 = 0.9
     assert abs(out[0]["fusion_score"] - 0.9) < 1e-6
@@ -227,6 +261,7 @@ async def test_ensemble_v2_max_score():
 @pytest.mark.asyncio
 async def test_ensemble_v2_empty_retrievers():
     from largestack._retrievers import ensemble_v2_retrieve
+
     out = await ensemble_v2_retrieve("q", retrievers=[])
     assert out == []
 
@@ -234,10 +269,13 @@ async def test_ensemble_v2_empty_retrievers():
 @pytest.mark.asyncio
 async def test_ensemble_v2_unknown_fusion_raises():
     from largestack._retrievers import ensemble_v2_retrieve
+
     r = AsyncMock(return_value=[{"id": "a"}])
     with pytest.raises(ValueError, match="unknown fusion"):
         await ensemble_v2_retrieve(
-            "q", retrievers=[(r, 1.0)], fusion="bogus_fusion",
+            "q",
+            retrievers=[(r, 1.0)],
+            fusion="bogus_fusion",
         )
 
 
@@ -250,7 +288,8 @@ async def test_ensemble_v2_handles_failed_retriever():
     r2 = AsyncMock(return_value=[{"id": "a", "score": 0.8}])
 
     out = await ensemble_v2_retrieve(
-        "q", retrievers=[(r1, 1.0), (r2, 1.0)],
+        "q",
+        retrievers=[(r1, 1.0), (r2, 1.0)],
     )
     # Should still return r2's result
     assert len(out) == 1
@@ -268,6 +307,7 @@ async def test_ensemble_v2_runs_in_parallel():
         return [{"id": "x", "score": 1.0}]
 
     import time
+
     start = time.time()
     out = await ensemble_v2_retrieve(
         "q",

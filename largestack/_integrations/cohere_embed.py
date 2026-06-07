@@ -11,6 +11,7 @@ Cohere Embed v4 supports:
 
 API ref: https://docs.cohere.com/reference/embed
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -58,10 +59,7 @@ async def cohere_embed(
         JSON string with: ``{"model", "dim", "tokens", "embedding"}``
         OR a plain error string (does not raise so the agent loop survives).
     """
-    api_key = (
-        os.environ.get("LARGESTACK_COHERE_API_KEY")
-        or os.environ.get("COHERE_API_KEY", "")
-    )
+    api_key = os.environ.get("LARGESTACK_COHERE_API_KEY") or os.environ.get("COHERE_API_KEY", "")
     if not api_key:
         return "error: LARGESTACK_COHERE_API_KEY (or COHERE_API_KEY) not set"
     if not text or not isinstance(text, str):
@@ -120,9 +118,11 @@ async def cohere_embed(
     except (KeyError, IndexError, TypeError) as e:
         return f"error: malformed Cohere response: {e}"
 
-    return json.dumps({
-        "model": model,
-        "dim": len(vec),
-        "tokens": tokens,
-        "embedding": vec,
-    })
+    return json.dumps(
+        {
+            "model": model,
+            "dim": len(vec),
+            "tokens": tokens,
+            "embedding": vec,
+        }
+    )

@@ -1,4 +1,5 @@
 """Tests for enterprise features."""
+
 import asyncio, tempfile, os
 from largestack._enterprise.rbac import RBAC
 from largestack._enterprise.audit import AuditTrail
@@ -8,6 +9,7 @@ from largestack._enterprise.canary import CanaryDeployment
 from largestack._distributed.event_sourcing import EventStore
 from largestack._distributed.saga import SagaOrchestrator
 
+
 def test_rbac_roles():
     r = RBAC()
     r.assign_role("alice", "admin")
@@ -16,12 +18,14 @@ def test_rbac_roles():
     assert r.check("bob", "trace.view")
     assert not r.check("bob", "agent.create")
 
+
 def test_rbac_custom_role():
     r = RBAC()
     r.add_role("analyst", ["trace.view", "cost.view", "agent.view"])
     r.assign_role("charlie", "analyst")
     assert r.check("charlie", "cost.view")
     assert not r.check("charlie", "agent.create")
+
 
 def test_audit_trail():
     at = AuditTrail(os.path.join(tempfile.mkdtemp(), "audit.db"))
@@ -32,6 +36,7 @@ def test_audit_trail():
     entries = at.query(agent_name="test")
     assert len(entries) == 2
 
+
 def test_tenant():
     tm = TenantManager()
     tm.register("acme", {"plan": "enterprise", "max_agents": 100})
@@ -39,6 +44,7 @@ def test_tenant():
     tm.set_current("acme")
     assert tm.current == "acme"
     assert tm.get_config()["plan"] == "enterprise"
+
 
 def test_billing():
     um = UsageMeter()
@@ -48,12 +54,15 @@ def test_billing():
     assert usage["requests"] == 2
     assert usage["cost"] == 0.70
 
+
 def test_canary():
     c = CanaryDeployment()
     assert c.current_percentage == 0.01  # First stage
-    for _ in range(20): c.record_result("new", True)
+    for _ in range(20):
+        c.record_result("new", True)
     advanced = c.advance()
     assert advanced or c.current_percentage > 0.01
+
 
 def test_event_sourcing():
     es = EventStore(os.path.join(tempfile.mkdtemp(), "events.db"))
@@ -65,6 +74,7 @@ def test_event_sourcing():
     state = es.reconstruct_state("agent-1")
     assert state["answer"] == "world"
 
+
 def test_saga():
     compensated = []
     s = SagaOrchestrator("test-saga")
@@ -74,11 +84,15 @@ def test_saga():
     assert r["step1"] and r["step2"]
     assert len(compensated) == 0  # No failures
 
+
 def test_saga_with_failure():
     compensated = []
     s = SagaOrchestrator("fail-saga")
     s.add_step("step1", lambda c: {**c, "s1": True}, lambda c: compensated.append("s1"))
-    def fail(c): raise RuntimeError("boom")
+
+    def fail(c):
+        raise RuntimeError("boom")
+
     s.add_step("step2", fail, lambda c: compensated.append("s2"))
     try:
         asyncio.run(s.execute({}))

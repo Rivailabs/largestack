@@ -1,4 +1,5 @@
 """v0.9.0: Tests for SubQuestionQueryEngine + RouterQueryEngine."""
+
 from __future__ import annotations
 
 import asyncio
@@ -10,18 +11,23 @@ import pytest
 
 # -------------------- SubQuestionQueryEngine --------------------
 
+
 @pytest.mark.asyncio
 async def test_sub_question_decomposes_and_synthesizes():
     from largestack._rag.query_engines import SubQuestionQueryEngine
 
     decomposer = MagicMock()
-    decomposer.run = AsyncMock(return_value=MagicMock(
-        content='["What is X?", "What is Y?", "How do they compare?"]'
-    ))
+    decomposer.run = AsyncMock(
+        return_value=MagicMock(content='["What is X?", "What is Y?", "How do they compare?"]')
+    )
 
-    sub_engine = AsyncMock(side_effect=[
-        "X is a tool", "Y is a framework", "X is simpler than Y",
-    ])
+    sub_engine = AsyncMock(
+        side_effect=[
+            "X is a tool",
+            "Y is a framework",
+            "X is simpler than Y",
+        ]
+    )
 
     synth = MagicMock()
     synth.run = AsyncMock(return_value=MagicMock(content="Final synthesis."))
@@ -51,7 +57,8 @@ async def test_sub_question_handles_decompose_failure():
     synth.run = AsyncMock(return_value=MagicMock(content="just one"))
 
     engine = SubQuestionQueryEngine(
-        decomposer_agent=decomposer, sub_engine=sub_engine,
+        decomposer_agent=decomposer,
+        sub_engine=sub_engine,
         synthesizer_agent=synth,
     )
     result = await engine.query("simple question")
@@ -63,15 +70,14 @@ async def test_sub_question_strips_code_fences():
     from largestack._rag.query_engines import SubQuestionQueryEngine
 
     decomposer = MagicMock()
-    decomposer.run = AsyncMock(return_value=MagicMock(
-        content='```json\n["one", "two"]\n```'
-    ))
+    decomposer.run = AsyncMock(return_value=MagicMock(content='```json\n["one", "two"]\n```'))
     sub_engine = AsyncMock(return_value="ans")
     synth = MagicMock()
     synth.run = AsyncMock(return_value=MagicMock(content="final"))
 
     engine = SubQuestionQueryEngine(
-        decomposer_agent=decomposer, sub_engine=sub_engine,
+        decomposer_agent=decomposer,
+        sub_engine=sub_engine,
         synthesizer_agent=synth,
     )
     result = await engine.query("q")
@@ -84,15 +90,16 @@ async def test_sub_question_caps_at_max():
     from largestack._rag.query_engines import SubQuestionQueryEngine
 
     decomposer = MagicMock()
-    decomposer.run = AsyncMock(return_value=MagicMock(
-        content='["q1", "q2", "q3", "q4", "q5", "q6", "q7"]'
-    ))
+    decomposer.run = AsyncMock(
+        return_value=MagicMock(content='["q1", "q2", "q3", "q4", "q5", "q6", "q7"]')
+    )
     sub_engine = AsyncMock(return_value="x")
     synth = MagicMock()
     synth.run = AsyncMock(return_value=MagicMock(content="ok"))
 
     engine = SubQuestionQueryEngine(
-        decomposer_agent=decomposer, sub_engine=sub_engine,
+        decomposer_agent=decomposer,
+        sub_engine=sub_engine,
         synthesizer_agent=synth,
         max_sub_questions=3,
     )
@@ -105,16 +112,15 @@ async def test_sub_question_handles_sub_engine_failure():
     from largestack._rag.query_engines import SubQuestionQueryEngine
 
     decomposer = MagicMock()
-    decomposer.run = AsyncMock(return_value=MagicMock(
-        content='["good_q", "bad_q"]'
-    ))
+    decomposer.run = AsyncMock(return_value=MagicMock(content='["good_q", "bad_q"]'))
     # First succeeds, second fails
     sub_engine = AsyncMock(side_effect=["good answer", RuntimeError("fail")])
     synth = MagicMock()
     synth.run = AsyncMock(return_value=MagicMock(content="partial"))
 
     engine = SubQuestionQueryEngine(
-        decomposer_agent=decomposer, sub_engine=sub_engine,
+        decomposer_agent=decomposer,
+        sub_engine=sub_engine,
         synthesizer_agent=synth,
     )
     result = await engine.query("q")
@@ -128,9 +134,7 @@ async def test_sub_question_runs_concurrently():
     from largestack._rag.query_engines import SubQuestionQueryEngine
 
     decomposer = MagicMock()
-    decomposer.run = AsyncMock(return_value=MagicMock(
-        content='["q1", "q2", "q3"]'
-    ))
+    decomposer.run = AsyncMock(return_value=MagicMock(content='["q1", "q2", "q3"]'))
 
     async def slow_sub(q):
         await asyncio.sleep(0.05)
@@ -140,10 +144,13 @@ async def test_sub_question_runs_concurrently():
     synth.run = AsyncMock(return_value=MagicMock(content="ok"))
 
     engine = SubQuestionQueryEngine(
-        decomposer_agent=decomposer, sub_engine=slow_sub,
-        synthesizer_agent=synth, max_concurrent=3,
+        decomposer_agent=decomposer,
+        sub_engine=slow_sub,
+        synthesizer_agent=synth,
+        max_concurrent=3,
     )
     import time
+
     start = time.time()
     await engine.query("q")
     elapsed = time.time() - start
@@ -152,6 +159,7 @@ async def test_sub_question_runs_concurrently():
 
 
 # -------------------- RouterQueryEngine --------------------
+
 
 @pytest.mark.asyncio
 async def test_router_routes_to_correct_engine():
@@ -228,7 +236,8 @@ async def test_router_handles_router_exception():
     a = AsyncMock(return_value="a-ans")
 
     rq = RouterQueryEngine(
-        router_agent=router, engines={"a": a},
+        router_agent=router,
+        engines={"a": a},
     )
     result = await rq.query("q")
     assert result.chosen_engine == "a"
@@ -246,7 +255,8 @@ async def test_router_handles_engine_exception():
     broken = AsyncMock(side_effect=RuntimeError("engine broken"))
 
     rq = RouterQueryEngine(
-        router_agent=router, engines={"broken": broken},
+        router_agent=router,
+        engines={"broken": broken},
     )
     result = await rq.query("q")
     assert "broken" in result.answer.lower()
@@ -254,6 +264,7 @@ async def test_router_handles_engine_exception():
 
 def test_router_validates_empty_engines():
     from largestack._rag.query_engines import RouterQueryEngine
+
     router = MagicMock()
     with pytest.raises(ValueError, match="empty"):
         RouterQueryEngine(router_agent=router, engines={})
@@ -261,11 +272,13 @@ def test_router_validates_empty_engines():
 
 def test_router_validates_default_engine_in_set():
     from largestack._rag.query_engines import RouterQueryEngine
+
     router = MagicMock()
     a = AsyncMock()
     with pytest.raises(ValueError):
         RouterQueryEngine(
-            router_agent=router, engines={"a": a},
+            router_agent=router,
+            engines={"a": a},
             default_engine="missing",
         )
 
@@ -280,7 +293,8 @@ async def test_router_strips_punctuation_from_choice():
 
     eng = AsyncMock(return_value="ok")
     rq = RouterQueryEngine(
-        router_agent=router, engines={"sql_engine": eng},
+        router_agent=router,
+        engines={"sql_engine": eng},
     )
     result = await rq.query("q")
     assert result.chosen_engine == "sql_engine"

@@ -2,6 +2,7 @@
 is null (NVIDIA and others send it that way). Regression for the AttributeError:
 'NoneType' object has no attribute 'get'.
 """
+
 from __future__ import annotations
 
 from largestack._core.providers.openai_prov import OpenAIProvider

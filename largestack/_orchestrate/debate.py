@@ -3,6 +3,7 @@
 Pattern from "Improving Factuality and Reasoning in Language Models through
 Multiagent Debate" (Du et al., 2023). Agents argue, critique, and converge.
 """
+
 from __future__ import annotations
 import asyncio, logging
 from typing import Any
@@ -10,14 +11,16 @@ from largestack.types import AgentResult
 
 log = logging.getLogger("largestack.debate")
 
+
 class DebateRound:
-    def __init__(self, round_num: int, responses: dict[str, str],
-                 cost: float = 0.0, tokens: int = 0):
+    def __init__(
+        self, round_num: int, responses: dict[str, str], cost: float = 0.0, tokens: int = 0
+    ):
         self.round = round_num
         self.responses = responses  # agent_name → response
-        self.cost = cost            # summed per-agent cost for this round
+        self.cost = cost  # summed per-agent cost for this round
         self.tokens = tokens
-    
+
     def format_for_critique(self, exclude: str = None) -> str:
         """Format responses for other agents to critique."""
         lines = []
@@ -29,18 +32,25 @@ class DebateRound:
 
 class Debate:
     """Multi-agent debate with configurable rounds and consensus check.
-    
+
     Strategies:
     - 'rounds': N rounds of critique-and-revise
     - 'consensus': debate until agents agree (bounded)
     - 'judge': final agent evaluates and picks winner
-    
+
         agents = [optimist, pessimist, pragmatist]
         debate = Debate(agents, rounds=3, strategy="judge", judge=moderator)
         result = await debate.run("Should we invest in AI?")
     """
-    def __init__(self, agents: list, rounds: int = 3, strategy: str = "rounds",
-                 judge=None, consensus_threshold: float = 0.8):
+
+    def __init__(
+        self,
+        agents: list,
+        rounds: int = 3,
+        strategy: str = "rounds",
+        judge=None,
+        consensus_threshold: float = 0.8,
+    ):
         if len(agents) < 2:
             raise ValueError("Debate requires at least 2 agents")
         self.agents = agents
@@ -49,7 +59,7 @@ class Debate:
         self.judge = judge
         self.consensus_threshold = consensus_threshold
         self.history: list[DebateRound] = []
-    
+
     async def _run_round(self, round_num: int, task: str) -> DebateRound:
         """Run one debate round — all agents respond in parallel."""
         if round_num == 0:
@@ -67,10 +77,11 @@ class Debate:
                     f"Critique the other views and refine your own answer."
                 )
                 tasks.append(a.run(critique_prompt))
-        
+
         results = await asyncio.gather(*tasks, return_exceptions=True)
         responses = {}
-        round_cost = 0.0; round_tokens = 0
+        round_cost = 0.0
+        round_tokens = 0
         for agent, result in zip(self.agents, results):
             if isinstance(result, Exception):
                 log.error(f"Debate: {agent.name} failed in round {round_num}: {result}")
@@ -83,29 +94,30 @@ class Debate:
                 round_tokens += int(getattr(result, "total_tokens", 0) or 0)
 
         return DebateRound(round_num, responses, cost=round_cost, tokens=round_tokens)
-    
+
     def _check_consensus(self, round: DebateRound) -> bool:
         """Simple consensus check — look for agreement keywords."""
         responses = list(round.responses.values())
-        if not responses: return False
-        
+        if not responses:
+            return False
+
         agree_words = ["agree", "concur", "same", "aligned", "correct"]
         disagree_words = ["disagree", "however", "but", "contrary"]
-        
+
         scores = []
         for r in responses:
             text = r.lower()
             agree_count = sum(1 for w in agree_words if w in text)
             disagree_count = sum(1 for w in disagree_words if w in text)
             scores.append(agree_count - disagree_count)
-        
+
         # Most agents show agreement
         return sum(s > 0 for s in scores) / len(scores) >= self.consensus_threshold
-    
+
     async def run(self, task: str) -> AgentResult:
         total_cost = 0.0
         total_tokens = 0
-        
+
         # Run all rounds
         for r in range(self.rounds):
             round = await self._run_round(r, task)
@@ -116,7 +128,7 @@ class Debate:
             if self.strategy == "consensus" and self._check_consensus(round):
                 log.info(f"Debate: consensus reached at round {r}")
                 break
-        
+
         # Synthesize final answer
         if self.strategy == "judge" and self.judge:
             last_round = self.history[-1]
@@ -134,8 +146,9 @@ class Debate:
             # Concatenate final positions
             last = self.history[-1]
             final_content = "\n\n".join(
-                f"[{name}]: {resp}" for name, resp in last.responses.items())
-        
+                f"[{name}]: {resp}" for name, resp in last.responses.items()
+            )
+
         return AgentResult(
             agent_name="debate",
             content=final_content,

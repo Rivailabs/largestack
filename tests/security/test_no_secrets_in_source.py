@@ -1,4 +1,5 @@
 """Security regression — no secrets in source, no key leakage in errors."""
+
 import os
 import re
 import subprocess
@@ -11,13 +12,16 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parent.parent.parent
 
 
-@pytest.mark.parametrize("pattern,name", [
-    (r"sk-[a-zA-Z0-9]{20,}", "OpenAI / DeepSeek key"),
-    (r"sk-ant-[a-zA-Z0-9-_]{30,}", "Anthropic key"),
-    (r"AKIA[0-9A-Z]{16}", "AWS access key"),
-    (r"ghp_[A-Za-z0-9]{36,}", "GitHub PAT"),
-    (r"xox[baprs]-[A-Za-z0-9-]{10,}", "Slack token"),
-])
+@pytest.mark.parametrize(
+    "pattern,name",
+    [
+        (r"sk-[a-zA-Z0-9]{20,}", "OpenAI / DeepSeek key"),
+        (r"sk-ant-[a-zA-Z0-9-_]{30,}", "Anthropic key"),
+        (r"AKIA[0-9A-Z]{16}", "AWS access key"),
+        (r"ghp_[A-Za-z0-9]{36,}", "GitHub PAT"),
+        (r"xox[baprs]-[A-Za-z0-9-]{10,}", "Slack token"),
+    ],
+)
 def test_no_credentials_in_source(pattern, name):
     """Code, docs, examples, and tests must not contain real-looking keys."""
     root = _repo_root()
@@ -63,9 +67,17 @@ def test_no_password_in_committed_files():
         for m in rx.finditer(text):
             value = m.group(1)
             # Common safe defaults — placeholders only
-            if value in ("", "your-password", "REDACTED", "*****",
-                          "largestack_dev_change_me", "change-me",
-                          "your-strong-password", "test", "test-password"):
+            if value in (
+                "",
+                "your-password",
+                "REDACTED",
+                "*****",
+                "largestack_dev_change_me",
+                "change-me",
+                "your-strong-password",
+                "test",
+                "test-password",
+            ):
                 continue
             found.append((str(f.relative_to(root)), value))
     assert not found, f"Hardcoded passwords: {found}"
@@ -97,8 +109,7 @@ def test_gitignore_includes_env():
     # Either .env or .env* on its own line (ignore .env.example)
     lines = [l.strip() for l in text.splitlines()]
     has_env_pattern = any(
-        l == ".env" or l == ".env*" or l == "*.env" or l.endswith("/.env")
-        for l in lines
+        l == ".env" or l == ".env*" or l == "*.env" or l.endswith("/.env") for l in lines
     )
     assert has_env_pattern, ".gitignore must include .env"
 
@@ -111,18 +122,24 @@ def test_dotenv_example_has_no_real_secrets():
         pytest.skip(".env.example not present")
     text = ex.read_text()
     # No long sk- keys
-    assert not re.search(r"sk-[a-zA-Z0-9]{30,}", text), ".env.example must use placeholder, not real key"
+    assert not re.search(r"sk-[a-zA-Z0-9]{30,}", text), (
+        ".env.example must use placeholder, not real key"
+    )
     # No long password literals
     bad = re.findall(r"PASSWORD\s*=\s*[A-Za-z0-9!@#$%^&*]{15,}", text)
-    bad_real = [b for b in bad if "your" not in b.lower() and "change" not in b.lower() and "<" not in b]
+    bad_real = [
+        b for b in bad if "your" not in b.lower() and "change" not in b.lower() and "<" not in b
+    ]
     assert not bad_real, f"Possible real password in .env.example: {bad_real}"
 
 
 # ─── License keygen ─────────────────────────────────────────
 
+
 def test_license_keygen_default_disabled():
     """Without LARGESTACK_KEYGEN_ENABLED, keygen must raise."""
     from largestack._core.license import LicenseValidator
+
     os.environ.pop("LARGESTACK_KEYGEN_ENABLED", None)
     os.environ.pop("LARGESTACK_DISABLE_KEYGEN_BUILD", None)
     try:
@@ -135,6 +152,7 @@ def test_license_keygen_default_disabled():
 def test_license_keygen_build_flag_overrides_runtime():
     """LARGESTACK_DISABLE_KEYGEN_BUILD=1 must take priority over LARGESTACK_KEYGEN_ENABLED=1."""
     from largestack._core.license import LicenseValidator
+
     os.environ["LARGESTACK_KEYGEN_ENABLED"] = "1"
     os.environ["LARGESTACK_DISABLE_KEYGEN_BUILD"] = "1"
     try:
@@ -150,6 +168,7 @@ def test_license_keygen_build_flag_overrides_runtime():
 def test_license_source_has_build_flag_marker():
     """Source must contain the build-time strip marker for production builds."""
     import largestack._core.license as mod
+
     src = Path(mod.__file__).read_text()
     assert "_BUILD_STRIPPED" in src
     assert "LARGESTACK_DISABLE_KEYGEN_BUILD" in src
@@ -158,6 +177,7 @@ def test_license_source_has_build_flag_marker():
 def test_build_script_exists_and_executable():
     """scripts/build_production_wheel.sh must exist."""
     from pathlib import Path
+
     root = Path(__file__).resolve().parent.parent.parent
     p = root / "scripts" / "build_production_wheel.sh"
     assert p.exists(), "Production wheel build script missing"

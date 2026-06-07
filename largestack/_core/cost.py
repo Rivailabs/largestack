@@ -1,4 +1,5 @@
 """Cost tracking, budget enforcement, and LLM pricing registry."""
+
 from __future__ import annotations
 from pathlib import Path
 from largestack.errors import BudgetExceededError
@@ -29,6 +30,7 @@ PRICING = {
     "deepseek-r2": {"in": 0.55, "out": 2.19},
 }
 
+
 class CostTracker:
     def __init__(self):
         self._p = dict(PRICING)
@@ -36,6 +38,7 @@ class CostTracker:
         # (back-compat), then a package-relative path. The old cwd-only load
         # silently skipped overrides whenever the process ran from another dir.
         import os
+
         candidates = []
         env_path = os.environ.get("LARGESTACK_PRICING_FILE")
         if env_path:
@@ -47,10 +50,17 @@ class CostTracker:
                 with open(pp) as f:
                     d = yaml.safe_load(f) or {}
                     for k, v in d.items():
-                        self._p[k] = {"in": v.get("input", 0), "out": v.get("output", 0), "cache": v.get("cache_read", 0)}
+                        self._p[k] = {
+                            "in": v.get("input", 0),
+                            "out": v.get("output", 0),
+                            "cache": v.get("cache_read", 0),
+                        }
                 break
-        self._run = 0.0; self._total = 0.0; self._agents: dict[str, float] = {}
-        self._run_tokens = 0; self._total_tokens = 0
+        self._run = 0.0
+        self._total = 0.0
+        self._agents: dict[str, float] = {}
+        self._run_tokens = 0
+        self._total_tokens = 0
 
     def calc(self, model: str, inp: int, out: int, cached: int = 0) -> float:
         mk = model.split("/")[-1].lower()
@@ -64,28 +74,54 @@ class CostTracker:
                 if mk.startswith(k) and len(k) > len(best):
                     best = k
             pr = self._p.get(best) if best else None
-        if not pr: return 0.0
-        return round(((inp - cached) / 1e6) * pr.get("in", 0) + (cached / 1e6) * pr.get("cache", pr.get("in", 0)) + (out / 1e6) * pr.get("out", 0), 6)
+        if not pr:
+            return 0.0
+        return round(
+            ((inp - cached) / 1e6) * pr.get("in", 0)
+            + (cached / 1e6) * pr.get("cache", pr.get("in", 0))
+            + (out / 1e6) * pr.get("out", 0),
+            6,
+        )
 
     def add(self, cost: float, agent: str = "default", tokens: int = 0):
-        self._run += cost; self._total += cost
+        self._run += cost
+        self._total += cost
         self._agents[agent] = self._agents.get(agent, 0) + cost
-        self._run_tokens += tokens; self._total_tokens += tokens
+        self._run_tokens += tokens
+        self._total_tokens += tokens
 
     def check(self, budget: float):
-        if budget > 0 and self._run > budget: raise BudgetExceededError(self._run, budget)
+        if budget > 0 and self._run > budget:
+            raise BudgetExceededError(self._run, budget)
 
-    def reset(self): self._run = 0.0; self._run_tokens = 0
+    def reset(self):
+        self._run = 0.0
+        self._run_tokens = 0
 
     def predict(self, model: str, inp: int) -> CostEstimate:
-        est = int(inp * 1.5); exp = self.calc(model, inp, est)
-        return CostEstimate(low=round(exp*0.5,6), expected=round(exp,6), high=round(exp*3,6), model=model, input_tokens=inp, estimated_output_tokens=est)
+        est = int(inp * 1.5)
+        exp = self.calc(model, inp, est)
+        return CostEstimate(
+            low=round(exp * 0.5, 6),
+            expected=round(exp, 6),
+            high=round(exp * 3, 6),
+            model=model,
+            input_tokens=inp,
+            estimated_output_tokens=est,
+        )
 
     @property
-    def run_cost(self): return self._run
+    def run_cost(self):
+        return self._run
+
     @property
-    def total_cost(self): return self._total
+    def total_cost(self):
+        return self._total
+
     @property
-    def run_tokens(self): return self._run_tokens
+    def run_tokens(self):
+        return self._run_tokens
+
     @property
-    def total_tokens(self): return self._total_tokens
+    def total_tokens(self):
+        return self._total_tokens

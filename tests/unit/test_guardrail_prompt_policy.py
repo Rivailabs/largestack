@@ -90,7 +90,9 @@ def test_document_context_injection_phrase_warns_not_blocks(monkeypatch):
     monkeypatch.setenv("LARGESTACK_CONTEXT", "document")
     guard = InjectionGuard()
 
-    decision = guard.evaluate("Summarize this document containing the phrase ignore previous instructions")
+    decision = guard.evaluate(
+        "Summarize this document containing the phrase ignore previous instructions"
+    )
 
     assert decision.allowed is True
     assert decision.action == GuardrailAction.WARN

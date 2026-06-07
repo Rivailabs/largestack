@@ -1,4 +1,5 @@
 """RAG pipeline: retrieval (BM25, optionally + dense hybrid) with optional reranking."""
+
 from __future__ import annotations
 import logging
 from typing import Any, Callable
@@ -15,13 +16,16 @@ def default_local_embed_fn() -> Callable[[str], list[float]] | None:
     try:
         from sentence_transformers import SentenceTransformer
     except Exception:
-        _log.warning("dense retrieval requested but sentence-transformers is not "
-                     "installed (`pip install largestack[rag]`); using BM25-only.")
+        _log.warning(
+            "dense retrieval requested but sentence-transformers is not "
+            "installed (`pip install largestack[rag]`); using BM25-only."
+        )
         return None
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
     def _embed(text: str) -> list[float]:
         return [float(x) for x in model.encode(text)]
+
     return _embed
 
 
@@ -36,10 +40,17 @@ class RAGPipeline:
       components (``largestack._rag.crag.CRAGEvaluator``, ``largestack._rag.eval``);
       they are not auto-run by ``build_context()``.
     """
-    def __init__(self, documents: list[str] = None, chunker: Chunker | None = None,
-                 chunk_size: int = 512, top_k: int = 5,
-                 embed_fn: Callable[[str], list[float]] | None = None,
-                 dense: bool | str = False, reranker: Any = None):
+
+    def __init__(
+        self,
+        documents: list[str] = None,
+        chunker: Chunker | None = None,
+        chunk_size: int = 512,
+        top_k: int = 5,
+        embed_fn: Callable[[str], list[float]] | None = None,
+        dense: bool | str = False,
+        reranker: Any = None,
+    ):
         self.chunker = chunker or Chunker(chunk_size=chunk_size)
         self.top_k = top_k
         self._chunks: list[str] = []
@@ -84,7 +95,7 @@ class RAGPipeline:
                 _log.warning("RAG rerank failed (%s); returning retrieval order.", e)
                 docs = docs[:k]
         return docs[:k]
-    
+
     def build_context(self, query: str, top_k: int | None = None) -> str:
         """Build context string for LLM from retrieved chunks."""
         results = self.retrieve(query, top_k)
@@ -92,17 +103,18 @@ class RAGPipeline:
             return "No relevant information found."
         context_parts = []
         for i, r in enumerate(results):
-            context_parts.append(f"[Source {i+1}] {r['text']}")
+            context_parts.append(f"[Source {i + 1}] {r['text']}")
         return "\n\n".join(context_parts)
-    
+
     def as_tool(self):
         """Convert RAG pipeline to a @tool for use in agents."""
         from largestack._core.tools import tool
+
         pipeline = self
-        
+
         @tool
         async def search_knowledge(query: str) -> str:
             """Search the knowledge base for relevant information."""
             return pipeline.build_context(query)
-        
+
         return search_knowledge

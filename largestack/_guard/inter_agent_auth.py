@@ -6,21 +6,25 @@ Signs and verifies messages between agents using HMAC-SHA256.
     signed = auth.sign_message("agent1", "agent2", "Hello")
     verified = auth.verify_message(signed)  # True if not tampered
 """
+
 from __future__ import annotations
 import hashlib, hmac, json, time, logging
 from typing import Any
 
 log = logging.getLogger("largestack.inter_agent_auth")
 
+
 class SignedMessage:
-    def __init__(self, sender: str, receiver: str, content: str,
-                 timestamp: float, signature: str, nonce: str):
+    def __init__(
+        self, sender: str, receiver: str, content: str, timestamp: float, signature: str, nonce: str
+    ):
         self.sender = sender
         self.receiver = receiver
         self.content = content
         self.timestamp = timestamp
         self.signature = signature
         self.nonce = nonce
+
 
 class InterAgentAuth:
     def __init__(self, secret: str | None = None, max_age_seconds: float = 300):
@@ -29,13 +33,16 @@ class InterAgentAuth:
         # LARGESTACK_INTER_AGENT_SECRET); otherwise generate a random per-process
         # secret (cross-process verification then fails until a shared secret is set).
         import os, secrets as _secrets
+
         if secret is None:
             secret = os.environ.get("LARGESTACK_INTER_AGENT_SECRET")
         if not secret:
             secret = _secrets.token_hex(32)
-            log.warning("InterAgentAuth: no shared secret provided — set "
-                        "LARGESTACK_INTER_AGENT_SECRET or pass secret=. Using a random "
-                        "per-process secret; cross-process verification will fail until shared.")
+            log.warning(
+                "InterAgentAuth: no shared secret provided — set "
+                "LARGESTACK_INTER_AGENT_SECRET or pass secret=. Using a random "
+                "per-process secret; cross-process verification will fail until shared."
+            )
         self._secret = secret.encode()
         self._max_age = max_age_seconds
         # nonce -> message timestamp, pruned to the freshness window to bound memory
@@ -43,6 +50,7 @@ class InterAgentAuth:
 
     def sign_message(self, sender: str, receiver: str, content: str) -> SignedMessage:
         import os
+
         nonce = os.urandom(16).hex()
         ts = time.time()
         payload = f"{sender}:{receiver}:{content}:{ts}:{nonce}"

@@ -1,6 +1,7 @@
 """Behavioral tests for core wedge pieces: loop-guard budget enforcement, agent
 run/clone. Real behavior, not source-string checks.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -12,6 +13,7 @@ from largestack.testing import TestModel
 
 
 # ---- LoopGuard ------------------------------------------------------------
+
 
 def test_cost_budget_enforced_when_exceeded():
     g = LoopGuard(cost_budget=0.01)
@@ -34,6 +36,7 @@ def test_max_turns_enforced():
 
 
 # ---- Agent ----------------------------------------------------------------
+
 
 async def test_agent_run_returns_model_output():
     a = Agent(name="echo", instructions="", guardrails=None)

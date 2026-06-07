@@ -2,6 +2,7 @@
 
 Usage: largestack init my-project --template research
 """
+
 TEMPLATE_FILES = {
     "agent.py": '''import asyncio
 from largestack import Agent, Team, tool, create_rag
@@ -33,7 +34,7 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ''',
-    "largestack.yaml": '''default_llm: openai/gpt-4o-mini
+    "largestack.yaml": """default_llm: openai/gpt-4o-mini
 cost_budget: 2.0
 max_turns: 15
 trace_enabled: true
@@ -41,5 +42,5 @@ guardrails_enabled: true
 pii_detection: true
 injection_detection: true
 semantic_cache: true
-''',
+""",
 }

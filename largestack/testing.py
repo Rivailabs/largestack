@@ -45,6 +45,7 @@ FunctionModel for full control:
     with agent.override(model=func_model):
         result = await agent.run("ping")
 """
+
 from __future__ import annotations
 import logging
 from contextvars import ContextVar
@@ -58,9 +59,11 @@ log = logging.getLogger("largestack.testing")
 # Mock LLM responses + models
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class MockResponse:
     """Mock LLM response."""
+
     content: str = ""
     tool_calls: list[dict] = field(default_factory=list)
     usage: dict = field(default_factory=lambda: {"input_tokens": 10, "output_tokens": 20})
@@ -88,7 +91,6 @@ class TestModel:
 
     __test__ = False  # tell pytest this is not a test class
 
-
     def __init__(
         self,
         custom_output_text: str = "Test response",
@@ -102,8 +104,9 @@ class TestModel:
         self.messages_received: list = []
         self.calls = 0
 
-    async def chat(self, messages: list, model: str = "", tools: list | None = None,
-                   **kwargs) -> dict:
+    async def chat(
+        self, messages: list, model: str = "", tools: list | None = None, **kwargs
+    ) -> dict:
         """Mimic provider chat interface, return raw dict (gateway adapter wraps it)."""
         self.calls += 1
         self.messages_received = list(messages)
@@ -121,13 +124,14 @@ class TestModel:
                     args = self.custom_tool_args.get(tname, {})
                     if not args and isinstance(tool, dict):
                         schema = tool.get("parameters", {}).get("properties", {})
-                        args = {k: _dummy_value(v.get("type", "string"))
-                                for k, v in schema.items()}
-                    tool_calls.append({
-                        "id": f"tool_{len(tool_calls)}",
-                        "name": tname,
-                        "arguments": args,
-                    })
+                        args = {k: _dummy_value(v.get("type", "string")) for k, v in schema.items()}
+                    tool_calls.append(
+                        {
+                            "id": f"tool_{len(tool_calls)}",
+                            "name": tname,
+                            "arguments": args,
+                        }
+                    )
                     self.tool_calls_made.append(tname)
 
             if tool_calls:
@@ -176,14 +180,16 @@ class FunctionModel:
         self.calls = 0
         self.messages_received: list = []
 
-    async def chat(self, messages: list, model: str = "", tools: list | None = None,
-                   **kwargs) -> dict:
+    async def chat(
+        self, messages: list, model: str = "", tools: list | None = None, **kwargs
+    ) -> dict:
         self.calls += 1
         self.messages_received = list(messages)
 
         info = {"tools": tools or [], "model": model, "attempt": self.calls}
 
         import inspect
+
         if inspect.iscoroutinefunction(self.func):
             result = await self.func(messages, info)
         else:
@@ -203,9 +209,11 @@ class FunctionModel:
 # Captured messages — populated by AgentEngine via _capture_var
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class CapturedMessages:
     """Container for captured messages from a run."""
+
     messages: list = field(default_factory=list)
 
     def __len__(self) -> int:
@@ -246,7 +254,8 @@ class CapturedMessages:
 # v0.3.10: this is the wiring that was missing in v0.3.9. The engine
 # checks _capture_var.get() at message-mutation points and appends to it.
 _capture_var: ContextVar["CapturedMessages | None"] = ContextVar(
-    "largestack_capture_messages", default=None,
+    "largestack_capture_messages",
+    default=None,
 )
 
 
@@ -343,6 +352,7 @@ class block_model_requests:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _dummy_value(json_type: str) -> Any:
     """Generate a dummy value matching JSON type (used by TestModel.chat)."""

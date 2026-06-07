@@ -1,4 +1,5 @@
 """Fireworks AI provider — fast open source model inference."""
+
 from largestack._core.providers.openai_prov import OpenAIProvider
 
 MODELS = {
@@ -10,13 +11,14 @@ MODELS = {
     "accounts/fireworks/models/mixtral-8x22b-instruct": {"context": 65536, "tool_use": True},
 }
 
+
 class FireworksProvider(OpenAIProvider):
     name = "fireworks"
     default_model = "accounts/fireworks/models/llama-v3p3-70b-instruct"
     supported_models = list(MODELS.keys())
-    
+
     def __init__(self, api_key: str):
         super().__init__(api_key=api_key, base_url="https://api.fireworks.ai/inference/v1")
-    
+
     def get_capabilities(self, model: str) -> dict:
         return MODELS.get(model, {"context": 32768})

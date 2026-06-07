@@ -9,6 +9,7 @@ your app — it's a defense-in-depth pass you can run before handing output on.
     safe = OutputSanitizer().sanitize(llm_text, mode="html")   # HTML-escaped, scripts stripped
     findings = OutputSanitizer().scan(llm_text)                 # list of risky-pattern hits
 """
+
 from __future__ import annotations
 import html
 import re
@@ -16,7 +17,7 @@ import re
 # Patterns that indicate output which is dangerous if rendered/executed downstream.
 _RISKY = [
     ("script_tag", re.compile(r"<\s*script\b", re.I)),
-    ("event_handler", re.compile(r"\bon\w+\s*=", re.I)),         # onclick=, onload=
+    ("event_handler", re.compile(r"\bon\w+\s*=", re.I)),  # onclick=, onload=
     ("js_uri", re.compile(r"\b(javascript|vbscript)\s*:", re.I)),
     ("data_html_uri", re.compile(r"data:text/html", re.I)),
     ("iframe", re.compile(r"<\s*iframe\b", re.I)),

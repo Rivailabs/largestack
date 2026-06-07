@@ -9,6 +9,7 @@ Two backends:
 
 Both implement ``CheckpointStore`` ABC.
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -24,11 +25,12 @@ log = logging.getLogger("largestack.checkpoint")
 @dataclass
 class Checkpoint:
     """One checkpoint of graph state."""
-    thread_id: str          # logical session/conversation ID
-    checkpoint_id: str      # unique ID for this checkpoint
-    node_name: str          # which node just completed
-    state: dict             # state snapshot
-    parent_id: str = ""     # ID of previous checkpoint
+
+    thread_id: str  # logical session/conversation ID
+    checkpoint_id: str  # unique ID for this checkpoint
+    node_name: str  # which node just completed
+    state: dict  # state snapshot
+    parent_id: str = ""  # ID of previous checkpoint
     metadata: dict = field(default_factory=dict)
     timestamp: float = 0.0
 
@@ -52,27 +54,23 @@ class CheckpointStore(ABC):
     """ABC for checkpoint storage."""
 
     @abstractmethod
-    async def save(self, checkpoint: Checkpoint) -> None:
-        ...
+    async def save(self, checkpoint: Checkpoint) -> None: ...
 
     @abstractmethod
-    async def load(self, thread_id: str, checkpoint_id: str) -> Checkpoint | None:
-        ...
+    async def load(self, thread_id: str, checkpoint_id: str) -> Checkpoint | None: ...
 
     @abstractmethod
-    async def list_for_thread(self, thread_id: str) -> list[Checkpoint]:
-        ...
+    async def list_for_thread(self, thread_id: str) -> list[Checkpoint]: ...
 
     @abstractmethod
-    async def latest(self, thread_id: str) -> Checkpoint | None:
-        ...
+    async def latest(self, thread_id: str) -> Checkpoint | None: ...
 
     @abstractmethod
-    async def delete_thread(self, thread_id: str) -> int:
-        ...
+    async def delete_thread(self, thread_id: str) -> int: ...
 
 
 # -------------------- Memory backend --------------------
+
 
 class MemoryCheckpointStore(CheckpointStore):
     """In-process checkpoint store. Loses data on restart."""
@@ -84,9 +82,7 @@ class MemoryCheckpointStore(CheckpointStore):
 
     async def save(self, checkpoint: Checkpoint) -> None:
         async with self._lock:
-            self._data.setdefault(checkpoint.thread_id, {})[
-                checkpoint.checkpoint_id
-            ] = checkpoint
+            self._data.setdefault(checkpoint.thread_id, {})[checkpoint.checkpoint_id] = checkpoint
 
     async def load(self, thread_id: str, checkpoint_id: str) -> Checkpoint | None:
         async with self._lock:
@@ -113,6 +109,7 @@ class MemoryCheckpointStore(CheckpointStore):
 
 
 # -------------------- Redis backend --------------------
+
 
 class RedisCheckpointStore(CheckpointStore):
     """Redis-backed checkpoint store.
@@ -145,9 +142,7 @@ class RedisCheckpointStore(CheckpointStore):
         try:
             import redis.asyncio as redis_async
         except ImportError as e:
-            raise ImportError(
-                "RedisCheckpointStore needs: pip install 'redis>=5.0'"
-            ) from e
+            raise ImportError("RedisCheckpointStore needs: pip install 'redis>=5.0'") from e
         self._client = redis_async.from_url(self.url, decode_responses=True)
 
     def _key(self, thread_id: str, cp_id: str) -> str:
@@ -211,9 +206,11 @@ class RedisCheckpointStore(CheckpointStore):
 
 # -------------------- Helpers --------------------
 
+
 def new_checkpoint_id() -> str:
     """Generate a unique checkpoint ID (timestamp + random)."""
     import secrets
+
     return f"cp_{int(time.time() * 1000)}_{secrets.token_hex(4)}"
 
 

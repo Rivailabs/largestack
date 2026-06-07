@@ -8,6 +8,7 @@ Usage:
     await cp.save("thread-1", {"step": 5})
     state = await cp.load("thread-1")
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -21,21 +22,28 @@ log = logging.getLogger("largestack.checkpointer.postgres")
 
 class PostgresCheckpointer:
     """Postgres-backed checkpointer with async pool. Production-grade."""
-    
-    def __init__(self, dsn: str | None = None, table: str = "largestack_checkpoints",
-                 pool_min: int = 1, pool_max: int = 10):
-        self.dsn = dsn or os.environ.get("LARGESTACK_POSTGRES_DSN") or os.environ.get("DATABASE_URL")
+
+    def __init__(
+        self,
+        dsn: str | None = None,
+        table: str = "largestack_checkpoints",
+        pool_min: int = 1,
+        pool_max: int = 10,
+    ):
+        self.dsn = (
+            dsn or os.environ.get("LARGESTACK_POSTGRES_DSN") or os.environ.get("DATABASE_URL")
+        )
         self.table = table
         self.pool_min = pool_min
         self.pool_max = pool_max
         self._available = False
         self._pool = None
         self._sqlite_mgr = None  # cached SQLite fallback
-        
+
         if not self.dsn:
             log.warning("PostgresCheckpointer: no DSN, using SQLite fallback")
             return
-        
+
         try:
             import psycopg
             import psycopg_pool
@@ -47,15 +55,16 @@ class PostgresCheckpointer:
             self._available = True
         except ImportError:
             log.warning("psycopg/psycopg_pool not installed. pip install 'psycopg[binary,pool]'")
-    
+
     async def _ensure_pool(self):
         """Lazy init pool + schema."""
         if self._pool is None and self._available:
-            self._pool = self._pool_cls(self.dsn, min_size=self.pool_min,
-                                          max_size=self.pool_max, open=False)
+            self._pool = self._pool_cls(
+                self.dsn, min_size=self.pool_min, max_size=self.pool_max, open=False
+            )
             await self._pool.open()
             await self._init_schema()
-    
+
     async def _init_schema(self):
         sql = self._sql
         table = sql.Identifier(self.table)
@@ -83,8 +92,13 @@ class PostgresCheckpointer:
                 )
                 await conn.commit()
 
-    async def save(self, thread_id: str, state: dict, checkpoint_id: str | None = None,
-                   metadata: dict | None = None) -> str:
+    async def save(
+        self,
+        thread_id: str,
+        state: dict,
+        checkpoint_id: str | None = None,
+        metadata: dict | None = None,
+    ) -> str:
         """Save checkpoint async. Returns checkpoint_id."""
         cid = checkpoint_id or f"ck_{int(time.time() * 1000)}"
         if not self._available:
@@ -188,28 +202,31 @@ class PostgresCheckpointer:
         if self._pool:
             await self._pool.close()
             self._pool = None
-    
+
     def _get_sqlite_mgr(self):
         """Cached SQLite fallback manager."""
         if self._sqlite_mgr is None:
             from largestack._state.checkpoint import CheckpointManager
             import tempfile
-            path = os.environ.get("LARGESTACK_SQLITE_CHECKPOINT",
-                                    os.path.join(tempfile.gettempdir(), "largestack_ckpt.db"))
+
+            path = os.environ.get(
+                "LARGESTACK_SQLITE_CHECKPOINT",
+                os.path.join(tempfile.gettempdir(), "largestack_ckpt.db"),
+            )
             self._sqlite_mgr = CheckpointManager(path)
         return self._sqlite_mgr
-    
+
     def _save_sqlite_fallback(self, thread_id, state, cid):
         mgr = self._get_sqlite_mgr()
         mgr.save(thread_id, cid, state)
         return cid
-    
+
     def _load_sqlite_fallback(self, thread_id, cid):
         mgr = self._get_sqlite_mgr()
         if cid:
             return mgr.load(thread_id, cid)
         return mgr.load_latest(thread_id)
-    
+
     @property
     def available(self) -> bool:
         return self._available

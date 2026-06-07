@@ -1,6 +1,8 @@
 """Tests verifying P0 fixes from v0.3.4 reviewer (Sachith review)."""
+
 from pathlib import Path
 import sys, os
+
 sys.path.insert(0, ".")
 
 
@@ -8,12 +10,14 @@ sys.path.insert(0, ".")
 # B-01: Dashboard auth
 # ═══════════════════════════════════════════════════════════════════
 
+
 def test_dashboard_unauthenticated_request_returns_401_in_production(monkeypatch):
     """B-01 (v0.3.4): without LARGESTACK_DASHBOARD_KEY in production, all routes 401."""
     monkeypatch.setenv("LARGESTACK_ENV", "production")
     monkeypatch.delenv("LARGESTACK_DASHBOARD_KEY", raising=False)
     from fastapi.testclient import TestClient
     from largestack._dashboard.app import create_app
+
     app = create_app()
     client = TestClient(app)
     r = client.get("/")
@@ -27,12 +31,14 @@ def test_dashboard_health_is_public(monkeypatch):
     monkeypatch.delenv("LARGESTACK_DASHBOARD_KEY", raising=False)
     from fastapi.testclient import TestClient
     from largestack._dashboard.app import create_app
+
     app = create_app()
     client = TestClient(app)
     r = client.get("/health")
     assert r.status_code == 200
     body = r.json()
     from largestack import __version__
+
     assert body["version"] == __version__
     assert body["status"] in ("ok", "degraded")
     assert "checks" in body
@@ -43,6 +49,7 @@ def test_dashboard_wrong_key_returns_401(monkeypatch):
     monkeypatch.setenv("LARGESTACK_DASHBOARD_KEY", "correct-key")
     from fastapi.testclient import TestClient
     from largestack._dashboard.app import create_app
+
     app = create_app()
     client = TestClient(app)
     r = client.get("/", headers={"X-API-Key": "wrong-key"})
@@ -54,6 +61,7 @@ def test_dashboard_correct_key_works(monkeypatch):
     monkeypatch.setenv("LARGESTACK_DASHBOARD_KEY", "correct-key")
     from fastapi.testclient import TestClient
     from largestack._dashboard.app import create_app
+
     app = create_app()
     client = TestClient(app)
     r = client.get("/", headers={"X-API-Key": "correct-key"})
@@ -64,6 +72,7 @@ def test_dashboard_correct_key_works(monkeypatch):
 # B-02: Serve auth
 # ═══════════════════════════════════════════════════════════════════
 
+
 def test_serve_unauthenticated_in_production_returns_401(monkeypatch):
     """B-02 (v0.3.4): without LARGESTACK_API_KEY in production, /run returns 401."""
     monkeypatch.setenv("LARGESTACK_ENV", "production")
@@ -71,6 +80,7 @@ def test_serve_unauthenticated_in_production_returns_401(monkeypatch):
     from fastapi.testclient import TestClient
     from largestack import Agent
     from largestack.serve import create_api
+
     a = Agent(name="t", llm="openai/gpt-4o-mini")
     app = create_api(a)
     client = TestClient(app)
@@ -86,6 +96,7 @@ def test_serve_health_is_public(monkeypatch):
     from fastapi.testclient import TestClient
     from largestack import Agent
     from largestack.serve import create_api
+
     a = Agent(name="t", llm="openai/gpt-4o-mini")
     app = create_api(a)
     client = TestClient(app)
@@ -100,6 +111,7 @@ def test_serve_wrong_key_returns_401(monkeypatch):
     from fastapi.testclient import TestClient
     from largestack import Agent
     from largestack.serve import create_api
+
     a = Agent(name="t", llm="openai/gpt-4o-mini")
     app = create_api(a)
     client = TestClient(app)
@@ -113,6 +125,7 @@ def test_serve_correct_key_works(monkeypatch):
     from fastapi.testclient import TestClient
     from largestack import Agent
     from largestack.serve import create_api
+
     a = Agent(name="t", llm="openai/gpt-4o-mini")
     app = create_api(a)
     client = TestClient(app)
@@ -124,24 +137,35 @@ def test_serve_correct_key_works(monkeypatch):
 # B-03: RAG embedder fail-loud
 # ═══════════════════════════════════════════════════════════════════
 
+
 def test_embedder_production_rejects_mock_even_with_optin(monkeypatch):
     """B-03 (v0.3.4): production env always rejects mock embeddings, even with opt-in flag."""
     from largestack._rag.embedder import Embedder
-    for k in ("LARGESTACK_OPENAI_API_KEY", "OPENAI_API_KEY", "LARGESTACK_VOYAGE_API_KEY",
-              "VOYAGE_API_KEY", "LARGESTACK_COHERE_API_KEY", "COHERE_API_KEY"):
+
+    for k in (
+        "LARGESTACK_OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "LARGESTACK_VOYAGE_API_KEY",
+        "VOYAGE_API_KEY",
+        "LARGESTACK_COHERE_API_KEY",
+        "COHERE_API_KEY",
+    ):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("LARGESTACK_ENV", "production")
     monkeypatch.setenv("LARGESTACK_ALLOW_MOCK_EMBEDDINGS", "1")
-    
+
     # Force sentence-transformers import to fail
     import builtins
+
     real_import = builtins.__import__
+
     def fake_import(name, *args, **kw):
         if name == "sentence_transformers":
             raise ImportError("simulated missing")
         return real_import(name, *args, **kw)
+
     monkeypatch.setattr(builtins, "__import__", fake_import)
-    
+
     e = Embedder(backend="auto")
     try:
         e._resolve_backend()
@@ -153,20 +177,30 @@ def test_embedder_production_rejects_mock_even_with_optin(monkeypatch):
 def test_embedder_dev_requires_explicit_optin(monkeypatch):
     """B-03 (v0.3.4): development without opt-in flag also rejects mock."""
     from largestack._rag.embedder import Embedder
-    for k in ("LARGESTACK_OPENAI_API_KEY", "OPENAI_API_KEY", "LARGESTACK_VOYAGE_API_KEY",
-              "VOYAGE_API_KEY", "LARGESTACK_COHERE_API_KEY", "COHERE_API_KEY",
-              "LARGESTACK_ALLOW_MOCK_EMBEDDINGS"):
+
+    for k in (
+        "LARGESTACK_OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "LARGESTACK_VOYAGE_API_KEY",
+        "VOYAGE_API_KEY",
+        "LARGESTACK_COHERE_API_KEY",
+        "COHERE_API_KEY",
+        "LARGESTACK_ALLOW_MOCK_EMBEDDINGS",
+    ):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("LARGESTACK_ENV", "development")
-    
+
     import builtins
+
     real_import = builtins.__import__
+
     def fake_import(name, *args, **kw):
         if name == "sentence_transformers":
             raise ImportError("simulated missing")
         return real_import(name, *args, **kw)
+
     monkeypatch.setattr(builtins, "__import__", fake_import)
-    
+
     e = Embedder(backend="auto")
     try:
         e._resolve_backend()
@@ -181,23 +215,27 @@ def test_embedder_dev_requires_explicit_optin(monkeypatch):
 # B-04: mTLS fail-loud
 # ═══════════════════════════════════════════════════════════════════
 
+
 def test_mtls_module_has_env_gated_stub(monkeypatch):
     """B-04 (v0.3.4): mTLS source must check LARGESTACK_ALLOW_INSECURE_MTLS."""
     import largestack._security.mtls as mtls
+
     src = Path(mtls.__file__).read_text()
     assert "LARGESTACK_ALLOW_INSECURE_MTLS" in src
     assert "LARGESTACK_ENV" in src
     # Old "fall through silently" pattern must be gone
-    assert "log.warning(\"cryptography not installed — using stub CA\")" not in src
+    assert 'log.warning("cryptography not installed — using stub CA")' not in src
 
 
 # ═══════════════════════════════════════════════════════════════════
 # B-10: Tool idempotency LRU + TTL
 # ═══════════════════════════════════════════════════════════════════
 
+
 def test_tool_idem_cache_is_bounded():
     """B-10 (v0.3.4): tool idempotency cache has _IDEM_MAX_SIZE bound."""
     from largestack._core.tools import ToolExecutor, ToolRegistry
+
     e = ToolExecutor(ToolRegistry())
     assert hasattr(e, "_IDEM_MAX_SIZE")
     assert e._IDEM_MAX_SIZE > 0
@@ -207,6 +245,7 @@ def test_tool_idem_cache_is_bounded():
 def test_tool_idem_cache_evicts_lru():
     """B-10 (v0.3.4): when capacity exceeded, oldest entries are evicted."""
     from largestack._core.tools import ToolExecutor, ToolRegistry
+
     e = ToolExecutor(ToolRegistry())
     e._IDEM_MAX_SIZE = 3  # small for test
     e._idem_put("a", "1")
@@ -221,6 +260,7 @@ def test_tool_idem_cache_evicts_lru():
 def test_tool_idem_cache_ttl_expires():
     """B-10 (v0.3.4): entries past TTL return None on get."""
     from largestack._core.tools import ToolExecutor, ToolRegistry
+
     e = ToolExecutor(ToolRegistry())
     e._IDEM_TTL_SECONDS = 0  # everything expires immediately
     e._idem_put("k", "v")
@@ -230,6 +270,7 @@ def test_tool_idem_cache_ttl_expires():
 def test_tool_idem_cache_lru_promotion():
     """B-10 (v0.3.4): get() should promote entry to most-recently-used."""
     from largestack._core.tools import ToolExecutor, ToolRegistry
+
     e = ToolExecutor(ToolRegistry())
     e._IDEM_MAX_SIZE = 3
     e._idem_put("a", "1")
@@ -247,9 +288,11 @@ def test_tool_idem_cache_lru_promotion():
 # RISK-006: Bedrock empty default region
 # ═══════════════════════════════════════════════════════════════════
 
+
 def test_bedrock_region_default_empty():
     """RISK-006 (v0.3.4): bedrock_region default must be empty (opt-in via env)."""
     import largestack._core.config as cfg
+
     src = Path(cfg.__file__).read_text()
     assert 'bedrock_region: str = ""' in src
     # Old default must be gone
@@ -262,6 +305,7 @@ def test_gateway_skips_bedrock_when_region_empty(monkeypatch):
     monkeypatch.delenv("LARGESTACK_BEDROCK_REGION", raising=False)
     from largestack._core.gateway import LLMGateway
     from largestack._core.config import LargestackConfig
+
     cfg = LargestackConfig(bedrock_region="")
     gw = LLMGateway(cfg)
     assert "bedrock" not in gw.providers
@@ -271,6 +315,7 @@ def test_gateway_includes_bedrock_when_region_set(monkeypatch):
     """RISK-006: gateway adds bedrock when region is explicitly set."""
     from largestack._core.gateway import LLMGateway
     from largestack._core.config import LargestackConfig
+
     cfg = LargestackConfig(bedrock_region="us-east-1")
     gw = LLMGateway(cfg)
     # Provider added (whether boto3 is installed or not is separate)
@@ -280,6 +325,7 @@ def test_gateway_includes_bedrock_when_region_set(monkeypatch):
 # ═══════════════════════════════════════════════════════════════════
 # B-22: Production compose strict secrets
 # ═══════════════════════════════════════════════════════════════════
+
 
 def test_production_compose_requires_postgres_password():
     """B-22 (v0.3.4): docker-compose.prod.yml must use ${VAR:?error} for required secrets."""
@@ -306,9 +352,11 @@ def test_production_compose_real_healthcheck():
 # Auth file structure
 # ═══════════════════════════════════════════════════════════════════
 
+
 def test_dashboard_auth_module_exists():
     """B-01: largestack/_dashboard/auth.py module exists with verify_api_key."""
     from largestack._dashboard.auth import verify_api_key, get_dashboard_api_key, is_production
+
     assert callable(verify_api_key)
     assert callable(get_dashboard_api_key)
     assert callable(is_production)
@@ -317,5 +365,6 @@ def test_dashboard_auth_module_exists():
 def test_dashboard_auth_uses_constant_time_compare():
     """B-01: auth must use secrets.compare_digest, not == (timing attack)."""
     import largestack._dashboard.auth as mod
+
     src = Path(mod.__file__).read_text()
     assert "secrets.compare_digest" in src

@@ -21,6 +21,7 @@ Both implement the same async interface::
     if not allowed:
         raise RateLimitExceeded("tenant_a")
 """
+
 from __future__ import annotations
 import asyncio
 import logging
@@ -36,8 +37,7 @@ class RateLimitExceeded(Exception):
 
     def __init__(self, tenant_id: str, retry_after: float = 1.0):
         super().__init__(
-            f"rate limit exceeded for tenant '{tenant_id}'; "
-            f"retry after {retry_after:.2f}s"
+            f"rate limit exceeded for tenant '{tenant_id}'; retry after {retry_after:.2f}s"
         )
         self.tenant_id = tenant_id
         self.retry_after = retry_after
@@ -46,8 +46,9 @@ class RateLimitExceeded(Exception):
 @dataclass
 class TenantQuota:
     """Token-bucket parameters for a tenant."""
+
     rate_per_sec: float  # token replenishment rate
-    burst: float         # max bucket size
+    burst: float  # max bucket size
     label: str = ""
 
     def __post_init__(self):
@@ -60,6 +61,7 @@ class TenantQuota:
 @dataclass
 class _Bucket:
     """Internal bucket state for one (tenant, key) pair."""
+
     tokens: float
     last_refill: float
 
@@ -76,11 +78,19 @@ class RateLimiterProtocol(Protocol):
     """Common interface for all rate limiter backends."""
 
     def set_quota(
-        self, tenant_id: str, *, rate_per_sec: float, burst: float,
+        self,
+        tenant_id: str,
+        *,
+        rate_per_sec: float,
+        burst: float,
     ) -> None: ...
 
     async def try_acquire(
-        self, tenant_id: str, *, cost: float = 1.0, key: str = "default",
+        self,
+        tenant_id: str,
+        *,
+        cost: float = 1.0,
+        key: str = "default",
     ) -> bool: ...
 
     async def acquire(
@@ -93,11 +103,15 @@ class RateLimiterProtocol(Protocol):
     ) -> None: ...
 
     async def get_remaining(
-        self, tenant_id: str, *, key: str = "default",
+        self,
+        tenant_id: str,
+        *,
+        key: str = "default",
     ) -> float: ...
 
 
 # -------------------- In-memory implementation --------------------
+
 
 class InMemoryRateLimiter:
     """Single-process token-bucket limiter with per-tenant isolation.
@@ -113,7 +127,9 @@ class InMemoryRateLimiter:
         self._quotas: dict[str, TenantQuota] = {}
         self._buckets: dict[tuple[str, str], _Bucket] = {}
         self._default = default_quota or TenantQuota(
-            rate_per_sec=10.0, burst=20.0, label="default",
+            rate_per_sec=10.0,
+            burst=20.0,
+            label="default",
         )
         self._lock = asyncio.Lock()
 
@@ -128,7 +144,8 @@ class InMemoryRateLimiter:
         if not tenant_id:
             raise ValueError("tenant_id is required")
         self._quotas[tenant_id] = TenantQuota(
-            rate_per_sec=rate_per_sec, burst=burst,
+            rate_per_sec=rate_per_sec,
+            burst=burst,
             label=label or tenant_id,
         )
 
@@ -182,9 +199,7 @@ class InMemoryRateLimiter:
             if deadline is not None:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
-                    raise TimeoutError(
-                        f"rate limit acquire timeout for {tenant_id}"
-                    )
+                    raise TimeoutError(f"rate limit acquire timeout for {tenant_id}")
                 wait = min(wait, remaining)
             await asyncio.sleep(wait)
 
@@ -268,7 +283,9 @@ class RedisRateLimiter:
         self.key_prefix = key_prefix
         self._quotas: dict[str, TenantQuota] = {}
         self._default = default_quota or TenantQuota(
-            rate_per_sec=10.0, burst=20.0, label="default",
+            rate_per_sec=10.0,
+            burst=20.0,
+            label="default",
         )
         self._sha: str | None = None
 
@@ -283,7 +300,8 @@ class RedisRateLimiter:
         if not tenant_id:
             raise ValueError("tenant_id is required")
         self._quotas[tenant_id] = TenantQuota(
-            rate_per_sec=rate_per_sec, burst=burst,
+            rate_per_sec=rate_per_sec,
+            burst=burst,
             label=label or tenant_id,
         )
 
@@ -312,7 +330,10 @@ class RedisRateLimiter:
             self._sha,
             1,
             self._redis_key(tenant_id, key),
-            quota.rate_per_sec, quota.burst, cost, time.time(),
+            quota.rate_per_sec,
+            quota.burst,
+            cost,
+            time.time(),
         )
         # Lua returns [allowed, tokens]
         return int(result[0]) == 1
@@ -334,19 +355,21 @@ class RedisRateLimiter:
             if deadline is not None:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
-                    raise TimeoutError(
-                        f"rate limit acquire timeout for {tenant_id}"
-                    )
+                    raise TimeoutError(f"rate limit acquire timeout for {tenant_id}")
                 wait = min(wait, remaining)
             await asyncio.sleep(wait)
 
     async def get_remaining(
-        self, tenant_id: str, *, key: str = "default",
+        self,
+        tenant_id: str,
+        *,
+        key: str = "default",
     ) -> float:
         quota = self._quota_for(tenant_id)
         data = await self.redis.hmget(
             self._redis_key(tenant_id, key),
-            "tokens", "last_refill",
+            "tokens",
+            "last_refill",
         )
         tokens = float(data[0]) if data[0] is not None else quota.burst
         last = float(data[1]) if data[1] is not None else time.time()

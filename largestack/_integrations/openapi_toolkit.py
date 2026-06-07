@@ -33,6 +33,7 @@ Each operation becomes a tool whose:
 
 Errors are caught and returned as strings — agent loop survives.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -121,11 +122,10 @@ class OpenAPIToolkit:
         except json.JSONDecodeError:
             try:
                 import yaml  # type: ignore
+
                 spec = yaml.safe_load(text)
             except ImportError:
-                raise ValueError(
-                    "spec doesn't parse as JSON; install pyyaml for YAML support"
-                )
+                raise ValueError("spec doesn't parse as JSON; install pyyaml for YAML support")
             except yaml.YAMLError as e:
                 raise ValueError(f"spec is neither valid JSON nor YAML: {e}")
 
@@ -223,9 +223,7 @@ class OpenAPIToolkit:
         return _operation
 
     @staticmethod
-    def _build_param_schema(
-        params: list, request_body_schema: dict | None
-    ) -> dict:
+    def _build_param_schema(params: list, request_body_schema: dict | None) -> dict:
         """Construct JSON Schema for the tool's params.
 
         Combines path/query/header parameters with the request body
@@ -306,7 +304,9 @@ class OpenAPIToolkit:
 
         # Anything left in kwargs is an unknown param — log but don't fail
         if kwargs:
-            log.debug(f"OpenAPI tool {method} {path}: unknown kwargs ignored: {list(kwargs.keys())}")
+            log.debug(
+                f"OpenAPI tool {method} {path}: unknown kwargs ignored: {list(kwargs.keys())}"
+            )
 
         url = self.base_url + path
         async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -320,11 +320,13 @@ class OpenAPIToolkit:
         if len(text) > self.max_response_chars:
             text = text[: self.max_response_chars] + f"...[truncated, total {len(r.text)} chars]"
 
-        return json.dumps({
-            "status": r.status_code,
-            "url": str(r.url),
-            "body": text,
-        })
+        return json.dumps(
+            {
+                "status": r.status_code,
+                "url": str(r.url),
+                "body": text,
+            }
+        )
 
     def get_tools(self) -> list[Callable]:
         """Return all generated tools as a list."""

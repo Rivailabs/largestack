@@ -1,4 +1,5 @@
 """Agent with tools using the configured provider."""
+
 from pathlib import Path
 import ast
 import operator
@@ -8,9 +9,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from _provider import close_quietly, main_or_skip, select_model
 from largestack import Agent, tool
 
+
 def _safe_pow(base, exp):
     # Bound exponentiation so a crafted expression like "9**9**9" can't hang the process.
-    if abs(exp) > 100 or abs(base) > 10 ** 12:
+    if abs(exp) > 100 or abs(base) > 10**12:
         raise ValueError("number too large")
     return operator.pow(base, exp)
 
@@ -53,7 +55,15 @@ async def get_weather(city: str) -> str:
 
 
 async def main():
-    agent = Agent(name="assistant", instructions="Use tools when useful. Return the final answer clearly.", tools=[calculate, get_weather], llm=select_model(), guardrails=False, cost_budget=0.10, max_turns=5)
+    agent = Agent(
+        name="assistant",
+        instructions="Use tools when useful. Return the final answer clearly.",
+        tools=[calculate, get_weather],
+        llm=select_model(),
+        guardrails=False,
+        cost_budget=0.10,
+        max_turns=5,
+    )
     try:
         result = await agent.run("What is 42 * 17? Use the calculate tool.", timeout=90)
         print(f"Agent: {result.content}\nTools: {result.tool_calls_made}")

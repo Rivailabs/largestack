@@ -4,6 +4,7 @@ Run with:
 
     LARGESTACK_TIKA_LIVE=1 TIKA_SERVER_URL=http://127.0.0.1:9998 pytest tests/integration/test_tika_live.py -q
 """
+
 from __future__ import annotations
 
 import os
@@ -12,8 +13,7 @@ import pytest
 
 
 pytestmark = pytest.mark.skipif(
-    os.environ.get("LARGESTACK_TIKA_LIVE") != "1"
-    or not os.environ.get("TIKA_SERVER_URL"),
+    os.environ.get("LARGESTACK_TIKA_LIVE") != "1" or not os.environ.get("TIKA_SERVER_URL"),
     reason="set LARGESTACK_TIKA_LIVE=1 and TIKA_SERVER_URL to run live Tika tests",
 )
 

@@ -30,6 +30,7 @@ Each case produces:
 A case passes if it meets all defined ``contains`` AND has avg metric
 score ≥ threshold.
 """
+
 from __future__ import annotations
 import asyncio
 import json
@@ -45,6 +46,7 @@ log = logging.getLogger("largestack.eval_runner")
 @dataclass
 class CaseResult:
     """Result of one eval case."""
+
     name: str
     input: str
     answer: str = ""
@@ -59,6 +61,7 @@ class CaseResult:
 @dataclass
 class SuiteResult:
     """Result of running the entire eval suite."""
+
     name: str
     cases: list[CaseResult] = field(default_factory=list)
     threshold: float = 0.7
@@ -99,9 +102,7 @@ class SuiteResult:
                     "name": c.name,
                     "passed": c.passed,
                     "avg_score": round(c.avg_score, 3),
-                    "metric_scores": {
-                        k: round(v, 3) for k, v in c.metric_scores.items()
-                    },
+                    "metric_scores": {k: round(v, 3) for k, v in c.metric_scores.items()},
                     "contains_ok": c.contains_ok,
                     "error": c.error,
                     "duration_seconds": round(c.duration_seconds, 3),
@@ -123,28 +124,22 @@ class SuiteResult:
             f'failures="{failures}" time="{self.duration_seconds:.2f}">',
         ]
         for c in self.cases:
-            lines.append(
-                f'  <testcase name="{escape(c.name)}" '
-                f'time="{c.duration_seconds:.3f}">'
-            )
+            lines.append(f'  <testcase name="{escape(c.name)}" time="{c.duration_seconds:.3f}">')
             if c.error:
-                lines.append(
-                    f'    <error message="{escape(c.error[:200])}"/>'
-                )
+                lines.append(f'    <error message="{escape(c.error[:200])}"/>')
             elif not c.passed:
                 detail = (
                     f"avg_score={c.avg_score:.2f} threshold={self.threshold} "
                     f"metrics={c.metric_scores} contains_ok={c.contains_ok}"
                 )
-                lines.append(
-                    f'    <failure message="{escape(detail[:500])}"/>'
-                )
-            lines.append('  </testcase>')
-        lines.append('</testsuite>')
+                lines.append(f'    <failure message="{escape(detail[:500])}"/>')
+            lines.append("  </testcase>")
+        lines.append("</testsuite>")
         return "\n".join(lines)
 
 
 # -------------------- Runner --------------------
+
 
 async def run_case(
     case: dict,
@@ -187,17 +182,17 @@ async def run_case(
 
     # 2) Check `contains` (substring assertions)
     if contains:
-        all_present = all(
-            sub.lower() in result.answer.lower() for sub in contains
-        )
+        all_present = all(sub.lower() in result.answer.lower() for sub in contains)
         result.contains_ok = all_present
 
     # 3) Run LLM-judge metrics if requested
     if metric_names and judge_runner is not None:
         try:
             from largestack._rag.eval import (
-                faithfulness, answer_relevance,
-                context_precision, context_recall,
+                faithfulness,
+                answer_relevance,
+                context_precision,
+                context_recall,
             )
         except ImportError as e:
             result.error = f"eval metrics unavailable: {e}"
@@ -242,9 +237,7 @@ async def run_case(
 
     # 4) Compute pass/fail
     if result.metric_scores:
-        result.avg_score = (
-            sum(result.metric_scores.values()) / len(result.metric_scores)
-        )
+        result.avg_score = sum(result.metric_scores.values()) / len(result.metric_scores)
         meets_threshold = result.avg_score >= threshold
     else:
         # No metrics — fall back to contains check
@@ -309,6 +302,7 @@ async def run_suite(
 
 # -------------------- Pretty-print helpers --------------------
 
+
 def format_console_report(suite: SuiteResult) -> str:
     """Format a human-readable summary for console output."""
     lines = []
@@ -333,9 +327,7 @@ def format_console_report(suite: SuiteResult) -> str:
             mark = "✗"
         line = f"  {mark}  {c.name}"
         if c.metric_scores:
-            metrics = ", ".join(
-                f"{k}={v:.2f}" for k, v in c.metric_scores.items()
-            )
+            metrics = ", ".join(f"{k}={v:.2f}" for k, v in c.metric_scores.items())
             line += f"  [{metrics}]"
         if c.error:
             line += f"  ERROR: {c.error[:80]}"

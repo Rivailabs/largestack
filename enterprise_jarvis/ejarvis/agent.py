@@ -1,6 +1,7 @@
 """The enterprise agent: typed decorator API + RBAC-gated, audited tools,
 guardrails, multi-tenant scoping, cost/trace observability, and typed outputs.
 """
+
 from __future__ import annotations
 
 import ast
@@ -31,7 +32,7 @@ Keep answers concise and professional."""
 
 # ---- Bounded calculator (no DoS) -------------------------------------------
 
-_MAX_LEN, _MAX_DEPTH, _MAX_MAG, _MAX_POW = 120, 25, 10 ** 12, 100
+_MAX_LEN, _MAX_DEPTH, _MAX_MAG, _MAX_POW = 120, 25, 10**12, 100
 
 
 def _guarded_pow(base, exp):
@@ -41,8 +42,12 @@ def _guarded_pow(base, exp):
 
 
 _OPS = {
-    ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
-    ast.Div: operator.truediv, ast.Pow: _guarded_pow, ast.Mod: operator.mod,
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: _guarded_pow,
+    ast.Mod: operator.mod,
     ast.USub: operator.neg,
 }
 
@@ -77,6 +82,7 @@ def safe_calc(expression: str) -> str:
 
 # ---- Reply model -----------------------------------------------------------
 
+
 class EnterpriseReply(BaseModel):
     reply: str
     cost: float = 0.0
@@ -110,7 +116,7 @@ def build_agent() -> Agent:
     @agent.tool
     async def kb_search(ctx: RunContext[Principal], query: str) -> str:
         """Search the company knowledge base; returns cited snippets or INSUFFICIENT_EVIDENCE."""
-        if (d := _gate(ctx, "kb_search")):
+        if d := _gate(ctx, "kb_search"):
             return d
         hits = knowledge.search(query)
         store.audit(ctx.deps.tenant, ctx.deps.user, ctx.deps.role, "kb_search", query)
@@ -121,7 +127,7 @@ def build_agent() -> Agent:
     @agent.tool
     async def remember(ctx: RunContext[Principal], key: str, value: str) -> str:
         """Remember a fact for this tenant (e.g. a deadline or preference)."""
-        if (d := _gate(ctx, "remember")):
+        if d := _gate(ctx, "remember"):
             return d
         store.set_fact(ctx.deps.tenant, key, value)
         store.audit(ctx.deps.tenant, ctx.deps.user, ctx.deps.role, "remember", f"{key}={value}")
@@ -130,7 +136,7 @@ def build_agent() -> Agent:
     @agent.tool
     async def recall(ctx: RunContext[Principal], key: str) -> str:
         """Recall a previously remembered fact for this tenant."""
-        if (d := _gate(ctx, "recall")):
+        if d := _gate(ctx, "recall"):
             return d
         val = store.get_fact(ctx.deps.tenant, key)
         return val if val is not None else f"No fact remembered for '{key}'."
@@ -138,14 +144,14 @@ def build_agent() -> Agent:
     @agent.tool
     async def calculate(ctx: RunContext[Principal], expression: str) -> str:
         """Evaluate a bounded arithmetic expression (safe against huge inputs)."""
-        if (d := _gate(ctx, "calculate")):
+        if d := _gate(ctx, "calculate"):
             return d
         return safe_calc(expression)
 
     @agent.tool
     async def submit_approval(ctx: RunContext[Principal], action: str, details: str = "") -> str:
         """Record a risky action as a PENDING approval (never executes it)."""
-        if (d := _gate(ctx, "submit_approval")):
+        if d := _gate(ctx, "submit_approval"):
             return d
         rid = store.add_approval(ctx.deps.tenant, ctx.deps.user, action, details)
         store.audit(ctx.deps.tenant, ctx.deps.user, ctx.deps.role, "submit_approval", action)
@@ -154,7 +160,7 @@ def build_agent() -> Agent:
     @agent.tool
     async def list_approvals(ctx: RunContext[Principal]) -> str:
         """List pending approvals for this tenant."""
-        if (d := _gate(ctx, "list_approvals")):
+        if d := _gate(ctx, "list_approvals"):
             return d
         items = [a for a in store.get_approvals(ctx.deps.tenant) if a["status"] == "pending"]
         if not items:
@@ -164,7 +170,7 @@ def build_agent() -> Agent:
     @agent.tool
     async def raise_ticket(ctx: RunContext[Principal], subject: str, body: str) -> str:
         """Open a support ticket for this tenant."""
-        if (d := _gate(ctx, "raise_ticket")):
+        if d := _gate(ctx, "raise_ticket"):
             return d
         tid = store.add_ticket(ctx.deps.tenant, ctx.deps.user, subject, body)
         store.audit(ctx.deps.tenant, ctx.deps.user, ctx.deps.role, "raise_ticket", subject)
@@ -173,10 +179,13 @@ def build_agent() -> Agent:
     @agent.tool
     async def read_audit(ctx: RunContext[Principal]) -> str:
         """Read the recent audit log (admin only)."""
-        if (d := _gate(ctx, "read_audit")):
+        if d := _gate(ctx, "read_audit"):
             return d
         rows = store.read_audit(ctx.deps.tenant, limit=10)
-        return "\n".join(f"{r['at']} {r['user']}/{r['role']} {r['event']} {r['detail']}" for r in rows) or "(empty)"
+        return (
+            "\n".join(f"{r['at']} {r['user']}/{r['role']} {r['event']} {r['detail']}" for r in rows)
+            or "(empty)"
+        )
 
     return agent
 
@@ -207,8 +216,13 @@ class EnterpriseJarvis:
         cost = float(getattr(result, "cost", 0.0) or 0.0)
         self.total_cost += cost
         # Observability: audit the run itself.
-        store.audit(self.principal.tenant, self.principal.user, self.principal.role,
-                    "agent_run", message[:120])
+        store.audit(
+            self.principal.tenant,
+            self.principal.user,
+            self.principal.role,
+            "agent_run",
+            message[:120],
+        )
         return EnterpriseReply(
             reply=str(result.output),
             cost=cost,

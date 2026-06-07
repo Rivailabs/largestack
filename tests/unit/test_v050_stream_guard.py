@@ -3,12 +3,14 @@
 Validates that ``stream_guard=True`` blocks unsafe content mid-stream
 instead of letting the user see it before guards run.
 """
+
 from __future__ import annotations
 
 import pytest
 
 
 # -------------------- helpers --------------------
+
 
 class _FakeGuardrails:
     """Minimal guardrails impl. Blocks any output containing a forbidden word."""
@@ -29,6 +31,7 @@ class _FakeGuardrails:
 
 class _FakeGateway:
     """Streams a fixed list of tokens."""
+
     def __init__(self, tokens: list[str]):
         self.tokens = tokens
 
@@ -39,11 +42,13 @@ class _FakeGateway:
 
 # -------------------- tests --------------------
 
+
 @pytest.mark.asyncio
 async def test_stream_guard_off_legacy_behavior_yields_unsafe_content():
     """When stream_guard=False (default), unsafe tokens are yielded.
     This is the v0.3 behavior — kept for backwards compat."""
     from largestack._core.engine import AgentEngine
+
     eng = AgentEngine.__new__(AgentEngine)
     eng.name = "test"
     eng.llm = "test/test"
@@ -71,16 +76,19 @@ async def test_stream_guard_on_blocks_chunk_with_unsafe_content():
     """When stream_guard=True, chunk containing forbidden word is replaced
     with redaction marker and stream stops."""
     from largestack._core.engine import AgentEngine
+
     eng = AgentEngine.__new__(AgentEngine)
     eng.name = "test"
     eng.llm = "test/test"
     eng.guardrails = _FakeGuardrails(forbidden="LEAKED_SECRET")
-    eng.gateway = _FakeGateway([
-        "safe content. ",
-        "more safe text. ",
-        "this contains LEAKED_SECRET word. ",
-        "more after but stream should be blocked.",
-    ])
+    eng.gateway = _FakeGateway(
+        [
+            "safe content. ",
+            "more safe text. ",
+            "this contains LEAKED_SECRET word. ",
+            "more after but stream should be blocked.",
+        ]
+    )
     eng.cost_budget = None
     eng.tools = []
     eng.system_prompt = ""
@@ -106,14 +114,20 @@ async def test_stream_guard_on_blocks_chunk_with_unsafe_content():
 async def test_stream_guard_passes_safe_content_through():
     """All safe tokens must pass through when guard is on."""
     from largestack._core.engine import AgentEngine
+
     eng = AgentEngine.__new__(AgentEngine)
     eng.name = "test"
     eng.llm = "test/test"
     eng.guardrails = _FakeGuardrails(forbidden="NEVER_APPEARS")
-    eng.gateway = _FakeGateway([
-        "Hello, ", "this is a ", "completely safe ",
-        "response with no ", "issues at all.",
-    ])
+    eng.gateway = _FakeGateway(
+        [
+            "Hello, ",
+            "this is a ",
+            "completely safe ",
+            "response with no ",
+            "issues at all.",
+        ]
+    )
     eng.cost_budget = None
     eng.tools = []
     eng.system_prompt = ""
@@ -134,6 +148,7 @@ async def test_stream_guard_passes_safe_content_through():
 async def test_stream_guard_custom_redaction_marker():
     """The redaction marker can be customized."""
     from largestack._core.engine import AgentEngine
+
     eng = AgentEngine.__new__(AgentEngine)
     eng.name = "test"
     eng.llm = "test/test"
@@ -164,6 +179,7 @@ async def test_stream_guard_custom_redaction_marker():
 async def test_stream_guard_off_works_without_guardrails():
     """No guardrails attached + stream_guard=False = pure pass-through."""
     from largestack._core.engine import AgentEngine
+
     eng = AgentEngine.__new__(AgentEngine)
     eng.name = "test"
     eng.llm = "test/test"

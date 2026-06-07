@@ -1,6 +1,7 @@
 """Credit-card numbers must be FULLY redacted — not partially consumed by the phone
 regex (regression for the leak where '4111111111111111' -> '[PHONE_REDACTED]111111').
 """
+
 from __future__ import annotations
 
 import re

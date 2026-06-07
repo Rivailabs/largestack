@@ -2,6 +2,7 @@
 
 Reference: "Sagas" (Garcia-Molina & Salem, 1987)
 """
+
 from __future__ import annotations
 import asyncio, json, logging, os, sqlite3, time, uuid
 from typing import Any, Callable
@@ -11,12 +12,19 @@ log = logging.getLogger("largestack.saga")
 
 class SagaStep:
     """A single step in a saga transaction.
-    
+
     Each step has an action (forward) and compensation (rollback).
     """
-    def __init__(self, name: str, action: Callable, compensation: Callable = None,
-                 timeout: float = None, max_retries: int = 0,
-                 idempotent: bool = False):
+
+    def __init__(
+        self,
+        name: str,
+        action: Callable,
+        compensation: Callable = None,
+        timeout: float = None,
+        max_retries: int = 0,
+        idempotent: bool = False,
+    ):
         if not name:
             raise ValueError("Step name is required")
         self.name = name
@@ -29,8 +37,10 @@ class SagaStep:
 
 class SagaExecutionError(RuntimeError):
     """Raised when saga fails and compensation completes."""
-    def __init__(self, saga_name: str, failed_step: str, error: Exception,
-                 compensation_errors: list = None):
+
+    def __init__(
+        self, saga_name: str, failed_step: str, error: Exception, compensation_errors: list = None
+    ):
         self.saga_name = saga_name
         self.failed_step = failed_step
         self.error = error
@@ -40,7 +50,7 @@ class SagaExecutionError(RuntimeError):
 
 class SagaOrchestrator:
     """Execute distributed transactions with automatic compensation.
-    
+
     Features:
       - Per-step timeouts
       - Per-step retries with exponential backoff
@@ -62,20 +72,20 @@ class SagaOrchestrator:
         )
         saga.add_step("charge_payment", charge_fn, refund_fn)
         saga.add_step("ship_order", ship_fn, cancel_fn)
-        
+
         result = await saga.execute({"order_id": "123"})
     """
-    def __init__(self, name: str = "saga", persist_to: str = None,
-                 global_timeout: float = None):
+
+    def __init__(self, name: str = "saga", persist_to: str = None, global_timeout: float = None):
         self.name = name
         self.steps: list[SagaStep] = []
         self.persist_to = os.path.expanduser(persist_to) if persist_to else None
         self.global_timeout = global_timeout
         self._db = None
-        
+
         if self.persist_to:
             self._init_persistence()
-    
+
     def _init_persistence(self):
         os.makedirs(os.path.dirname(self.persist_to), exist_ok=True)
         self._db = sqlite3.connect(self.persist_to, check_same_thread=False)
@@ -92,19 +102,25 @@ class SagaOrchestrator:
             completed_at REAL
         )""")
         self._db.commit()
-    
-    def add_step(self, name: str, action: Callable, compensation: Callable = None,
-                 timeout: float = None, max_retries: int = 0,
-                 idempotent: bool = False):
+
+    def add_step(
+        self,
+        name: str,
+        action: Callable,
+        compensation: Callable = None,
+        timeout: float = None,
+        max_retries: int = 0,
+        idempotent: bool = False,
+    ):
         """Add a step to the saga."""
         self.steps.append(SagaStep(name, action, compensation, timeout, max_retries, idempotent))
         return self
-    
+
     async def _run_step(self, step: SagaStep, ctx: dict) -> Any:
         """Execute a step with timeout and retry."""
         attempts = step.max_retries + 1
         last_exc = None
-        
+
         for attempt in range(attempts):
             try:
                 if step.timeout:
@@ -112,8 +128,7 @@ class SagaOrchestrator:
                         result = await asyncio.wait_for(step.action(ctx), timeout=step.timeout)
                     else:
                         result = await asyncio.wait_for(
-                            asyncio.to_thread(step.action, ctx),
-                            timeout=step.timeout
+                            asyncio.to_thread(step.action, ctx), timeout=step.timeout
                         )
                 else:
                     if asyncio.iscoroutinefunction(step.action):
@@ -124,15 +139,15 @@ class SagaOrchestrator:
             except Exception as e:
                 last_exc = e
                 if attempt + 1 < attempts:
-                    backoff = 2 ** attempt
+                    backoff = 2**attempt
                     log.warning(
                         f"Saga '{self.name}': step '{step.name}' failed "
-                        f"(attempt {attempt+1}/{attempts}), retrying in {backoff}s: {e}"
+                        f"(attempt {attempt + 1}/{attempts}), retrying in {backoff}s: {e}"
                     )
                     await asyncio.sleep(backoff)
-        
+
         raise last_exc
-    
+
     async def _run_compensation(self, step: SagaStep, ctx: dict) -> Exception | None:
         """Run compensation. Returns exception if failed, None if success."""
         if step.compensation is None:
@@ -147,9 +162,16 @@ class SagaOrchestrator:
         except Exception as e:
             log.error(f"Saga '{self.name}': compensation for '{step.name}' failed: {e}")
             return e
-    
-    def _save_run(self, saga_id: str, status: str, current_step: int,
-                  ctx: dict, completed: list[str], error: str = None):
+
+    def _save_run(
+        self,
+        saga_id: str,
+        status: str,
+        current_step: int,
+        ctx: dict,
+        completed: list[str],
+        error: str = None,
+    ):
         if not self._db:
             return
         self._db.execute(
@@ -158,14 +180,24 @@ class SagaOrchestrator:
             "VALUES (?,?,?,?,?,?,?, "
             "  COALESCE((SELECT started_at FROM saga_runs WHERE saga_id=?), ?), "
             "  ?)",
-            (saga_id, self.name, status, current_step, json.dumps(ctx, default=str),
-             json.dumps(completed), error, saga_id, time.time(),
-             time.time() if status in ("completed", "compensated", "failed") else None)
+            (
+                saga_id,
+                self.name,
+                status,
+                current_step,
+                json.dumps(ctx, default=str),
+                json.dumps(completed),
+                error,
+                saga_id,
+                time.time(),
+                time.time() if status in ("completed", "compensated", "failed") else None,
+            ),
         )
         self._db.commit()
-    
-    async def execute(self, context: dict = None, saga_id: str = None,
-                      resume: bool = False) -> dict:
+
+    async def execute(
+        self, context: dict = None, saga_id: str = None, resume: bool = False
+    ) -> dict:
         """Execute saga. Returns final context on success.
 
         Raises SagaExecutionError on failure (after compensation).
@@ -199,7 +231,9 @@ class SagaOrchestrator:
                             f"Saga '{self.name}': resuming {saga_id} re-runs in-flight step "
                             f"'{nxt.name}' which is NOT marked idempotent — it may double-execute."
                         )
-                log.info(f"Saga '{self.name}': resuming {saga_id} from step {start_index+1}/{len(self.steps)}")
+                log.info(
+                    f"Saga '{self.name}': resuming {saga_id} from step {start_index + 1}/{len(self.steps)}"
+                )
 
         self._save_run(saga_id, "running", start_index, ctx, [s.name for s in completed])
 
@@ -213,33 +247,32 @@ class SagaOrchestrator:
                         f"Saga '{self.name}' global timeout after {elapsed:.1f}s"
                     )
                     comp_errors = await self._compensate_all(completed, ctx)
-                    self._save_run(saga_id, "failed", i, ctx,
-                                  [s.name for s in completed],
-                                  error=str(last_exc))
+                    self._save_run(
+                        saga_id, "failed", i, ctx, [s.name for s in completed], error=str(last_exc)
+                    )
                     raise SagaExecutionError(self.name, step.name, last_exc, comp_errors)
-            
+
             try:
-                log.info(f"Saga '{self.name}': executing step {i+1}/{len(self.steps)} — '{step.name}'")
+                log.info(
+                    f"Saga '{self.name}': executing step {i + 1}/{len(self.steps)} — '{step.name}'"
+                )
                 result = await self._run_step(step, ctx)
-                
+
                 if isinstance(result, dict):
                     ctx.update(result)
-                
+
                 completed.append(step)
-                self._save_run(saga_id, "running", i + 1, ctx,
-                              [s.name for s in completed])
-            
+                self._save_run(saga_id, "running", i + 1, ctx, [s.name for s in completed])
+
             except Exception as e:
                 log.error(f"Saga '{self.name}': step '{step.name}' failed: {e}")
                 comp_errors = await self._compensate_all(completed, ctx)
-                self._save_run(saga_id, "failed", i, ctx,
-                              [s.name for s in completed], error=str(e))
+                self._save_run(saga_id, "failed", i, ctx, [s.name for s in completed], error=str(e))
                 raise SagaExecutionError(self.name, step.name, e, comp_errors)
-        
-        self._save_run(saga_id, "completed", len(self.steps), ctx,
-                      [s.name for s in completed])
+
+        self._save_run(saga_id, "completed", len(self.steps), ctx, [s.name for s in completed])
         return ctx
-    
+
     async def _compensate_all(self, completed: list[SagaStep], ctx: dict) -> list:
         """Run compensation for all completed steps in reverse order."""
         errors = []
@@ -248,14 +281,14 @@ class SagaOrchestrator:
             if err:
                 errors.append({"step": step.name, "error": str(err)})
         return errors
-    
+
     def get_run_status(self, saga_id: str) -> dict | None:
         if not self._db:
             return None
         row = self._db.execute(
             "SELECT saga_name, status, current_step, context, completed_steps, error, "
             "started_at, completed_at FROM saga_runs WHERE saga_id=?",
-            (saga_id,)
+            (saga_id,),
         ).fetchone()
         if not row:
             return None
@@ -270,7 +303,7 @@ class SagaOrchestrator:
             "started_at": row[6],
             "completed_at": row[7],
         }
-    
+
     def list_runs(self, status: str = None, limit: int = 50) -> list[dict]:
         if not self._db:
             return []
@@ -278,19 +311,26 @@ class SagaOrchestrator:
             rows = self._db.execute(
                 "SELECT saga_id, saga_name, status, current_step, started_at, completed_at "
                 "FROM saga_runs WHERE status=? ORDER BY started_at DESC LIMIT ?",
-                (status, limit)
+                (status, limit),
             ).fetchall()
         else:
             rows = self._db.execute(
                 "SELECT saga_id, saga_name, status, current_step, started_at, completed_at "
                 "FROM saga_runs ORDER BY started_at DESC LIMIT ?",
-                (limit,)
+                (limit,),
             ).fetchall()
-        return [{
-            "saga_id": r[0], "saga_name": r[1], "status": r[2],
-            "current_step": r[3], "started_at": r[4], "completed_at": r[5]
-        } for r in rows]
-    
+        return [
+            {
+                "saga_id": r[0],
+                "saga_name": r[1],
+                "status": r[2],
+                "current_step": r[3],
+                "started_at": r[4],
+                "completed_at": r[5],
+            }
+            for r in rows
+        ]
+
     @property
     def stats(self) -> dict:
         info = {"name": self.name, "step_count": len(self.steps), "persisted": bool(self._db)}

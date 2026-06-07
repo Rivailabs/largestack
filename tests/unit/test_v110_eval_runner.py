@@ -1,4 +1,5 @@
 """v0.11.0: Tests for real eval suite runner."""
+
 from __future__ import annotations
 
 import json
@@ -8,6 +9,7 @@ import pytest
 
 
 # -------------------- run_case --------------------
+
 
 @pytest.mark.asyncio
 async def test_run_case_passes_with_contains():
@@ -66,9 +68,7 @@ async def test_run_case_with_llm_judge_metrics():
         return "Paris is the capital of France."
 
     judge = MagicMock()
-    judge.run = AsyncMock(return_value=MagicMock(
-        content='{"score": 9, "reasoning": "verified"}'
-    ))
+    judge.run = AsyncMock(return_value=MagicMock(content='{"score": 9, "reasoning": "verified"}'))
 
     case = {
         "name": "with_metrics",
@@ -78,7 +78,10 @@ async def test_run_case_with_llm_judge_metrics():
         "metrics": ["faithfulness", "answer_relevance"],
     }
     result = await run_case(
-        case, agent_runner=agent, judge_runner=judge, threshold=0.7,
+        case,
+        agent_runner=agent,
+        judge_runner=judge,
+        threshold=0.7,
     )
     assert "faithfulness" in result.metric_scores
     assert "answer_relevance" in result.metric_scores
@@ -96,9 +99,7 @@ async def test_run_case_fails_threshold():
         return "fabricated answer"
 
     judge = MagicMock()
-    judge.run = AsyncMock(return_value=MagicMock(
-        content='{"score": 3, "reasoning": "fabricated"}'
-    ))
+    judge.run = AsyncMock(return_value=MagicMock(content='{"score": 3, "reasoning": "fabricated"}'))
 
     case = {
         "name": "below_threshold",
@@ -107,7 +108,10 @@ async def test_run_case_fails_threshold():
         "metrics": ["faithfulness"],
     }
     result = await run_case(
-        case, agent_runner=agent, judge_runner=judge, threshold=0.7,
+        case,
+        agent_runner=agent,
+        judge_runner=judge,
+        threshold=0.7,
     )
     assert result.passed is False
     assert result.avg_score == 0.3
@@ -122,9 +126,7 @@ async def test_run_case_contains_overrides_metric_pass():
         return "high quality answer without keyword"
 
     judge = MagicMock()
-    judge.run = AsyncMock(return_value=MagicMock(
-        content='{"score": 10, "reasoning": "great"}'
-    ))
+    judge.run = AsyncMock(return_value=MagicMock(content='{"score": 10, "reasoning": "great"}'))
 
     case = {
         "name": "contains_strict",
@@ -133,7 +135,9 @@ async def test_run_case_contains_overrides_metric_pass():
         "metrics": ["answer_relevance"],
     }
     result = await run_case(
-        case, agent_runner=agent, judge_runner=judge,
+        case,
+        agent_runner=agent,
+        judge_runner=judge,
     )
     # Metrics passed but contains failed → overall fail
     assert result.contains_ok is False
@@ -154,6 +158,7 @@ async def test_run_case_no_metrics_no_contains_passes():
 
 
 # -------------------- run_suite --------------------
+
 
 @pytest.mark.asyncio
 async def test_run_suite_loads_and_executes(tmp_path):
@@ -187,7 +192,10 @@ cases:
 @pytest.mark.asyncio
 async def test_run_suite_missing_file():
     from largestack._eval.runner import run_suite
-    async def agent(x): return ""
+
+    async def agent(x):
+        return ""
+
     with pytest.raises(FileNotFoundError):
         await run_suite("/nonexistent.yaml", agent_runner=agent)
 
@@ -196,9 +204,13 @@ async def test_run_suite_missing_file():
 async def test_run_suite_empty_cases(tmp_path):
     pytest.importorskip("yaml")
     from largestack._eval.runner import run_suite
+
     suite_yaml = tmp_path / "empty.yaml"
     suite_yaml.write_text("name: empty\ncases: []\n")
-    async def agent(x): return "x"
+
+    async def agent(x):
+        return "x"
+
     result = await run_suite(suite_yaml, agent_runner=agent)
     assert len(result.cases) == 0
     assert result.pass_rate == 0.0
@@ -206,15 +218,29 @@ async def test_run_suite_empty_cases(tmp_path):
 
 # -------------------- SuiteResult formatting --------------------
 
+
 def test_suite_result_to_dict():
     from largestack._eval.runner import SuiteResult, CaseResult
+
     suite = SuiteResult(name="t", threshold=0.7)
-    suite.cases.append(CaseResult(
-        name="c1", input="i", answer="a", passed=True, avg_score=0.9,
-    ))
-    suite.cases.append(CaseResult(
-        name="c2", input="i", answer="a", passed=False, error="oops",
-    ))
+    suite.cases.append(
+        CaseResult(
+            name="c1",
+            input="i",
+            answer="a",
+            passed=True,
+            avg_score=0.9,
+        )
+    )
+    suite.cases.append(
+        CaseResult(
+            name="c2",
+            input="i",
+            answer="a",
+            passed=False,
+            error="oops",
+        )
+    )
     suite.duration_seconds = 1.5
 
     d = suite.to_dict()
@@ -227,48 +253,79 @@ def test_suite_result_to_dict():
 
 def test_suite_result_to_junit_xml():
     from largestack._eval.runner import SuiteResult, CaseResult
+
     suite = SuiteResult(name="t", threshold=0.7)
-    suite.cases.append(CaseResult(
-        name="passes", input="x", passed=True, duration_seconds=0.1,
-    ))
-    suite.cases.append(CaseResult(
-        name="fails", input="x", passed=False, avg_score=0.3,
-    ))
-    suite.cases.append(CaseResult(
-        name="errors", input="x", error="boom",
-    ))
+    suite.cases.append(
+        CaseResult(
+            name="passes",
+            input="x",
+            passed=True,
+            duration_seconds=0.1,
+        )
+    )
+    suite.cases.append(
+        CaseResult(
+            name="fails",
+            input="x",
+            passed=False,
+            avg_score=0.3,
+        )
+    )
+    suite.cases.append(
+        CaseResult(
+            name="errors",
+            input="x",
+            error="boom",
+        )
+    )
 
     xml = suite.to_junit_xml()
-    assert '<?xml' in xml
-    assert '<testsuite' in xml
+    assert "<?xml" in xml
+    assert "<testsuite" in xml
     assert 'tests="3"' in xml
     assert 'failures="2"' in xml
-    assert '<failure' in xml
-    assert '<error' in xml
+    assert "<failure" in xml
+    assert "<error" in xml
 
 
 def test_suite_result_pass_rate_zero_cases():
     from largestack._eval.runner import SuiteResult
+
     suite = SuiteResult(name="empty", threshold=0.7)
     assert suite.pass_rate == 0.0
 
 
 def test_format_console_report():
     from largestack._eval.runner import (
-        SuiteResult, CaseResult, format_console_report,
+        SuiteResult,
+        CaseResult,
+        format_console_report,
     )
+
     suite = SuiteResult(name="my-suite", threshold=0.7)
-    suite.cases.append(CaseResult(
-        name="c1", input="i", passed=True,
-        metric_scores={"faithfulness": 0.9},
-    ))
-    suite.cases.append(CaseResult(
-        name="c2", input="i", passed=False,
-        metric_scores={"faithfulness": 0.4},
-    ))
-    suite.cases.append(CaseResult(
-        name="c3", input="i", error="LLM down",
-    ))
+    suite.cases.append(
+        CaseResult(
+            name="c1",
+            input="i",
+            passed=True,
+            metric_scores={"faithfulness": 0.9},
+        )
+    )
+    suite.cases.append(
+        CaseResult(
+            name="c2",
+            input="i",
+            passed=False,
+            metric_scores={"faithfulness": 0.4},
+        )
+    )
+    suite.cases.append(
+        CaseResult(
+            name="c3",
+            input="i",
+            error="LLM down",
+        )
+    )
 
     out = format_console_report(suite)
     assert "my-suite" in out
@@ -282,10 +339,14 @@ def test_format_console_report():
 
 # -------------------- Threshold edge cases --------------------
 
+
 @pytest.mark.asyncio
 async def test_run_case_at_threshold_passes():
     from largestack._eval.runner import run_case
-    async def agent(x): return "ok"
+
+    async def agent(x):
+        return "ok"
+
     judge = MagicMock()
     judge.run = AsyncMock(return_value=MagicMock(content='{"score": 7}'))
     case = {
@@ -294,7 +355,10 @@ async def test_run_case_at_threshold_passes():
         "metrics": ["answer_relevance"],
     }
     result = await run_case(
-        case, agent_runner=agent, judge_runner=judge, threshold=0.7,
+        case,
+        agent_runner=agent,
+        judge_runner=judge,
+        threshold=0.7,
     )
     assert result.avg_score == 0.7
     assert result.passed is True

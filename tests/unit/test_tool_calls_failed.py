@@ -2,6 +2,7 @@
 execution errored. These cover the new `tool_calls_failed` field, which records the
 subset that errored so observability reflects what actually succeeded.
 """
+
 from __future__ import annotations
 
 from largestack import Agent, tool

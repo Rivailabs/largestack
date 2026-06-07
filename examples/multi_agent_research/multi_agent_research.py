@@ -9,6 +9,7 @@ Run::
     export LARGESTACK_DEEPSEEK_API_KEY=<deepseek-api-key>
     python multi_agent_research.py
 """
+
 from __future__ import annotations
 
 from pathlib import Path

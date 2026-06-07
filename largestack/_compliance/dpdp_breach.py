@@ -24,6 +24,7 @@ Penalties (§33):
 This module is the *engine* — actual transmission to the DPB API
 (when published by MeitY) is pluggable via ``BreachNotifier`` subclasses.
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -36,23 +37,25 @@ log = logging.getLogger(__name__)
 
 BreachSeverity = Literal["low", "medium", "high", "critical"]
 BreachKind = Literal[
-    "mass_read",            # one principal touches > N records in a
-                            # short window
-    "cross_tenant",         # access attempt across tenant boundary
-    "after_hours",          # bulk access outside business hours
-    "unusual_geography",    # access from an unexpected region
+    "mass_read",  # one principal touches > N records in a
+    # short window
+    "cross_tenant",  # access attempt across tenant boundary
+    "after_hours",  # bulk access outside business hours
+    "unusual_geography",  # access from an unexpected region
     "unauthorized_export",  # export tool used without an audit purpose
-    "credential_compromise", # known leaked credential used
-    "system_intrusion",     # external entity in system logs
+    "credential_compromise",  # known leaked credential used
+    "system_intrusion",  # external entity in system logs
     "other",
 ]
 
 
 # -------------------- Domain types --------------------
 
+
 @dataclass
 class BreachIndicator:
     """A signal that *might* indicate a breach. Detected by hooks."""
+
     kind: BreachKind
     detected_at: float
     tenant_id: str
@@ -65,6 +68,7 @@ class BreachIndicator:
 @dataclass
 class BreachClassification:
     """Result of running an indicator through DPDP §8 criteria."""
+
     indicator: BreachIndicator
     is_personal_data_breach: bool
     severity: BreachSeverity
@@ -91,6 +95,7 @@ class BreachClassification:
 @dataclass
 class BreachNotification:
     """A formatted notification ready for delivery."""
+
     classification: BreachClassification
     target: Literal["dpb", "principal"]
     subject: str
@@ -101,13 +106,15 @@ class BreachNotification:
 
 # -------------------- Detector --------------------
 
+
 @dataclass
 class BreachDetectorConfig:
     """Thresholds for the built-in detector heuristics."""
+
     mass_read_threshold: int = 1000
     mass_read_window_seconds: float = 300.0
     after_hours_start: int = 22  # 22:00 local
-    after_hours_end: int = 6     # 06:00 local
+    after_hours_end: int = 6  # 06:00 local
     after_hours_record_threshold: int = 100
 
 
@@ -125,7 +132,8 @@ class BreachDetector:
         self.config = config or BreachDetectorConfig()
         # Per-tenant per-user sliding window of timestamps
         self._read_windows: dict[
-            tuple[str, str], list[float],
+            tuple[str, str],
+            list[float],
         ] = {}
         self._indicators: list[BreachIndicator] = []
 
@@ -154,17 +162,20 @@ class BreachDetector:
 
         # Mass-read check
         if len(self._read_windows[key]) >= self.config.mass_read_threshold:
-            self._indicators.append(BreachIndicator(
-                kind="mass_read",
-                detected_at=ts,
-                tenant_id=tenant_id, user_id=user_id,
-                record_count=len(self._read_windows[key]),
-                description=(
-                    f"user '{user_id}' read "
-                    f"{len(self._read_windows[key])} records in "
-                    f"{self.config.mass_read_window_seconds:.0f}s"
-                ),
-            ))
+            self._indicators.append(
+                BreachIndicator(
+                    kind="mass_read",
+                    detected_at=ts,
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    record_count=len(self._read_windows[key]),
+                    description=(
+                        f"user '{user_id}' read "
+                        f"{len(self._read_windows[key])} records in "
+                        f"{self.config.mass_read_window_seconds:.0f}s"
+                    ),
+                )
+            )
             # Reset to avoid duplicate alerts every record
             self._read_windows[key] = []
 
@@ -173,23 +184,21 @@ class BreachDetector:
             tm = time.localtime(ts)
             hour = tm.tm_hour
             after_hours = (
-                hour >= self.config.after_hours_start
-                or hour < self.config.after_hours_end
+                hour >= self.config.after_hours_start or hour < self.config.after_hours_end
             )
-            if (
-                after_hours
-                and record_count >= self.config.after_hours_record_threshold
-            ):
-                self._indicators.append(BreachIndicator(
-                    kind="after_hours",
-                    detected_at=ts,
-                    tenant_id=tenant_id, user_id=user_id,
-                    record_count=record_count,
-                    description=(
-                        f"after-hours bulk access at {hour:02d}:00 "
-                        f"({record_count} records)"
-                    ),
-                ))
+            if after_hours and record_count >= self.config.after_hours_record_threshold:
+                self._indicators.append(
+                    BreachIndicator(
+                        kind="after_hours",
+                        detected_at=ts,
+                        tenant_id=tenant_id,
+                        user_id=user_id,
+                        record_count=record_count,
+                        description=(
+                            f"after-hours bulk access at {hour:02d}:00 ({record_count} records)"
+                        ),
+                    )
+                )
         except Exception:
             pass
 
@@ -206,17 +215,19 @@ class BreachDetector:
         if actor_tenant == target_tenant:
             return  # not cross-tenant
         ts = timestamp if timestamp is not None else time.time()
-        self._indicators.append(BreachIndicator(
-            kind="cross_tenant",
-            detected_at=ts,
-            tenant_id=actor_tenant,
-            user_id=user_id,
-            description=(
-                f"actor tenant '{actor_tenant}' attempted access on "
-                f"target tenant '{target_tenant}'"
-            ),
-            metadata={"target_tenant": target_tenant},
-        ))
+        self._indicators.append(
+            BreachIndicator(
+                kind="cross_tenant",
+                detected_at=ts,
+                tenant_id=actor_tenant,
+                user_id=user_id,
+                description=(
+                    f"actor tenant '{actor_tenant}' attempted access on "
+                    f"target tenant '{target_tenant}'"
+                ),
+                metadata={"target_tenant": target_tenant},
+            )
+        )
 
     def observe_unauthorized_export(
         self,
@@ -228,17 +239,19 @@ class BreachDetector:
         timestamp: float | None = None,
     ) -> None:
         ts = timestamp if timestamp is not None else time.time()
-        self._indicators.append(BreachIndicator(
-            kind="unauthorized_export",
-            detected_at=ts,
-            tenant_id=tenant_id, user_id=user_id,
-            record_count=record_count,
-            description=(
-                f"export via '{export_tool}' without recorded purpose "
-                f"({record_count} records)"
-            ),
-            metadata={"export_tool": export_tool},
-        ))
+        self._indicators.append(
+            BreachIndicator(
+                kind="unauthorized_export",
+                detected_at=ts,
+                tenant_id=tenant_id,
+                user_id=user_id,
+                record_count=record_count,
+                description=(
+                    f"export via '{export_tool}' without recorded purpose ({record_count} records)"
+                ),
+                metadata={"export_tool": export_tool},
+            )
+        )
 
     def flush(self) -> list[BreachIndicator]:
         """Return + clear all queued indicators."""
@@ -248,11 +261,13 @@ class BreachDetector:
 
 # -------------------- Classifier --------------------
 
+
 class BreachClassifier:
     """Classify indicators against DPDP §8 criteria."""
 
     def classify(
-        self, indicator: BreachIndicator,
+        self,
+        indicator: BreachIndicator,
     ) -> BreachClassification:
         is_breach, severity, affected = self._evaluate(indicator)
 
@@ -260,7 +275,9 @@ class BreachClassifier:
         must_notify_dpb = is_breach
         # Notify principals only when severity ≥ medium
         must_notify_principals = is_breach and severity in (
-            "medium", "high", "critical",
+            "medium",
+            "high",
+            "critical",
         )
 
         rationale = self._rationale(indicator, severity, affected)
@@ -276,7 +293,8 @@ class BreachClassifier:
         )
 
     def _evaluate(
-        self, indicator: BreachIndicator,
+        self,
+        indicator: BreachIndicator,
     ) -> tuple[bool, BreachSeverity, int]:
         """Returns (is_breach, severity, affected_count)."""
         kind = indicator.kind
@@ -291,18 +309,24 @@ class BreachClassifier:
 
         if kind == "unauthorized_export":
             severity: BreachSeverity = (
-                "critical" if records >= 10000
-                else "high" if records >= 1000
-                else "medium" if records >= 100
+                "critical"
+                if records >= 10000
+                else "high"
+                if records >= 1000
+                else "medium"
+                if records >= 100
                 else "low"
             )
             return True, severity, records
 
         if kind == "mass_read":
             severity = (
-                "critical" if records >= 100000
-                else "high" if records >= 10000
-                else "medium" if records >= 1000
+                "critical"
+                if records >= 100000
+                else "high"
+                if records >= 10000
+                else "medium"
+                if records >= 1000
                 else "low"
             )
             # Mass-read alone ISN'T a breach — only if combined with
@@ -320,8 +344,10 @@ class BreachClassifier:
         return False, "low", records
 
     def _rationale(
-        self, indicator: BreachIndicator,
-        severity: BreachSeverity, affected: int,
+        self,
+        indicator: BreachIndicator,
+        severity: BreachSeverity,
+        affected: int,
     ) -> str:
         return (
             f"Indicator kind='{indicator.kind}' affected "
@@ -350,7 +376,8 @@ def render_dpb_notification(
     """
     ind = classification.indicator
     detected_dt = time.strftime(
-        "%Y-%m-%d %H:%M:%S UTC", time.gmtime(ind.detected_at),
+        "%Y-%m-%d %H:%M:%S UTC",
+        time.gmtime(ind.detected_at),
     )
     subject = (
         f"DPDP §8 Personal Data Breach Notification — "
@@ -399,12 +426,10 @@ def render_principal_notification(
     """Render a notification for an affected data principal."""
     ind = classification.indicator
     detected_dt = time.strftime(
-        "%Y-%m-%d", time.gmtime(ind.detected_at),
+        "%Y-%m-%d",
+        time.gmtime(ind.detected_at),
     )
-    subject = (
-        f"Important: Personal data security incident at "
-        f"{organisation_name}"
-    )
+    subject = f"Important: Personal data security incident at {organisation_name}"
     steps = remediation_steps or [
         "Reset passwords on accounts you use with this service",
         "Enable two-factor authentication where supported",
@@ -439,6 +464,7 @@ def render_principal_notification(
 
 # -------------------- Pluggable delivery --------------------
 
+
 class BreachNotifier(Protocol):
     """Pluggable delivery backend (DPB API, email, SMS)."""
 
@@ -453,20 +479,25 @@ class LoggingNotifier:
 
     async def send(self, notification: BreachNotification) -> bool:
         log.warning(
-            f"[BREACH NOTIFICATION] target={notification.target} "
-            f"subject='{notification.subject}'"
+            f"[BREACH NOTIFICATION] target={notification.target} subject='{notification.subject}'"
         )
         self.sent.append(notification)
         return True
 
 
 __all__ = [
-    "BreachKind", "BreachSeverity",
-    "BreachIndicator", "BreachClassification", "BreachNotification",
-    "BreachDetectorConfig", "BreachDetector",
+    "BreachKind",
+    "BreachSeverity",
+    "BreachIndicator",
+    "BreachClassification",
+    "BreachNotification",
+    "BreachDetectorConfig",
+    "BreachDetector",
     "BreachClassifier",
-    "render_dpb_notification", "render_principal_notification",
-    "BreachNotifier", "LoggingNotifier",
+    "render_dpb_notification",
+    "render_principal_notification",
+    "BreachNotifier",
+    "LoggingNotifier",
     "DPB_NOTIFICATION_DEADLINE_SECONDS",
     "PRINCIPAL_NOTIFICATION_DEADLINE_SECONDS",
 ]

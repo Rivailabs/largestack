@@ -1,17 +1,26 @@
 """Erlang-style supervisor — accepts Agent objects or callables."""
+
 from __future__ import annotations
 import asyncio, logging, time
 from typing import Any, Callable
 
 log = logging.getLogger("largestack.supervisor")
 
+
 class Supervisor:
     """Restart failed children automatically. Accepts Agent objects.
-    
+
     Strategies: one_for_one (restart failed), one_for_all (restart all), rest_for_one
     """
-    def __init__(self, strategy: str = "one_for_one", max_restarts: int = 5,
-                 max_seconds: float = 60.0, children: list = None, task: str = ""):
+
+    def __init__(
+        self,
+        strategy: str = "one_for_one",
+        max_restarts: int = 5,
+        max_seconds: float = 60.0,
+        children: list = None,
+        task: str = "",
+    ):
         self.strategy = strategy
         self.max_restarts = max_restarts
         self.max_seconds = max_seconds
@@ -40,8 +49,10 @@ class Supervisor:
 
     async def _run_child(self, child, task: str, **kw):
         # Agent objects
-        if hasattr(child, 'run') and hasattr(child, 'name'):
-            return await child.run(task, **kw) if task else await child.run("Execute your task", **kw)
+        if hasattr(child, "run") and hasattr(child, "name"):
+            return (
+                await child.run(task, **kw) if task else await child.run("Execute your task", **kw)
+            )
         # Async callables
         if asyncio.iscoroutinefunction(child):
             return await child(**kw)

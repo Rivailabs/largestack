@@ -10,6 +10,7 @@ Implements latest spec:
 
 Spec: https://modelcontextprotocol.io/specification/2025-11-25
 """
+
 from __future__ import annotations
 import json
 import logging
@@ -26,24 +27,25 @@ PROTOCOL_VERSION = "2025-11-25"
 @dataclass
 class MCPSession:
     """MCP session with TTL."""
+
     session_id: str
     created_at: float = field(default_factory=time.time)
     last_seen: float = field(default_factory=time.time)
     capabilities: dict = field(default_factory=dict)
-    
+
     def touch(self):
         self.last_seen = time.time()
-    
+
     def is_expired(self, ttl_seconds: int = 3600) -> bool:
         return (time.time() - self.last_seen) > ttl_seconds
 
 
 class StreamableHTTPServer:
     """MCP server with Streamable HTTP transport (2025-11-25 spec).
-    
+
     Single endpoint that handles both POST (request) and GET (server push).
     Supports session management and resumable streams.
-    
+
     Example:
         server = StreamableHTTPServer(
             name="my-server",
@@ -52,7 +54,7 @@ class StreamableHTTPServer:
         server.register_tool("search", search_handler)
         # Mount at /mcp endpoint via FastAPI
     """
-    
+
     def __init__(
         self,
         name: str = "largestack-mcp",
@@ -64,13 +66,13 @@ class StreamableHTTPServer:
         self.version = version
         self.allowed_origins = allowed_origins or ["*"]
         self.session_ttl = session_ttl_seconds
-        
+
         self._tools: dict[str, dict] = {}
         self._tool_handlers: dict[str, Callable] = {}
         self._resources: dict[str, dict] = {}
         self._prompts: dict[str, dict] = {}
         self._sessions: dict[str, MCPSession] = {}
-    
+
     def register_tool(
         self,
         name: str,
@@ -85,7 +87,7 @@ class StreamableHTTPServer:
             "inputSchema": input_schema or {"type": "object", "properties": {}},
         }
         self._tool_handlers[name] = handler
-    
+
     def register_resource(
         self,
         uri: str,
@@ -100,7 +102,7 @@ class StreamableHTTPServer:
             "description": description,
             "mimeType": mime_type,
         }
-    
+
     def register_prompt(
         self,
         name: str,
@@ -113,13 +115,13 @@ class StreamableHTTPServer:
             "description": description,
             "arguments": arguments or [],
         }
-    
+
     def validate_origin(self, origin: str | None) -> bool:
         """Check if origin is allowed (DNS rebinding protection)."""
         if not origin or "*" in self.allowed_origins:
             return True
         return origin in self.allowed_origins
-    
+
     def get_or_create_session(self, session_id: str | None = None) -> MCPSession:
         """Get existing session or create new one."""
         if session_id and session_id in self._sessions:
@@ -128,12 +130,12 @@ class StreamableHTTPServer:
                 session.touch()
                 return session
             del self._sessions[session_id]
-        
+
         new_id = secrets.token_urlsafe(32)
         session = MCPSession(session_id=new_id)
         self._sessions[new_id] = session
         return session
-    
+
     async def handle_request(
         self,
         request_body: bytes | str,
@@ -142,26 +144,26 @@ class StreamableHTTPServer:
         origin: str | None = None,
     ) -> dict:
         """Handle a JSON-RPC request.
-        
+
         Returns dict with: result, session_id, protocol_version
         """
         if not self.validate_origin(origin):
             return self._error_response(None, -32600, f"Invalid origin: {origin}")
-        
+
         if isinstance(request_body, bytes):
             request_body = request_body.decode("utf-8")
-        
+
         try:
             req = json.loads(request_body)
         except json.JSONDecodeError as e:
             return self._error_response(None, -32700, f"Parse error: {e}")
-        
+
         session = self.get_or_create_session(session_id)
-        
+
         method = req.get("method", "")
         req_id = req.get("id")
         params = req.get("params", {})
-        
+
         try:
             if method == "initialize":
                 result = self._handle_initialize(params, session)
@@ -177,7 +179,7 @@ class StreamableHTTPServer:
                 result = {}
             else:
                 return self._error_response(req_id, -32601, f"Method not found: {method}")
-            
+
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,
@@ -188,12 +190,12 @@ class StreamableHTTPServer:
         except Exception as e:
             log.exception(f"MCP error in {method}")
             return self._error_response(req_id, -32603, f"Internal error: {e}")
-    
+
     def _handle_initialize(self, params: dict, session: MCPSession) -> dict:
         """Handle initialize handshake."""
         client_version = params.get("protocolVersion", "")
         session.capabilities = params.get("capabilities", {})
-        
+
         return {
             "protocolVersion": PROTOCOL_VERSION,
             "capabilities": {
@@ -203,22 +205,23 @@ class StreamableHTTPServer:
             },
             "serverInfo": {"name": self.name, "version": self.version},
         }
-    
+
     async def _handle_tool_call(self, params: dict) -> dict:
         """Execute a tool call."""
         tool_name = params.get("name", "")
         arguments = params.get("arguments", {})
-        
+
         if tool_name not in self._tool_handlers:
             raise ValueError(f"Unknown tool: {tool_name}")
-        
+
         handler = self._tool_handlers[tool_name]
         import inspect
+
         if inspect.iscoroutinefunction(handler):
             result = await handler(**arguments)
         else:
             result = handler(**arguments)
-        
+
         # Wrap in MCP content format
         if isinstance(result, str):
             content = [{"type": "text", "text": result}]
@@ -226,16 +229,16 @@ class StreamableHTTPServer:
             content = [{"type": "text", "text": json.dumps(result)}]
         else:
             content = [{"type": "text", "text": str(result)}]
-        
+
         return {"content": content, "isError": False}
-    
+
     def _error_response(self, req_id: Any, code: int, message: str) -> dict:
         return {
             "jsonrpc": "2.0",
             "id": req_id,
             "error": {"code": code, "message": message},
         }
-    
+
     @property
     def stats(self) -> dict:
         return {
@@ -252,9 +255,9 @@ class StreamableHTTPServer:
 def create_fastapi_app(server: StreamableHTTPServer):
     """Mount MCP server at /mcp endpoint via FastAPI."""
     from fastapi import FastAPI, Request, Response, Header
-    
+
     app = FastAPI(title=f"MCP Server: {server.name}")
-    
+
     @app.post("/mcp")
     async def handle_mcp_post(
         request: Request,
@@ -263,27 +266,25 @@ def create_fastapi_app(server: StreamableHTTPServer):
         origin: str | None = Header(default=None),
     ):
         body = await request.body()
-        result = await server.handle_request(
-            body, mcp_protocol_version, mcp_session_id, origin
-        )
-        
+        result = await server.handle_request(body, mcp_protocol_version, mcp_session_id, origin)
+
         session_id = result.pop("_session_id", None)
         proto_ver = result.pop("_protocol_version", PROTOCOL_VERSION)
-        
+
         headers = {
             "MCP-Protocol-Version": proto_ver,
         }
         if session_id:
             headers["MCP-Session-Id"] = session_id
-        
+
         return Response(
             content=json.dumps(result),
             media_type="application/json",
             headers=headers,
         )
-    
+
     @app.get("/mcp/info")
     def server_info():
         return server.stats
-    
+
     return app

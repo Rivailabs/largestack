@@ -3,6 +3,7 @@
 Validates that user records survive restarts when ``db_path`` is set,
 and that the in-memory hot-path API stays unchanged.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -14,6 +15,7 @@ import pytest
 def test_rbac_no_persistence_when_no_db_path():
     """Default in-memory behavior unchanged — no DB file created."""
     from largestack._enterprise.rbac import RBAC
+
     r = RBAC()
     r.add_user("alice", roles=["admin"])
     assert r.get_user("alice") is not None
@@ -23,6 +25,7 @@ def test_rbac_no_persistence_when_no_db_path():
 def test_rbac_persists_users_to_disk(tmp_path):
     """add_user writes through to SQLite."""
     from largestack._enterprise.rbac import RBAC
+
     db = tmp_path / "rbac.db"
     r = RBAC(db_path=str(db))
     r.add_user("alice", roles=["admin"], custom_permissions={"agent.run"})
@@ -38,6 +41,7 @@ def test_rbac_persists_users_to_disk(tmp_path):
 def test_rbac_loads_users_on_init(tmp_path):
     """A new RBAC pointed at an existing DB picks up the users."""
     from largestack._enterprise.rbac import RBAC
+
     db = tmp_path / "rbac.db"
 
     # First instance — populate
@@ -62,6 +66,7 @@ def test_rbac_loads_users_on_init(tmp_path):
 
 def test_rbac_remove_user_deletes_from_disk(tmp_path):
     from largestack._enterprise.rbac import RBAC
+
     db = tmp_path / "rbac.db"
     r = RBAC(db_path=str(db))
     r.add_user("alice", roles=["admin"])
@@ -82,6 +87,7 @@ def test_rbac_remove_user_deletes_from_disk(tmp_path):
 
 def test_rbac_grant_revoke_role_writes_through(tmp_path):
     from largestack._enterprise.rbac import RBAC
+
     db = tmp_path / "rbac.db"
     r = RBAC(db_path=str(db))
     r.add_user("alice", roles=["viewer"])
@@ -103,6 +109,7 @@ def test_rbac_grant_revoke_role_writes_through(tmp_path):
 
 def test_rbac_assign_role_persists_for_new_and_existing(tmp_path):
     from largestack._enterprise.rbac import RBAC
+
     db = tmp_path / "rbac.db"
     r = RBAC(db_path=str(db))
 
@@ -121,6 +128,7 @@ def test_rbac_load_skips_malformed_rows(tmp_path, caplog):
     """Garbage rows in the DB don't crash startup."""
     import logging
     from largestack._enterprise.rbac import RBAC
+
     db = tmp_path / "rbac.db"
 
     # Initialize schema by creating a real instance once
@@ -151,6 +159,7 @@ def test_rbac_load_skips_malformed_rows(tmp_path, caplog):
 def test_rbac_db_path_expanduser(tmp_path, monkeypatch):
     """~/ in db_path is expanded."""
     from largestack._enterprise.rbac import RBAC
+
     monkeypatch.setenv("HOME", str(tmp_path))
     r = RBAC(db_path="~/rbac.db")
     r.add_user("alice", roles=["admin"])

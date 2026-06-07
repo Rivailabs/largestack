@@ -13,6 +13,7 @@ Run::
 For a real deployment, replace the deterministic demo embedder with a provider
 embedder and switch `MemoryVectorStore` to `PgVectorStore` or Qdrant.
 """
+
 from __future__ import annotations
 import asyncio
 import hashlib
@@ -63,7 +64,9 @@ async def embed_and_index(store: InMemoryVectorStore, docs: list[dict]) -> None:
 
 
 async def query(
-    store: InMemoryVectorStore, question: str, top_k: int = 3,
+    store: InMemoryVectorStore,
+    question: str,
+    top_k: int = 3,
 ) -> list[dict]:
     """Retrieve top-k relevant docs."""
     return await store.search(demo_embed(question), top_k=top_k)
@@ -86,13 +89,9 @@ async def main():
 
     # Generate citations
     print("\nWith citations:")
-    docs_for_cite = [
-        {"id": r["id"], "content": r["content"]}
-        for r in results
-    ]
+    docs_for_cite = [{"id": r["id"], "content": r["content"]} for r in results]
     answer = (
-        "LARGESTACK automatically masks Aadhaar numbers in logs to "
-        "comply with UIDAI regulations."
+        "LARGESTACK automatically masks Aadhaar numbers in logs to comply with UIDAI regulations."
     )
     cited = CitationEngine().cite(answer, docs_for_cite)
     print(f"  {cited.text_with_citations}")

@@ -9,6 +9,7 @@ is routed through `request_approval`, which PERSISTS the request to an approval
 queue (status 'pending') and returns a 'waiting for human approval' message.
 File listing is confined to the configured workspace; the calculator is bounded.
 """
+
 from __future__ import annotations
 
 import ast
@@ -26,8 +27,8 @@ from .config import KNOWLEDGE_DIR, WORKSPACE_ROOT
 
 _MAX_EXPR_LEN = 120
 _MAX_DEPTH = 25
-_MAX_MAGNITUDE = 10 ** 12   # reject operands/results larger than this
-_MAX_POW_EXP = 100          # reject exponents larger than this BEFORE computing
+_MAX_MAGNITUDE = 10**12  # reject operands/results larger than this
+_MAX_POW_EXP = 100  # reject exponents larger than this BEFORE computing
 
 
 def _guarded_pow(base, exp):
@@ -37,8 +38,12 @@ def _guarded_pow(base, exp):
 
 
 _OPS = {
-    ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
-    ast.Div: operator.truediv, ast.Pow: _guarded_pow, ast.Mod: operator.mod,
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: _guarded_pow,
+    ast.Mod: operator.mod,
     ast.USub: operator.neg,
 }
 
@@ -75,6 +80,7 @@ async def calculate(expression: str) -> str:
 
 # ---- Persistent notes ------------------------------------------------------
 
+
 @tool
 async def take_note(text: str) -> str:
     """Save a note to the user's persistent notebook."""
@@ -93,6 +99,7 @@ async def list_notes() -> str:
 
 # ---- Persistent key/value memory ------------------------------------------
 
+
 @tool
 async def remember_fact(key: str, value: str) -> str:
     """Remember a fact under a short key, e.g. key='project deadline', value='June 20'."""
@@ -108,6 +115,7 @@ async def recall_fact(key: str) -> str:
 
 
 # ---- Read-only file listing ------------------------------------------------
+
 
 @tool
 async def list_directory(path: str = ".") -> str:
@@ -128,6 +136,7 @@ async def list_directory(path: str = ".") -> str:
 
 # ---- Simple local-document Q&A (keyword RAG) -------------------------------
 
+
 @tool
 async def search_knowledge(query: str) -> str:
     """Search Jarvis's local knowledge documents and return the best matching snippet."""
@@ -145,6 +154,7 @@ async def search_knowledge(query: str) -> str:
 
 
 # ---- Human-approval gate for risky actions ---------------------------------
+
 
 @tool
 async def request_approval(action: str, details: str = "") -> str:

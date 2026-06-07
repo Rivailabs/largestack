@@ -1,4 +1,5 @@
 """v0.7.0: Cohere and Voyage embeddings tests."""
+
 from __future__ import annotations
 
 import json
@@ -9,11 +10,13 @@ respx = pytest.importorskip("respx")
 
 # -------------------- Cohere --------------------
 
+
 @pytest.mark.asyncio
 async def test_cohere_embed_no_key_returns_error(monkeypatch):
     monkeypatch.delenv("LARGESTACK_COHERE_API_KEY", raising=False)
     monkeypatch.delenv("COHERE_API_KEY", raising=False)
     from largestack._integrations.cohere_embed import cohere_embed
+
     out = await cohere_embed("hello")
     assert "LARGESTACK_COHERE_API_KEY" in out
 
@@ -22,6 +25,7 @@ async def test_cohere_embed_no_key_returns_error(monkeypatch):
 async def test_cohere_embed_empty_text(monkeypatch):
     monkeypatch.setenv("LARGESTACK_COHERE_API_KEY", "fake")
     from largestack._integrations.cohere_embed import cohere_embed
+
     out = await cohere_embed("")
     assert "non-empty" in out
 
@@ -30,6 +34,7 @@ async def test_cohere_embed_empty_text(monkeypatch):
 async def test_cohere_embed_text_too_long(monkeypatch):
     monkeypatch.setenv("LARGESTACK_COHERE_API_KEY", "fake")
     from largestack._integrations.cohere_embed import cohere_embed
+
     out = await cohere_embed("x" * 33000)
     assert "too long" in out
 
@@ -38,6 +43,7 @@ async def test_cohere_embed_text_too_long(monkeypatch):
 async def test_cohere_embed_unknown_model(monkeypatch):
     monkeypatch.setenv("LARGESTACK_COHERE_API_KEY", "fake")
     from largestack._integrations.cohere_embed import cohere_embed
+
     out = await cohere_embed("hi", model="nonsense")
     assert "unknown model" in out
 
@@ -46,6 +52,7 @@ async def test_cohere_embed_unknown_model(monkeypatch):
 async def test_cohere_embed_invalid_dimension(monkeypatch):
     monkeypatch.setenv("LARGESTACK_COHERE_API_KEY", "fake")
     from largestack._integrations.cohere_embed import cohere_embed
+
     out = await cohere_embed("hi", output_dimension=999)
     assert "output_dimension" in out
 
@@ -54,6 +61,7 @@ async def test_cohere_embed_invalid_dimension(monkeypatch):
 async def test_cohere_embed_success(monkeypatch):
     monkeypatch.setenv("LARGESTACK_COHERE_API_KEY", "fake")
     from largestack._integrations.cohere_embed import cohere_embed
+
     fake_vec = [0.1, 0.2, 0.3] * 341 + [0.5]  # 1024-dim
     with respx.mock() as mock:
         mock.post("https://api.cohere.com/v2/embed").respond(
@@ -75,6 +83,7 @@ async def test_cohere_embed_success(monkeypatch):
 async def test_cohere_embed_auth_failure(monkeypatch):
     monkeypatch.setenv("LARGESTACK_COHERE_API_KEY", "bad")
     from largestack._integrations.cohere_embed import cohere_embed
+
     with respx.mock() as mock:
         mock.post("https://api.cohere.com/v2/embed").respond(401)
         out = await cohere_embed("test")
@@ -85,6 +94,7 @@ async def test_cohere_embed_auth_failure(monkeypatch):
 async def test_cohere_embed_rate_limit(monkeypatch):
     monkeypatch.setenv("LARGESTACK_COHERE_API_KEY", "fake")
     from largestack._integrations.cohere_embed import cohere_embed
+
     with respx.mock() as mock:
         mock.post("https://api.cohere.com/v2/embed").respond(429)
         out = await cohere_embed("test")
@@ -93,16 +103,19 @@ async def test_cohere_embed_rate_limit(monkeypatch):
 
 def test_cohere_embed_in_integrations_init():
     from largestack import _integrations
+
     assert "cohere_embed" in _integrations.__all__
 
 
 # -------------------- Voyage --------------------
+
 
 @pytest.mark.asyncio
 async def test_voyage_embed_no_key_returns_error(monkeypatch):
     monkeypatch.delenv("LARGESTACK_VOYAGE_API_KEY", raising=False)
     monkeypatch.delenv("VOYAGE_API_KEY", raising=False)
     from largestack._integrations.voyage_embed import voyage_embed
+
     out = await voyage_embed("hello")
     assert "LARGESTACK_VOYAGE_API_KEY" in out
 
@@ -111,6 +124,7 @@ async def test_voyage_embed_no_key_returns_error(monkeypatch):
 async def test_voyage_embed_unknown_model(monkeypatch):
     monkeypatch.setenv("LARGESTACK_VOYAGE_API_KEY", "fake")
     from largestack._integrations.voyage_embed import voyage_embed
+
     out = await voyage_embed("hi", model="nonsense-v99")
     assert "unknown model" in out
 
@@ -119,6 +133,7 @@ async def test_voyage_embed_unknown_model(monkeypatch):
 async def test_voyage_embed_invalid_input_type(monkeypatch):
     monkeypatch.setenv("LARGESTACK_VOYAGE_API_KEY", "fake")
     from largestack._integrations.voyage_embed import voyage_embed
+
     out = await voyage_embed("hi", input_type="banana")
     assert "input_type" in out
 
@@ -127,6 +142,7 @@ async def test_voyage_embed_invalid_input_type(monkeypatch):
 async def test_voyage_embed_dimension_unsupported_for_model(monkeypatch):
     monkeypatch.setenv("LARGESTACK_VOYAGE_API_KEY", "fake")
     from largestack._integrations.voyage_embed import voyage_embed
+
     out = await voyage_embed("hi", model="voyage-finance-2", output_dimension=512)
     assert "doesn't support" in out
 
@@ -135,6 +151,7 @@ async def test_voyage_embed_dimension_unsupported_for_model(monkeypatch):
 async def test_voyage_embed_success(monkeypatch):
     monkeypatch.setenv("LARGESTACK_VOYAGE_API_KEY", "fake")
     from largestack._integrations.voyage_embed import voyage_embed
+
     fake_vec = [0.0] * 1024
     with respx.mock() as mock:
         mock.post("https://api.voyageai.com/v1/embeddings").respond(
@@ -157,6 +174,7 @@ async def test_voyage_embed_success(monkeypatch):
 async def test_voyage_embed_auth_failure(monkeypatch):
     monkeypatch.setenv("LARGESTACK_VOYAGE_API_KEY", "bad")
     from largestack._integrations.voyage_embed import voyage_embed
+
     with respx.mock() as mock:
         mock.post("https://api.voyageai.com/v1/embeddings").respond(401)
         out = await voyage_embed("test")
@@ -165,4 +183,5 @@ async def test_voyage_embed_auth_failure(monkeypatch):
 
 def test_voyage_embed_in_integrations_init():
     from largestack import _integrations
+
     assert "voyage_embed" in _integrations.__all__

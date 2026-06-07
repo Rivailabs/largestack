@@ -33,6 +33,7 @@ Notes:
 - The agent never sees the underlying transport — stdio or HTTP — it just
   calls the tool and gets a string back.
 """
+
 from __future__ import annotations
 import logging
 from typing import Any, Callable
@@ -55,6 +56,7 @@ class MCPToolAdapter:
         if not (url or command):
             raise ValueError("MCPToolAdapter requires url or command")
         from largestack._core.mcp_client import MCPClient
+
         self._client = MCPClient(url=url, command=command)
         self._tools: list[Callable] = []
 

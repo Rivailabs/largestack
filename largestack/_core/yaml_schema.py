@@ -9,6 +9,7 @@ Closes the LangGraph YAML config gap. Provides:
 
 Schemas use jsonschema if available; falls back to manual validation.
 """
+
 from __future__ import annotations
 import logging
 import os
@@ -37,10 +38,12 @@ def interpolate_env(value: Any) -> Any:
         ``"${MODEL:gpt-4o-mini}"`` → MODEL value or "gpt-4o-mini" default
     """
     if isinstance(value, str):
+
         def _sub(m: re.Match) -> str:
             var_name = m.group(1)
             default = m.group(2)
             return os.environ.get(var_name, default if default is not None else m.group(0))
+
         return _ENV_PATTERN.sub(_sub, value)
     if isinstance(value, dict):
         return {k: interpolate_env(v) for k, v in value.items()}
@@ -92,8 +95,13 @@ AGENT_SCHEMA = {
             "items": {
                 "type": "string",
                 "enum": [
-                    "pii", "indian_pii", "injection", "prompt_leak",
-                    "hallucination", "toxicity", "off_topic",
+                    "pii",
+                    "indian_pii",
+                    "injection",
+                    "prompt_leak",
+                    "hallucination",
+                    "toxicity",
+                    "off_topic",
                 ],
             },
         },
@@ -173,8 +181,13 @@ def validate_agent_yaml(data: dict) -> list[str]:
             errors.append("'guardrails' must be a list")
         else:
             allowed = {
-                "pii", "indian_pii", "injection", "prompt_leak",
-                "hallucination", "toxicity", "off_topic",
+                "pii",
+                "indian_pii",
+                "injection",
+                "prompt_leak",
+                "hallucination",
+                "toxicity",
+                "off_topic",
             }
             for g in guardrails:
                 if g not in allowed:
@@ -239,7 +252,10 @@ def validate_workflow_yaml(data: dict) -> list[str]:
                 errors.append("graph.edges must be a list")
             else:
                 # Validate each edge references known agent (or START/END)
-                known = (set(agents.keys()) if isinstance(agents, dict) else set()) | {"START", "END"}
+                known = (set(agents.keys()) if isinstance(agents, dict) else set()) | {
+                    "START",
+                    "END",
+                }
                 for i, edge in enumerate(edges):
                     if not isinstance(edge, dict):
                         errors.append(f"graph.edges[{i}] must be a dict")
@@ -256,6 +272,7 @@ def validate_workflow_yaml(data: dict) -> list[str]:
 
 # -------------------- Multi-agent loading --------------------
 
+
 def load_multi_agent_yaml(path: str | Path) -> dict:
     """Load a multi-agent YAML file with validation.
 
@@ -268,8 +285,5 @@ def load_multi_agent_yaml(path: str | Path) -> dict:
     data = load_yaml_with_env(path)
     errors = validate_workflow_yaml(data)
     if errors:
-        raise ValueError(
-            f"workflow YAML {path} validation failed:\n  - "
-            + "\n  - ".join(errors)
-        )
+        raise ValueError(f"workflow YAML {path} validation failed:\n  - " + "\n  - ".join(errors))
     return data

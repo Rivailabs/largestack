@@ -16,6 +16,7 @@ This catches topic shifts that fixed-size chunking misses. Especially
 useful for legal/compliance docs where section boundaries don't align
 with token counts.
 """
+
 from __future__ import annotations
 import logging
 import re
@@ -51,6 +52,7 @@ class _EmbedProtocol(Protocol):
 @dataclass
 class SemanticChunk:
     """One chunk produced by semantic splitting."""
+
     content: str
     sentence_indices: tuple[int, int]  # (start_inclusive, end_exclusive)
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -72,6 +74,7 @@ class SemanticChunker:
             distance computation (smooths noise in single-sentence
             embeddings)
     """
+
     embedder: Any
     breakpoint_distance: float = 0.4
     min_chunk_chars: int = 200
@@ -84,9 +87,7 @@ class SemanticChunker:
         if self.min_chunk_chars < 1:
             raise ValueError("min_chunk_chars must be ≥ 1")
         if self.max_chunk_chars < self.min_chunk_chars:
-            raise ValueError(
-                "max_chunk_chars must be ≥ min_chunk_chars"
-            )
+            raise ValueError("max_chunk_chars must be ≥ min_chunk_chars")
         if self.sentences_per_window < 1:
             raise ValueError("sentences_per_window must be ≥ 1")
 
@@ -104,11 +105,13 @@ class SemanticChunker:
         if not sentences:
             return []
         if len(sentences) == 1:
-            return [SemanticChunk(
-                content=sentences[0],
-                sentence_indices=(0, 1),
-                metadata=metadata or {},
-            )]
+            return [
+                SemanticChunk(
+                    content=sentences[0],
+                    sentence_indices=(0, 1),
+                    metadata=metadata or {},
+                )
+            ]
 
         # Embed all sentences in one batch
         embeddings = await self.embedder.embed_batch(sentences)
@@ -116,7 +119,8 @@ class SemanticChunker:
         # Optional windowing for smoother distance signal
         if self.sentences_per_window > 1:
             window_embeds = self._average_windows(
-                embeddings, self.sentences_per_window,
+                embeddings,
+                self.sentences_per_window,
             )
         else:
             window_embeds = embeddings
@@ -141,47 +145,48 @@ class SemanticChunker:
             tentative = " ".join(sentences[chunk_start : i + 1])
             tentative_len = len(tentative)
             # Length if we keep current chunk closed before sentence i
-            current = " ".join(sentences[chunk_start : i])
+            current = " ".join(sentences[chunk_start:i])
             current_len = len(current)
 
             # Break before sentence i if a semantic breakpoint sits
             # exactly here AND we already have enough content
             semantic_break_here = (
-                i in breakpoints
-                and current_len >= self.min_chunk_chars
-                and i > chunk_start
+                i in breakpoints and current_len >= self.min_chunk_chars and i > chunk_start
             )
 
             # Forced break: adding this sentence would blow max
-            forced_break = (
-                tentative_len > self.max_chunk_chars
-                and current_len > 0
-            )
+            forced_break = tentative_len > self.max_chunk_chars and current_len > 0
 
             if semantic_break_here or forced_break:
-                chunks.append(SemanticChunk(
-                    content=current,
-                    sentence_indices=(chunk_start, i),
-                    metadata={**(metadata or {})},
-                ))
+                chunks.append(
+                    SemanticChunk(
+                        content=current,
+                        sentence_indices=(chunk_start, i),
+                        metadata={**(metadata or {})},
+                    )
+                )
                 chunk_start = i
 
         # Tail chunk (whatever remains)
         if chunk_start < len(sentences):
-            chunks.append(SemanticChunk(
-                content=" ".join(sentences[chunk_start:]),
-                sentence_indices=(chunk_start, len(sentences)),
-                metadata={**(metadata or {})},
-            ))
+            chunks.append(
+                SemanticChunk(
+                    content=" ".join(sentences[chunk_start:]),
+                    sentence_indices=(chunk_start, len(sentences)),
+                    metadata={**(metadata or {})},
+                )
+            )
 
         # If we emitted no chunks (text below min_chunk_chars total),
         # produce a single tail chunk anyway
         if not chunks:
-            chunks.append(SemanticChunk(
-                content=" ".join(sentences),
-                sentence_indices=(0, len(sentences)),
-                metadata=metadata or {},
-            ))
+            chunks.append(
+                SemanticChunk(
+                    content=" ".join(sentences),
+                    sentence_indices=(0, len(sentences)),
+                    metadata=metadata or {},
+                )
+            )
 
         return chunks
 
@@ -213,7 +218,8 @@ class SemanticChunker:
 
     @staticmethod
     def _average_windows(
-        embeddings: list[list[float]], window: int,
+        embeddings: list[list[float]],
+        window: int,
     ) -> list[list[float]]:
         """Smooth embeddings by averaging within a sliding window."""
         if window <= 1 or len(embeddings) <= 1:
@@ -224,10 +230,7 @@ class SemanticChunker:
             end = min(len(embeddings), i + window // 2 + 1)
             chunk = embeddings[start:end]
             dim = len(chunk[0])
-            avg = [
-                sum(v[d] for v in chunk) / len(chunk)
-                for d in range(dim)
-            ]
+            avg = [sum(v[d] for v in chunk) / len(chunk) for d in range(dim)]
             result.append(avg)
         return result
 
@@ -236,6 +239,7 @@ def _cosine(a: list[float], b: list[float]) -> float:
     if len(a) != len(b):
         return 0.0
     import math
+
     dot = sum(x * y for x, y in zip(a, b))
     na = math.sqrt(sum(x * x for x in a))
     nb = math.sqrt(sum(x * x for x in b))

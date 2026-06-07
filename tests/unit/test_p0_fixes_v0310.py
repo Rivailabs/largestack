@@ -4,6 +4,7 @@ Covers the four P0 defects from the v0.3.9 review (D-1..D-4) plus the
 two P2 quality fixes (workflow set_start/set_end on DAG, agent.clone
 dead key).
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -16,6 +17,7 @@ import pytest
 # ---------------------------------------------------------------------------
 # D-1: agent.override(model=test_model) actually exists and works
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_agent_override_with_test_model_no_real_call_needed():
@@ -56,6 +58,7 @@ async def test_agent_override_restores_previous_state():
 async def test_agent_override_requires_model_kwarg():
     """Calling override() with no model raises ValueError, not AttributeError."""
     from largestack import Agent
+
     agent = Agent(name="tester", llm="openai/gpt-4o-mini")
     with pytest.raises(ValueError, match="requires a model="):
         agent.override()  # no kwarg
@@ -106,6 +109,7 @@ async def test_decorator_agent_override_works():
 # D-2: block_model_requests / ALLOW_MODEL_REQUESTS gate is enforced
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_block_model_requests_raises_on_real_path():
     """D-2: with block_model_requests(), real gateway calls raise.
@@ -115,9 +119,13 @@ async def test_block_model_requests_raises_on_real_path():
     After v0.3.10: gateway raises ModelRequestsBlockedError.
     """
     # Clear keys to make sure we'd otherwise hit ProviderError paths
-    saved = {k: os.environ.pop(k, None) for k in list(os.environ)
-             if k.startswith(("LARGESTACK_OPENAI_API_KEY", "OPENAI_API_KEY",
-                              "LARGESTACK_DEEPSEEK_API_KEY"))}
+    saved = {
+        k: os.environ.pop(k, None)
+        for k in list(os.environ)
+        if k.startswith(
+            ("LARGESTACK_OPENAI_API_KEY", "OPENAI_API_KEY", "LARGESTACK_DEEPSEEK_API_KEY")
+        )
+    }
     try:
         from largestack import Agent
         from largestack.testing import block_model_requests
@@ -125,6 +133,7 @@ async def test_block_model_requests_raises_on_real_path():
 
         # Force a fresh config so providers aren't cached
         from largestack._core.config import get_config
+
         get_config(default_llm="openai/gpt-4o-mini")
 
         agent = Agent(name="blocked", llm="openai/gpt-4o-mini")
@@ -154,6 +163,7 @@ async def test_block_model_requests_does_not_block_overridden_model():
 def test_disable_enable_model_requests_toggle_global():
     """The simple toggle API works — flag is restored after disable/enable."""
     from largestack import testing as t
+
     assert t.ALLOW_MODEL_REQUESTS is True
     t.disable_model_requests()
     assert t.ALLOW_MODEL_REQUESTS is False
@@ -164,6 +174,7 @@ def test_disable_enable_model_requests_toggle_global():
 def test_block_model_requests_restores_prev_value():
     """Context manager restores the prior flag value, even if it was False."""
     from largestack import testing as t
+
     t.disable_model_requests()
     assert t.ALLOW_MODEL_REQUESTS is False
     with t.block_model_requests():
@@ -177,6 +188,7 @@ def test_block_model_requests_restores_prev_value():
 # D-3: capture_run_messages actually captures
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_capture_run_messages_captures_user_and_assistant():
     """D-3: capture_run_messages() must record both the user prompt and
@@ -188,17 +200,20 @@ async def test_capture_run_messages_captures_user_and_assistant():
     from largestack import Agent
     from largestack.testing import TestModel, capture_run_messages
 
-    agent = Agent(name="cap", llm="openai/gpt-4o-mini",
-                  instructions="You are helpful.")
+    agent = Agent(name="cap", llm="openai/gpt-4o-mini", instructions="You are helpful.")
     with capture_run_messages() as captured:
         with agent.override(model=TestModel(custom_output_text="hi back")):
             await agent.run("hello agent")
 
     assert len(captured) >= 2, f"expected >=2 messages, got {list(captured)}"
-    assert any(m.get("role") == "user" and "hello agent" in str(m.get("content", ""))
-               for m in captured.messages)
-    assert any(m.get("role") == "assistant" and "hi back" in str(m.get("content", ""))
-               for m in captured.messages)
+    assert any(
+        m.get("role") == "user" and "hello agent" in str(m.get("content", ""))
+        for m in captured.messages
+    )
+    assert any(
+        m.get("role") == "assistant" and "hi back" in str(m.get("content", ""))
+        for m in captured.messages
+    )
 
 
 @pytest.mark.asyncio
@@ -257,6 +272,7 @@ async def test_capture_run_messages_isolated_between_runs():
 def test_capture_var_default_is_none_no_overhead():
     """When no capture context is active, _capture_message is a cheap no-op."""
     from largestack.testing import _capture_var, _capture_message
+
     assert _capture_var.get() is None
     # Should not raise
     _capture_message({"role": "user", "content": "x"})
@@ -268,6 +284,7 @@ def test_capture_var_default_is_none_no_overhead():
 # D-4: dev server hot-reload — real watcher when watchfiles available;
 #      honest "disabled" message when not.
 # ---------------------------------------------------------------------------
+
 
 def test_dev_server_health_reports_hot_reload_status(tmp_path):
     """/api/health honestly reports whether hot-reload is on."""
@@ -316,6 +333,7 @@ def test_dev_server_root_serves_playground_html(tmp_path):
     """Playground HTML is served at / and /playground."""
     from fastapi.testclient import TestClient
     from largestack._cli.dev_server import create_dev_app
+
     client = TestClient(create_dev_app(watch_path=str(tmp_path), enable_hot_reload=False))
     for path in ("/", "/playground"):
         r = client.get(path)
@@ -367,9 +385,11 @@ async def test_dev_server_hot_reload_pushes_event_on_file_change(tmp_path):
 # Workflow set_start / set_end — explicit error on DAG
 # ---------------------------------------------------------------------------
 
+
 def test_workflow_set_start_raises_on_dag():
     """set_start on a DAG workflow now raises ValueError instead of no-op."""
     from largestack import Workflow
+
     wf = Workflow("p", mode="dag")
     with pytest.raises(ValueError, match="state_machine"):
         wf.set_start("anything")
@@ -377,6 +397,7 @@ def test_workflow_set_start_raises_on_dag():
 
 def test_workflow_set_end_raises_on_dag():
     from largestack import Workflow
+
     wf = Workflow("p", mode="dag")
     with pytest.raises(ValueError, match="state_machine"):
         wf.set_end("a", "b")
@@ -385,6 +406,7 @@ def test_workflow_set_end_raises_on_dag():
 def test_workflow_set_start_works_on_state_machine():
     """Still works on state-machine workflows."""
     from largestack import Workflow
+
     wf = Workflow("sm", mode="state_machine")
     wf.set_start("init")  # should not raise
     wf.set_end("done")
@@ -394,9 +416,11 @@ def test_workflow_set_start_works_on_state_machine():
 # Agent.clone — dead response_model key removed
 # ---------------------------------------------------------------------------
 
+
 def test_agent_clone_no_dead_response_model_key():
     """Confirm clone() no longer references the missing _response_model attr."""
     from largestack import Agent
+
     a = Agent(name="orig", llm="openai/gpt-4o-mini", instructions="hi")
     b = a.clone(name="copy")
     assert b.name == "copy"
@@ -408,6 +432,7 @@ def test_agent_clone_no_dead_response_model_key():
 # ---------------------------------------------------------------------------
 # Release artifacts — no DBs in source tree
 # ---------------------------------------------------------------------------
+
 
 def test_no_committed_db_artifacts_in_source_tree():
     """tmp/test_priority.db and similar artifacts must not be in the repo."""
@@ -438,8 +463,11 @@ def test_gitignore_covers_cache_dirs():
 # ModelRequestsBlockedError exposed at top level
 # ---------------------------------------------------------------------------
 
+
 def test_model_requests_blocked_error_exported():
     import largestack
+
     assert hasattr(largestack, "ModelRequestsBlockedError")
     from largestack.errors import ModelRequestsBlockedError, LargestackError
+
     assert issubclass(ModelRequestsBlockedError, LargestackError)

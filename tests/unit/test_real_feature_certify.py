@@ -57,7 +57,9 @@ def test_b2b_agentic_suite_has_24_market_focused_specs():
     assert specs[-1].name == "b2b_msp_ticket_router_sla_agent"
     assert all("README.md" in item.required_files for item in specs)
     assert all("largestack_app.py" in item.required_files for item in specs)
-    assert all(item.classification == "DEEPSEEK-BUILT-LARGESTACK-B2B-AGENTIC-PROJECT" for item in specs)
+    assert all(
+        item.classification == "DEEPSEEK-BUILT-LARGESTACK-B2B-AGENTIC-PROJECT" for item in specs
+    )
 
 
 def test_b2b_agentic_specs_are_real_feature_specs():

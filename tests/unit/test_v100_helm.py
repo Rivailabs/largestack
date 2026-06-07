@@ -1,4 +1,5 @@
 """v0.10.0: Tests for the Helm chart files."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,6 +17,7 @@ def test_helm_chart_yaml_present():
 def test_helm_chart_metadata():
     pytest.importorskip("yaml")
     import yaml as _yaml
+
     chart = _yaml.safe_load((HELM_DIR / "Chart.yaml").read_text())
     assert chart["apiVersion"] == "v2"
     assert chart["name"] == "largestack"
@@ -31,6 +33,7 @@ def test_helm_chart_metadata():
 def test_helm_values_yaml_present():
     pytest.importorskip("yaml")
     import yaml as _yaml
+
     values = _yaml.safe_load((HELM_DIR / "values.yaml").read_text())
     assert values["image"]["repository"]
     assert values["service"]["port"] == 8000

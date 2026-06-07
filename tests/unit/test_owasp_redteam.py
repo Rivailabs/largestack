@@ -1,4 +1,5 @@
 """Tests for the OWASP coverage matrix + the guardrail red-team eval."""
+
 from __future__ import annotations
 import asyncio
 from pathlib import Path
@@ -6,13 +7,19 @@ from pathlib import Path
 import pytest
 
 from largestack.owasp import (
-    OWASP_COVERAGE, owasp_coverage, owasp_coverage_summary, render_markdown,
-    COVERED, PARTIAL, NOT_COVERED,
+    OWASP_COVERAGE,
+    owasp_coverage,
+    owasp_coverage_summary,
+    render_markdown,
+    COVERED,
+    PARTIAL,
+    NOT_COVERED,
 )
 from largestack._test.redteam import RedTeamSuite, ATTACKS
 
 
 # ---------------- OWASP coverage matrix ----------------
+
 
 def test_owasp_has_full_llm_top10():
     ids = {c.id for c in OWASP_COVERAGE}
@@ -51,10 +58,10 @@ def test_docs_page_lists_every_control():
 
 # ---------------- Red-team eval ----------------
 
+
 def test_redteam_core_attacks_all_handled():
     report = asyncio.run(RedTeamSuite().run())
-    failures = [r.attack.id for r in report.results
-                if r.attack.tier == "core" and not r.passed]
+    failures = [r.attack.id for r in report.results if r.attack.tier == "core" and not r.passed]
     assert not failures, f"core red-team attacks slipped through: {failures}"
     assert report.core_passed()
 

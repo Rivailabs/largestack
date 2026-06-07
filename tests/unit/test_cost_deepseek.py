@@ -4,6 +4,7 @@ Regression guard for the bug where `deepseek-chat` is served as `deepseek-v4-fla
 which was missing from the in-code PRICING table, so cost computed to $0 whenever
 `pricing/models.yaml` was not in the current working directory (e.g. any deployed app).
 """
+
 from __future__ import annotations
 
 from pathlib import Path

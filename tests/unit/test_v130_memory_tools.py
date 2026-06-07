@@ -1,4 +1,5 @@
 """v0.13.0: Tests for self-editing memory tools (Letta pattern)."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -8,6 +9,7 @@ import pytest
 
 # -------------------- core_memory_replace --------------------
 
+
 @pytest.mark.asyncio
 async def test_core_memory_replace_creates_when_missing():
     from largestack._memory.long_term import LongTermMemoryManager
@@ -15,7 +17,9 @@ async def test_core_memory_replace_creates_when_missing():
 
     mgr = LongTermMemoryManager(tenant_id="t1", user_id="u1")
     result = await core_memory_replace(
-        mgr, tag="persona", new_content="helpful India-fintech assistant",
+        mgr,
+        tag="persona",
+        new_content="helpful India-fintech assistant",
     )
     assert "Created" in result or "Replaced" in result
 
@@ -32,7 +36,9 @@ async def test_core_memory_replace_overwrites_existing():
     await mgr.add_core("original content", tag="persona")
 
     await core_memory_replace(
-        mgr, tag="persona", new_content="updated content",
+        mgr,
+        tag="persona",
+        new_content="updated content",
     )
 
     block = await mgr.get_core_block()
@@ -62,6 +68,7 @@ async def test_core_memory_replace_requires_content():
 
 # -------------------- core_memory_append --------------------
 
+
 @pytest.mark.asyncio
 async def test_core_memory_append_concatenates():
     from largestack._memory.long_term import LongTermMemoryManager
@@ -71,7 +78,9 @@ async def test_core_memory_append_concatenates():
     await mgr.add_core("first preference", tag="prefs")
 
     await core_memory_append(
-        mgr, tag="prefs", content_to_append="second preference",
+        mgr,
+        tag="prefs",
+        content_to_append="second preference",
     )
 
     block = await mgr.get_core_block()
@@ -86,7 +95,9 @@ async def test_core_memory_append_creates_when_missing():
 
     mgr = LongTermMemoryManager(tenant_id="t1", user_id="u1")
     await core_memory_append(
-        mgr, tag="new_tag", content_to_append="initial content",
+        mgr,
+        tag="new_tag",
+        content_to_append="initial content",
     )
 
     block = await mgr.get_core_block()
@@ -95,6 +106,7 @@ async def test_core_memory_append_creates_when_missing():
 
 # -------------------- archival_insert --------------------
 
+
 @pytest.mark.asyncio
 async def test_archival_insert_creates_entry():
     from largestack._memory.long_term import LongTermMemoryManager
@@ -102,8 +114,10 @@ async def test_archival_insert_creates_entry():
 
     mgr = LongTermMemoryManager(tenant_id="t1", user_id="u1")
     result = await archival_insert(
-        mgr, content="user prefers Hindi UI",
-        scope="semantic", tag="preferences",
+        mgr,
+        content="user prefers Hindi UI",
+        scope="semantic",
+        tag="preferences",
     )
     assert "Stored" in result
 
@@ -124,6 +138,7 @@ async def test_archival_insert_requires_content():
 
 
 # -------------------- archival_search --------------------
+
 
 @pytest.mark.asyncio
 async def test_archival_search_returns_matching_facts():
@@ -150,7 +165,8 @@ async def test_archival_search_returns_dicts_with_metadata():
     mgr = LongTermMemoryManager(tenant_id="t1", user_id="u1")
     await mgr.add_archival(
         "user prefers concise answers",
-        tag="preferences", scope="semantic",
+        tag="preferences",
+        scope="semantic",
     )
 
     results = await archival_search(mgr, query="concise")
@@ -164,6 +180,7 @@ async def test_archival_search_returns_dicts_with_metadata():
 
 
 # -------------------- recall_search --------------------
+
 
 @pytest.mark.asyncio
 async def test_recall_search_only_searches_recall_tier():
@@ -181,6 +198,7 @@ async def test_recall_search_only_searches_recall_tier():
 
 
 # -------------------- memory_tool_specs --------------------
+
 
 def test_memory_tool_specs_returns_five_tools():
     from largestack._memory.long_term import LongTermMemoryManager
@@ -227,7 +245,8 @@ async def test_memory_tool_specs_callables_invoke_real_logic():
     # Invoke archival_insert via the spec
     insert_spec = next(s for s in specs if s["name"] == "archival_insert")
     result = await insert_spec["callable"](
-        content="learned via tool", tag="learned",
+        content="learned via tool",
+        tag="learned",
     )
     assert "Stored" in result
 
@@ -238,6 +257,7 @@ async def test_memory_tool_specs_callables_invoke_real_logic():
 
 
 # -------------------- register_memory_tools --------------------
+
 
 def test_register_memory_tools_with_register_tool_api():
     from largestack._memory.long_term import LongTermMemoryManager

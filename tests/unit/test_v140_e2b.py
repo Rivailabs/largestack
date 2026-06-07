@@ -1,4 +1,5 @@
 """v0.14.0: Tests for E2B sandbox bridge."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -8,16 +9,22 @@ import pytest
 
 # -------------------- Module + types --------------------
 
+
 def test_module_imports():
     from largestack._security.e2b_bridge import (
-        SandboxResult, E2BConfig, E2BSandbox, LocalSandbox,
+        SandboxResult,
+        E2BConfig,
+        E2BSandbox,
+        LocalSandbox,
     )
+
     assert SandboxResult is not None
     assert E2BConfig is not None
 
 
 def test_sandbox_result_succeeded_property():
     from largestack._security.e2b_bridge import SandboxResult
+
     ok = SandboxResult(stdout="hello", exit_code=0)
     assert ok.succeeded
     fail = SandboxResult(stderr="oops", exit_code=1)
@@ -28,6 +35,7 @@ def test_sandbox_result_succeeded_property():
 
 def test_e2b_config_defaults():
     from largestack._security.e2b_bridge import E2BConfig
+
     c = E2BConfig()
     assert c.template == "python-3.11"
     assert c.timeout_seconds == 30.0
@@ -36,12 +44,14 @@ def test_e2b_config_defaults():
 
 def test_e2b_sandbox_rejects_no_india_residency_flag():
     from largestack._security.e2b_bridge import E2BSandbox, E2BConfig
+
     cfg = E2BConfig(allow_non_india_region=False)
     with pytest.raises(ValueError, match="India-resident"):
         E2BSandbox(cfg)
 
 
 # -------------------- E2BSandbox (mocked) --------------------
+
 
 @pytest.mark.asyncio
 async def test_e2b_execute_returns_error_when_e2b_missing():
@@ -58,6 +68,7 @@ async def test_e2b_execute_returns_error_when_e2b_missing():
 @pytest.mark.asyncio
 async def test_e2b_execute_empty_code():
     from largestack._security.e2b_bridge import E2BSandbox
+
     sb = E2BSandbox(api_key="x")
     result = await sb.execute("")
     assert "empty" in result.error
@@ -66,6 +77,7 @@ async def test_e2b_execute_empty_code():
 @pytest.mark.asyncio
 async def test_e2b_close_idempotent():
     from largestack._security.e2b_bridge import E2BSandbox
+
     sb = E2BSandbox(api_key="x")
     # Closing without ever calling execute should not blow up
     await sb.close()
@@ -74,9 +86,11 @@ async def test_e2b_close_idempotent():
 
 # -------------------- LocalSandbox (real execution) --------------------
 
+
 @pytest.mark.asyncio
 async def test_local_sandbox_executes_simple_code():
     from largestack._security.e2b_bridge import LocalSandbox
+
     sb = LocalSandbox()
     result = await sb.execute("print('hello')")
     assert result.succeeded
@@ -86,6 +100,7 @@ async def test_local_sandbox_executes_simple_code():
 @pytest.mark.asyncio
 async def test_local_sandbox_catches_runtime_errors():
     from largestack._security.e2b_bridge import LocalSandbox
+
     sb = LocalSandbox()
     result = await sb.execute("1 / 0")
     assert not result.succeeded
@@ -95,6 +110,7 @@ async def test_local_sandbox_catches_runtime_errors():
 @pytest.mark.asyncio
 async def test_local_sandbox_rejects_syntax_errors():
     from largestack._security.e2b_bridge import LocalSandbox
+
     sb = LocalSandbox()
     result = await sb.execute("def broken(:")
     assert not result.succeeded
@@ -105,6 +121,7 @@ async def test_local_sandbox_rejects_syntax_errors():
 async def test_local_sandbox_blocks_imports_by_default():
     """The restricted globals should not have __import__."""
     from largestack._security.e2b_bridge import LocalSandbox
+
     sb = LocalSandbox()
     result = await sb.execute("import os")
     # Should fail (NameError on __import__ in restricted globals)
@@ -115,6 +132,7 @@ async def test_local_sandbox_blocks_imports_by_default():
 async def test_local_sandbox_timeout():
     """Use a bounded but slow computation that will hit the timeout."""
     from largestack._security.e2b_bridge import LocalSandbox
+
     sb = LocalSandbox(timeout_seconds=0.05)
     # Large bounded loop — will exceed 50ms before completing
     code = "n = 0\nfor _ in range(50_000_000): n += 1"
@@ -129,6 +147,7 @@ async def test_local_sandbox_timeout():
 @pytest.mark.asyncio
 async def test_local_sandbox_records_execution_time():
     from largestack._security.e2b_bridge import LocalSandbox
+
     sb = LocalSandbox()
     result = await sb.execute("x = 1 + 1")
     assert result.execution_time_ms >= 0
@@ -138,6 +157,7 @@ async def test_local_sandbox_records_execution_time():
 async def test_local_sandbox_async_context_manager():
     """Local sandbox needs no aenter/aexit but should not block their use."""
     from largestack._security.e2b_bridge import LocalSandbox
+
     sb = LocalSandbox()
     result = await sb.execute("print('via ctx')")
     await sb.close()

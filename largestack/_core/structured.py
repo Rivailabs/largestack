@@ -7,6 +7,7 @@ Priority:
 3. Native response_schema (Gemini)
 4. Prompt injection fallback — for providers without native support
 """
+
 from __future__ import annotations
 import json, logging, re
 from typing import Any, Type
@@ -23,6 +24,7 @@ def _resolve_provider(model: str) -> str:
         return model.split("/")[0].lower()
     try:
         from largestack._core.gateway import MODEL_PREFIX_MAP
+
         for prefix, provider in MODEL_PREFIX_MAP.items():
             if model.startswith(prefix):
                 return provider
@@ -59,8 +61,17 @@ def build_native_params(model: str, schema: dict) -> dict:
     """Build provider-specific structured output parameters."""
     provider = _resolve_provider(model)
 
-    if provider in ("openai", "groq", "together", "fireworks",
-                     "perplexity", "cerebras", "xai", "nvidia", "openrouter"):
+    if provider in (
+        "openai",
+        "groq",
+        "together",
+        "fireworks",
+        "perplexity",
+        "cerebras",
+        "xai",
+        "nvidia",
+        "openrouter",
+    ):
         # OpenAI-compatible: response_format with JSON schema.
         # NOTE: deepseek is intentionally excluded — its API rejects strict
         # `json_schema` response_format (confirmed live). It is routed to the
@@ -69,11 +80,16 @@ def build_native_params(model: str, schema: dict) -> dict:
         # strict=False + additionalProperties:false: avoids the HTTP 400 that
         # strict=True caused on pydantic schemas lacking additionalProperties,
         # while still steering the model; parse_structured validates + retries.
-        return {"response_format": {
-            "type": "json_schema",
-            "json_schema": {"name": schema.get("title", "Response"),
-                           "schema": _strictify_schema(schema), "strict": False}
-        }}
+        return {
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": schema.get("title", "Response"),
+                    "schema": _strictify_schema(schema),
+                    "strict": False,
+                },
+            }
+        }
     elif provider == "anthropic":
         # Anthropic: tool_use for constrained output.
         # NOTE: we emit OpenAI-shape `parameters` (not the Anthropic-native
@@ -82,11 +98,16 @@ def build_native_params(model: str, schema: dict) -> dict:
         # `input_schema` here would be silently dropped and the schema lost.
         # The engine's _is_structured_tool_call() intercepts the matching
         # tool_use as the final structured answer rather than a normal tool call.
-        return {"tools": [{
-            "name": "structured_output",
-            "description": "Return structured data matching the schema",
-            "parameters": schema
-        }], "tool_choice": {"type": "tool", "name": "structured_output"}}
+        return {
+            "tools": [
+                {
+                    "name": "structured_output",
+                    "description": "Return structured data matching the schema",
+                    "parameters": schema,
+                }
+            ],
+            "tool_choice": {"type": "tool", "name": "structured_output"},
+        }
     elif provider == "google":
         # Google Gemini: response_schema
         return {"response_mime_type": "application/json", "response_schema": schema}
@@ -97,32 +118,41 @@ def build_native_params(model: str, schema: dict) -> dict:
 
     return {}  # No native support — will fall back to prompt
 
+
 def build_structured_prompt(model_class: Type[BaseModel], task: str) -> str:
     """Fallback: append JSON schema to prompt (for providers without native support)."""
     schema = model_class.model_json_schema()
-    return (f"{task}\n\nRespond with ONLY valid JSON matching this schema:\n"
-            f"```json\n{json.dumps(schema, indent=2)}\n```\n"
-            f"No text outside the JSON.")
+    return (
+        f"{task}\n\nRespond with ONLY valid JSON matching this schema:\n"
+        f"```json\n{json.dumps(schema, indent=2)}\n```\n"
+        f"No text outside the JSON."
+    )
+
 
 def parse_structured(content: str, model_class: Type[BaseModel]) -> BaseModel:
     """Parse LLM response into Pydantic model."""
     # Try direct parse
-    for attempt in [content.strip(), 
-                    re.sub(r'^```json?\s*|\s*```$', '', content.strip(), flags=re.MULTILINE).strip()]:
+    for attempt in [
+        content.strip(),
+        re.sub(r"^```json?\s*|\s*```$", "", content.strip(), flags=re.MULTILINE).strip(),
+    ]:
         try:
             return model_class.model_validate_json(attempt)
         except (ValidationError, json.JSONDecodeError):
             pass
     # Extract JSON from mixed content
     # Find JSON by balanced braces (handles nested objects)
-    start = content.find('{')
-    if start == -1: raise ValueError(f"No JSON found in: {content[:200]}")
+    start = content.find("{")
+    if start == -1:
+        raise ValueError(f"No JSON found in: {content[:200]}")
     depth = 0
     for i, ch in enumerate(content[start:], start):
-        if ch == '{': depth += 1
-        elif ch == '}': depth -= 1
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
         if depth == 0:
-            match_str = content[start:i+1]
+            match_str = content[start : i + 1]
             break
     else:
         match_str = None
@@ -157,8 +187,10 @@ def parse_structured(content: str, model_class: Type[BaseModel]) -> BaseModel:
             pass
     raise ValueError(f"Could not parse as {model_class.__name__}: {content[:200]}")
 
-async def run_structured(agent, task: str, response_model: Type[BaseModel],
-                         max_retries: int = 2, **kw) -> BaseModel:
+
+async def run_structured(
+    agent, task: str, response_model: Type[BaseModel], max_retries: int = 2, **kw
+) -> BaseModel:
     """Run agent with structured output. Returns the validated Pydantic model.
 
     Order of preference:
@@ -172,8 +204,9 @@ async def run_structured(agent, task: str, response_model: Type[BaseModel],
     return parsed
 
 
-async def run_structured_with_result(agent, task: str, response_model: Type[BaseModel],
-                                      max_retries: int = 2, **kw):
+async def run_structured_with_result(
+    agent, task: str, response_model: Type[BaseModel], max_retries: int = 2, **kw
+):
     """Like ``run_structured`` but also returns the underlying ``AgentResult``
     (cost / trace_id / tool calls), so callers such as the typed decorator API can
     use native structured output AND report real usage. Returns ``(model, result)``;
@@ -198,8 +231,10 @@ async def run_structured_with_result(agent, task: str, response_model: Type[Base
                 return parse_structured(content, response_model), result
             except ProviderError as e:
                 # Provider rejected the native structured params — fall back to prompt mode.
-                log.debug(f"native structured output rejected ({type(e).__name__}); "
-                          f"using prompt fallback: {e}")
+                log.debug(
+                    f"native structured output rejected ({type(e).__name__}); "
+                    f"using prompt fallback: {e}"
+                )
                 break
             except (ValueError, ValidationError) as e:
                 if attempt < max_retries:

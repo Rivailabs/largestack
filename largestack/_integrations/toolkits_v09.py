@@ -6,6 +6,7 @@ Three more toolkits in one file (cohesive grouping):
 - ``GitHubFullToolkit`` — beyond v0.5's basic; PRs, branches, files, search
 - ``ConfluenceToolkit`` — write/update Confluence pages
 """
+
 from __future__ import annotations
 import base64
 import json
@@ -22,6 +23,7 @@ log = logging.getLogger("largestack.toolkits_v09")
 
 # -------------------- Twilio --------------------
 
+
 class TwilioToolkit:
     """Twilio: SMS, WhatsApp, voice calls.
 
@@ -34,12 +36,16 @@ class TwilioToolkit:
         account_sid: str | None = None,
         auth_token: str | None = None,
     ):
-        self.account_sid = account_sid or os.environ.get(
-            "LARGESTACK_TWILIO_ACCOUNT_SID"
-        ) or os.environ.get("TWILIO_ACCOUNT_SID", "")
-        self.auth_token = auth_token or os.environ.get(
-            "LARGESTACK_TWILIO_AUTH_TOKEN"
-        ) or os.environ.get("TWILIO_AUTH_TOKEN", "")
+        self.account_sid = (
+            account_sid
+            or os.environ.get("LARGESTACK_TWILIO_ACCOUNT_SID")
+            or os.environ.get("TWILIO_ACCOUNT_SID", "")
+        )
+        self.auth_token = (
+            auth_token
+            or os.environ.get("LARGESTACK_TWILIO_AUTH_TOKEN")
+            or os.environ.get("TWILIO_AUTH_TOKEN", "")
+        )
         self.base_url = "https://api.twilio.com/2010-04-01"
         self._tools: list[Callable] = self._build_tools()
 
@@ -78,12 +84,14 @@ class TwilioToolkit:
                     resp = r.json()
                     if r.status_code >= 400:
                         return f"error: Twilio HTTP {r.status_code}: {resp.get('message', '')}"
-                    return json.dumps({
-                        "sid": resp.get("sid"),
-                        "status": resp.get("status"),
-                        "to": resp.get("to"),
-                        "from": resp.get("from"),
-                    })
+                    return json.dumps(
+                        {
+                            "sid": resp.get("sid"),
+                            "status": resp.get("status"),
+                            "to": resp.get("to"),
+                            "from": resp.get("from"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -132,11 +140,13 @@ class TwilioToolkit:
                     resp = r.json()
                     if r.status_code >= 400:
                         return f"error: Twilio HTTP {r.status_code}: {resp.get('message', '')}"
-                    return json.dumps({
-                        "sid": resp.get("sid"),
-                        "status": resp.get("status"),
-                        "to": resp.get("to"),
-                    })
+                    return json.dumps(
+                        {
+                            "sid": resp.get("sid"),
+                            "status": resp.get("status"),
+                            "to": resp.get("to"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -147,6 +157,7 @@ class TwilioToolkit:
 
 
 # -------------------- GitHub Full --------------------
+
 
 class GitHubFullToolkit:
     """Full GitHub toolkit: PRs, branches, files, code search.
@@ -163,9 +174,11 @@ class GitHubFullToolkit:
     def __init__(self, owner: str, repo: str, api_token: str | None = None):
         self.owner = owner
         self.repo = repo
-        self.api_token = api_token or os.environ.get(
-            "LARGESTACK_GITHUB_TOKEN"
-        ) or os.environ.get("GITHUB_TOKEN", "")
+        self.api_token = (
+            api_token
+            or os.environ.get("LARGESTACK_GITHUB_TOKEN")
+            or os.environ.get("GITHUB_TOKEN", "")
+        )
         self.base_url = "https://api.github.com"
         self._tools = self._build_tools()
 
@@ -215,9 +228,7 @@ class GitHubFullToolkit:
             description="Create a pull request. base is target branch (usually 'main'), head is the source branch.",
             timeout=30,
         )
-        async def create_pr(
-            title: str, head: str, base: str = "main", body: str = ""
-        ) -> str:
+        async def create_pr(title: str, head: str, base: str = "main", body: str = "") -> str:
             err = tk._check_auth()
             if err:
                 return err
@@ -231,11 +242,13 @@ class GitHubFullToolkit:
                     if r.status_code >= 400:
                         return f"error: GitHub HTTP {r.status_code}: {r.text[:300]}"
                     p = r.json()
-                    return json.dumps({
-                        "number": p.get("number"),
-                        "url": p.get("html_url"),
-                        "state": p.get("state"),
-                    })
+                    return json.dumps(
+                        {
+                            "number": p.get("number"),
+                            "url": p.get("html_url"),
+                            "state": p.get("state"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -245,26 +258,29 @@ class GitHubFullToolkit:
                 async with httpx.AsyncClient(timeout=30) as client:
                     r = await client.get(
                         f"{tk.base_url}/repos/{tk.owner}/{tk.repo}/contents/{path}",
-                        headers=tk._headers, params={"ref": ref},
+                        headers=tk._headers,
+                        params={"ref": ref},
                     )
                     if r.status_code >= 400:
                         return f"error: GitHub HTTP {r.status_code}"
                     data = r.json()
                     if data.get("encoding") == "base64":
                         try:
-                            content = base64.b64decode(
-                                data.get("content", "")
-                            ).decode("utf-8", errors="replace")
+                            content = base64.b64decode(data.get("content", "")).decode(
+                                "utf-8", errors="replace"
+                            )
                         except Exception:
                             content = "<binary>"
                     else:
                         content = data.get("content", "")
-                    return json.dumps({
-                        "path": data.get("path"),
-                        "size": data.get("size"),
-                        "sha": data.get("sha"),
-                        "content": content,
-                    })
+                    return json.dumps(
+                        {
+                            "path": data.get("path"),
+                            "size": data.get("size"),
+                            "sha": data.get("sha"),
+                            "content": content,
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -322,6 +338,7 @@ class GitHubFullToolkit:
 
 # -------------------- Confluence (write) --------------------
 
+
 class ConfluenceToolkit:
     """Confluence write operations.
 
@@ -338,12 +355,16 @@ class ConfluenceToolkit:
         api_token: str | None = None,
     ):
         self.base_url = base_url.rstrip("/")
-        self.username = username or os.environ.get(
-            "LARGESTACK_CONFLUENCE_USER"
-        ) or os.environ.get("CONFLUENCE_USER", "")
-        self.api_token = api_token or os.environ.get(
-            "LARGESTACK_CONFLUENCE_TOKEN"
-        ) or os.environ.get("CONFLUENCE_TOKEN", "")
+        self.username = (
+            username
+            or os.environ.get("LARGESTACK_CONFLUENCE_USER")
+            or os.environ.get("CONFLUENCE_USER", "")
+        )
+        self.api_token = (
+            api_token
+            or os.environ.get("LARGESTACK_CONFLUENCE_TOKEN")
+            or os.environ.get("CONFLUENCE_TOKEN", "")
+        )
         self._tools = self._build_tools()
 
     def _check_auth(self) -> str | None:
@@ -369,9 +390,7 @@ class ConfluenceToolkit:
                 "type": "page",
                 "title": title,
                 "space": {"key": space_key},
-                "body": {
-                    "storage": {"value": content_html, "representation": "storage"}
-                },
+                "body": {"storage": {"value": content_html, "representation": "storage"}},
             }
             if parent_id:
                 body["ancestors"] = [{"id": parent_id}]
@@ -387,12 +406,14 @@ class ConfluenceToolkit:
                     if r.status_code >= 400:
                         return f"error: Confluence HTTP {r.status_code}: {r.text[:300]}"
                     p = r.json()
-                    return json.dumps({
-                        "id": p.get("id"),
-                        "title": p.get("title"),
-                        "url": (p.get("_links") or {}).get("base", "")
+                    return json.dumps(
+                        {
+                            "id": p.get("id"),
+                            "title": p.get("title"),
+                            "url": (p.get("_links") or {}).get("base", "")
                             + (p.get("_links") or {}).get("webui", ""),
-                    })
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 
@@ -401,18 +422,14 @@ class ConfluenceToolkit:
             description="Update an existing Confluence page (must increment version)",
             timeout=30,
         )
-        async def update_page(
-            page_id: str, title: str, content_html: str, version: int
-        ) -> str:
+        async def update_page(page_id: str, title: str, content_html: str, version: int) -> str:
             err = tk._check_auth()
             if err:
                 return err
             body = {
                 "type": "page",
                 "title": title,
-                "body": {
-                    "storage": {"value": content_html, "representation": "storage"}
-                },
+                "body": {"storage": {"value": content_html, "representation": "storage"}},
                 "version": {"number": int(version) + 1},
             }
             try:
@@ -427,10 +444,12 @@ class ConfluenceToolkit:
                     if r.status_code >= 400:
                         return f"error: Confluence HTTP {r.status_code}: {r.text[:300]}"
                     p = r.json()
-                    return json.dumps({
-                        "id": p.get("id"),
-                        "version": (p.get("version") or {}).get("number"),
-                    })
+                    return json.dumps(
+                        {
+                            "id": p.get("id"),
+                            "version": (p.get("version") or {}).get("number"),
+                        }
+                    )
             except Exception as e:
                 return f"error: {e}"
 

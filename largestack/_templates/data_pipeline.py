@@ -1,4 +1,5 @@
 """Largestack AI Template: Data Analysis Pipeline."""
+
 TEMPLATE_FILES = {
     "agent.py": '''import asyncio
 from largestack import Agent, Team, tool

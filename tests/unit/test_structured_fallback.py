@@ -3,6 +3,7 @@
 These cover the prompt-based fallback added so `response_model=` no longer fails
 outright with AllProvidersFailedError on DeepSeek and similar providers.
 """
+
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -40,7 +41,9 @@ async def test_deepseek_prompt_path_returns_typed_object():
             content='{"title": "Inception", "rating": 9, "summary": "A heist inside dreams."}'
         )
     )
-    out = await run_structured(_agent("deepseek/deepseek-chat", execute), "Review Inception", Review)
+    out = await run_structured(
+        _agent("deepseek/deepseek-chat", execute), "Review Inception", Review
+    )
     assert isinstance(out, Review)
     assert out.rating == 9 and out.title == "Inception"
     # Prompt path must NOT send a native response_format.

@@ -17,12 +17,17 @@ Run::
 
     # Then open http://localhost:16686 to see traces
 """
+
 from __future__ import annotations
 import asyncio
 import os
 
 from largestack._observability.otel import (
-    setup_otel, trace_span, trace_llm_call, trace_tool_call, start_span,
+    setup_otel,
+    trace_span,
+    trace_llm_call,
+    trace_tool_call,
+    start_span,
 )
 
 
@@ -38,7 +43,7 @@ async def verify_pan(pan: str) -> bool:
 async def retrieve(query: str, k: int = 5) -> list[dict]:
     async with start_span("vector_search", {"k": k}) as span:
         await asyncio.sleep(0.02)
-        results = [{"id": f"doc{i}", "score": 1.0 - i*0.1} for i in range(k)]
+        results = [{"id": f"doc{i}", "score": 1.0 - i * 0.1} for i in range(k)]
         span.set_attribute("largestack.rag.hits", len(results))
         return results
 
@@ -46,7 +51,8 @@ async def retrieve(query: str, k: int = 5) -> list[dict]:
 async def call_llm(model: str, prompt: str) -> str:
     """Shows the trace_llm_call helper for standardized LLM spans."""
     async with trace_llm_call(
-        provider="openai", model=model,
+        provider="openai",
+        model=model,
         tenant_id="demo-tenant",
         prompt_tokens=len(prompt) // 4,
     ) as span:
@@ -59,7 +65,8 @@ async def call_llm(model: str, prompt: str) -> str:
 async def use_tool(tool_name: str, args: str) -> str:
     """Shows the trace_tool_call helper."""
     async with trace_tool_call(
-        tool_name=tool_name, tenant_id="demo-tenant",
+        tool_name=tool_name,
+        tenant_id="demo-tenant",
     ):
         await asyncio.sleep(0.03)
         return f"{tool_name}({args}) → ok"

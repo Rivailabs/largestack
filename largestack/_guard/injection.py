@@ -1,4 +1,5 @@
 """Prompt injection detection — multi-pattern with sensitivity levels."""
+
 from __future__ import annotations
 import logging
 import re
@@ -41,18 +42,23 @@ SYSTEM_PROMPT_PATTERNS = [
 ]
 
 FORMAT_INJECTION_PATTERNS = [
-    r"\[INST\]", r"<\|im_start\|>", r"<\|system\|>",
+    r"\[INST\]",
+    r"<\|im_start\|>",
+    r"<\|system\|>",
     r"###\s*(System|Instruction|Human|Assistant)\s*:",
     r"\bSYSTEM\s*:",
     r"\bSYSTEM\s*:\s*new\s+instructions\s+override",
-    r"```system", r"<system>",
-    r"ADMIN\s*:", r"DEVELOPER\s*:",
+    r"```system",
+    r"<system>",
+    r"ADMIN\s*:",
+    r"DEVELOPER\s*:",
 ]
 
 MANIPULATION_PATTERNS = [
     r"do\s+anything\s+now",
     r"you\s+have\s+no\s+(restrictions|limits|rules|boundaries)",
-    r"jailbreak", r"DAN\s+mode",
+    r"jailbreak",
+    r"DAN\s+mode",
     r"developer\s+mode\s+(enabled|activated|on)",
     r"bypass\s+(your|the|all)\s+(filters|safety|restrictions|rules)",
     r"unlock\s+(your|all)\s+(capabilities|potential|restrictions)",
@@ -63,9 +69,13 @@ MANIPULATION_PATTERNS = [
     r"unfiltered\s+(model|ai|assistant|version|mode|chatbot|response)",
 ]
 
-ALL_PATTERNS = [re.compile(p, re.I) for p in
-    JAILBREAK_PATTERNS + SYSTEM_PROMPT_PATTERNS +
-    FORMAT_INJECTION_PATTERNS + MANIPULATION_PATTERNS]
+ALL_PATTERNS = [
+    re.compile(p, re.I)
+    for p in JAILBREAK_PATTERNS
+    + SYSTEM_PROMPT_PATTERNS
+    + FORMAT_INJECTION_PATTERNS
+    + MANIPULATION_PATTERNS
+]
 
 # v1.1.1: high-confidence patterns — a SINGLE match here blocks in PROTECT mode
 # (default), closing the gap where common single-pattern jailbreaks were only warned.
@@ -81,54 +91,82 @@ _STRONG_JAILBREAK = [
     r"\b(ignore|disregard|forget|override)\b[\w\s,'-]{0,40}\b(instruction|instructions|prompt|prompts|rule|rules|guideline|guidelines|programming)\b",
     r"new\s+(instructions|rules|persona|identity)\s*:",
 ]
-HIGH_CONFIDENCE_PATTERNS = [re.compile(p, re.I) for p in
-    _STRONG_JAILBREAK + SYSTEM_PROMPT_PATTERNS + MANIPULATION_PATTERNS]
+HIGH_CONFIDENCE_PATTERNS = [
+    re.compile(p, re.I) for p in _STRONG_JAILBREAK + SYSTEM_PROMPT_PATTERNS + MANIPULATION_PATTERNS
+]
 
 # Strong proximity patterns must also count toward detection (is_injection), so a bare
 # "ignore all prior instructions" (no other trigger) is caught, not silently allowed.
 ALL_PATTERNS = ALL_PATTERNS + [re.compile(p, re.I) for p in _STRONG_JAILBREAK]
 
 EXTERNAL_EXFILTRATION_PATTERNS = [
-    re.compile(r"\b(exfiltrat\w*|leak\w*)\b.{0,80}\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b", re.I),
-    re.compile(r"\b(send|upload|post|forward)\b.{0,80}\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b.{0,100}\b(external|unapproved|evil|attacker|unknown)\b", re.I),
-    re.compile(r"\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b.{0,80}\b(to|into|via)\b.{0,80}\bhttps?://", re.I),
-    re.compile(r"\b(exfiltrat\w*|leak\w*)\b.{0,80}\b(customer\s+data|pii|aadhaar|pan|card\s+data)\b", re.I),
+    re.compile(
+        r"\b(exfiltrat\w*|leak\w*)\b.{0,80}\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\b(send|upload|post|forward)\b.{0,80}\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b.{0,100}\b(external|unapproved|evil|attacker|unknown)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b.{0,80}\b(to|into|via)\b.{0,80}\bhttps?://",
+        re.I,
+    ),
+    re.compile(
+        r"\b(exfiltrat\w*|leak\w*)\b.{0,80}\b(customer\s+data|pii|aadhaar|pan|card\s+data)\b", re.I
+    ),
     re.compile(r"\bhttps?://\S*(evil|exfil|pastebin|requestbin)\S*", re.I),
 ]
 
 CREDENTIAL_THEFT_PATTERNS = [
-    re.compile(r"\b(steal|dump|extract|harvest|exfiltrate)\b.{0,80}\b(browser\s+tokens?|session\s+cookies?|oauth\s+tokens?|credentials?|passwords?|api\s*keys?)\b", re.I),
+    re.compile(
+        r"\b(steal|dump|extract|harvest|exfiltrate)\b.{0,80}\b(browser\s+tokens?|session\s+cookies?|oauth\s+tokens?|credentials?|passwords?|api\s*keys?)\b",
+        re.I,
+    ),
     re.compile(r"\bbypass\b.{0,40}\b(login|auth|authentication|mfa|2fa|access\s+control)\b", re.I),
 ]
 
 MALWARE_PATTERNS = [
-    re.compile(r"\b(build|create|write|generate)\b.{0,80}\b(malware|ransomware|trojan|keylogger|worm|botnet)\b", re.I),
+    re.compile(
+        r"\b(build|create|write|generate)\b.{0,80}\b(malware|ransomware|trojan|keylogger|worm|botnet)\b",
+        re.I,
+    ),
     re.compile(r"\bmalware\b.{0,80}\b(exfiltrate|steal|credentials?|tokens?|keys?)\b", re.I),
 ]
 
 ILLEGAL_ABUSE_PATTERNS = [
-    re.compile(r"\b(illegal|fraud|phishing|carding|money\s+laundering)\b.{0,80}\b(workflow|scheme|operation|automation|playbook)\b", re.I),
+    re.compile(
+        r"\b(illegal|fraud|phishing|carding|money\s+laundering)\b.{0,80}\b(workflow|scheme|operation|automation|playbook)\b",
+        re.I,
+    ),
 ]
 
 SECRET_BYPASS_PATTERNS = [
-    re.compile(r"\b(ignore|override|disregard)\b.{0,80}\b(policy|safety|auth|authorization|permissions?)\b", re.I),
+    re.compile(
+        r"\b(ignore|override|disregard)\b.{0,80}\b(policy|safety|auth|authorization|permissions?)\b",
+        re.I,
+    ),
     re.compile(r"\bbypass\b.{0,80}\b(auth|authorization|permissions?)\b", re.I),
-    re.compile(r"\b(reveal|print|show|leak)\b.{0,80}\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b", re.I),
+    re.compile(
+        r"\b(reveal|print|show|leak)\b.{0,80}\b(api\s*keys?|secrets?|tokens?|passwords?|credentials?)\b",
+        re.I,
+    ),
 ]
 
 
 class InjectionGuard:
     """Detect prompt injection attempts.
-    
+
     Sensitivity levels:
       - high: any 1 pattern match triggers
       - medium: 2+ pattern matches (default, reduces false positives)
       - low: 3+ pattern matches
     """
+
     def __init__(self, sensitivity: str = "medium"):
         self.sensitivity = sensitivity
         self._violation_count = 0
-    
+
     async def check_input(self, messages):
         for m in messages:
             if m.get("role") == "user":
@@ -146,10 +184,10 @@ class InjectionGuard:
                         )
                     if not decision.allowed:
                         raise GuardrailBlockedError("injection", decision.message)
-    
+
     async def check_output(self, response):
         pass
-    
+
     def _detect(self, text: str) -> bool:
         if not text:
             return False
@@ -314,21 +352,24 @@ class InjectionGuard:
             if re.search(rf"\b{sensitive_terms}\b.{{0,160}}\b{term}\b", text, re.I | re.S):
                 return True
         return False
-    
+
     def analyze(self, text: str) -> dict:
         """Return detection details without raising."""
         matched = [p.pattern for p in ALL_PATTERNS if p.search(text)]
         return {
-            "is_injection": len(matched) >= {"low": 3, "medium": 1, "high": 1}.get(self.sensitivity, 1),
+            "is_injection": len(matched)
+            >= {"low": 3, "medium": 1, "high": 1}.get(self.sensitivity, 1),
             "matched_patterns": len(matched),
             "categories": {
                 "jailbreak": sum(1 for p in JAILBREAK_PATTERNS if re.search(p, text, re.I)),
                 "system_prompt": sum(1 for p in SYSTEM_PROMPT_PATTERNS if re.search(p, text, re.I)),
-                "format_injection": sum(1 for p in FORMAT_INJECTION_PATTERNS if re.search(p, text, re.I)),
+                "format_injection": sum(
+                    1 for p in FORMAT_INJECTION_PATTERNS if re.search(p, text, re.I)
+                ),
                 "manipulation": sum(1 for p in MANIPULATION_PATTERNS if re.search(p, text, re.I)),
-            }
+            },
         }
-    
+
     @property
     def stats(self) -> dict:
         return {
@@ -336,6 +377,7 @@ class InjectionGuard:
             "pattern_count": len(ALL_PATTERNS),
             "violation_count": self._violation_count,
         }
+
 
 # Backward compatibility alias
 PATTERNS = ALL_PATTERNS

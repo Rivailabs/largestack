@@ -1,4 +1,5 @@
 """v0.9.0: Tests for the enhanced CLI commands."""
+
 from __future__ import annotations
 
 import io
@@ -13,8 +14,10 @@ import pytest
 
 # -------------------- init command --------------------
 
+
 def test_init_creates_simple_agent(tmp_path):
     from largestack._cli.cli_v09 import cmd_init_v09
+
     target = tmp_path / "myproject"
     rc = cmd_init_v09("simple_agent", str(target))
     assert rc == 0
@@ -25,6 +28,7 @@ def test_init_creates_simple_agent(tmp_path):
 
 def test_init_creates_rag_app(tmp_path):
     from largestack._cli.cli_v09 import cmd_init_v09
+
     target = tmp_path / "rag"
     rc = cmd_init_v09("rag_app", str(target))
     assert rc == 0
@@ -34,6 +38,7 @@ def test_init_creates_rag_app(tmp_path):
 
 def test_init_creates_multi_agent(tmp_path):
     from largestack._cli.cli_v09 import cmd_init_v09
+
     target = tmp_path / "ma"
     rc = cmd_init_v09("multi_agent", str(target))
     assert rc == 0
@@ -42,6 +47,7 @@ def test_init_creates_multi_agent(tmp_path):
 
 def test_init_creates_fintech_app(tmp_path):
     from largestack._cli.cli_v09 import cmd_init_v09
+
     target = tmp_path / "ft"
     rc = cmd_init_v09("fintech_app", str(target))
     assert rc == 0
@@ -52,6 +58,7 @@ def test_init_creates_fintech_app(tmp_path):
 
 def test_init_creates_legaltech_app(tmp_path):
     from largestack._cli.cli_v09 import cmd_init_v09
+
     target = tmp_path / "lt"
     rc = cmd_init_v09("legaltech_app", str(target))
     assert rc == 0
@@ -59,6 +66,7 @@ def test_init_creates_legaltech_app(tmp_path):
 
 def test_init_rejects_unknown_template(tmp_path, capsys):
     from largestack._cli.cli_v09 import cmd_init_v09
+
     rc = cmd_init_v09("nonexistent", str(tmp_path / "x"))
     assert rc == 1
     captured = capsys.readouterr()
@@ -67,6 +75,7 @@ def test_init_rejects_unknown_template(tmp_path, capsys):
 
 def test_init_rejects_non_empty_dir(tmp_path):
     from largestack._cli.cli_v09 import cmd_init_v09
+
     target = tmp_path / "existing"
     target.mkdir()
     (target / "file.txt").write_text("x")
@@ -76,8 +85,10 @@ def test_init_rejects_non_empty_dir(tmp_path):
 
 # -------------------- pii-scan command --------------------
 
+
 def test_pii_scan_finds_pan(tmp_path):
     from largestack._cli.cli_v09 import cmd_pii_scan
+
     f = tmp_path / "test.txt"
     f.write_text("My PAN is AAACR1234C and email me@example.com")
     rc = cmd_pii_scan(str(f))
@@ -87,6 +98,7 @@ def test_pii_scan_finds_pan(tmp_path):
 
 def test_pii_scan_finds_aadhaar(tmp_path, capsys):
     from largestack._cli.cli_v09 import cmd_pii_scan
+
     f = tmp_path / "test.txt"
     f.write_text("Aadhaar: 234567890123 should be redacted")
     rc = cmd_pii_scan(str(f))
@@ -97,6 +109,7 @@ def test_pii_scan_finds_aadhaar(tmp_path, capsys):
 
 def test_pii_scan_no_findings(tmp_path):
     from largestack._cli.cli_v09 import cmd_pii_scan
+
     f = tmp_path / "clean.txt"
     f.write_text("No personal data here, just clean text.")
     rc = cmd_pii_scan(str(f))
@@ -105,6 +118,7 @@ def test_pii_scan_no_findings(tmp_path):
 
 def test_pii_scan_directory_recursive(tmp_path):
     from largestack._cli.cli_v09 import cmd_pii_scan
+
     (tmp_path / "f1.txt").write_text("PAN: AAACR1234C")
     (tmp_path / "f2.md").write_text("safe content")
     sub = tmp_path / "sub"
@@ -116,6 +130,7 @@ def test_pii_scan_directory_recursive(tmp_path):
 
 def test_pii_scan_json_output(tmp_path, capsys):
     from largestack._cli.cli_v09 import cmd_pii_scan
+
     f = tmp_path / "x.txt"
     f.write_text("PAN AAACR1234C")
     rc = cmd_pii_scan(str(f), json_output=True)
@@ -127,6 +142,7 @@ def test_pii_scan_json_output(tmp_path, capsys):
 
 def test_pii_scan_path_not_found(tmp_path):
     from largestack._cli.cli_v09 import cmd_pii_scan
+
     rc = cmd_pii_scan(str(tmp_path / "nonexistent.txt"))
     assert rc == 1
 
@@ -134,6 +150,7 @@ def test_pii_scan_path_not_found(tmp_path):
 def test_pii_scan_redacts_in_output(tmp_path, capsys):
     """PAN should be partially masked in console output."""
     from largestack._cli.cli_v09 import cmd_pii_scan
+
     f = tmp_path / "x.txt"
     f.write_text("AAACR1234C")
     cmd_pii_scan(str(f))
@@ -146,8 +163,10 @@ def test_pii_scan_redacts_in_output(tmp_path, capsys):
 
 # -------------------- tenant command --------------------
 
+
 def test_tenant_create(tmp_path):
     from largestack._cli.cli_v09 import cmd_tenant
+
     rc = cmd_tenant("create", "tenant_a", str(tmp_path))
     assert rc == 0
     storage = tmp_path / "tenants.json"
@@ -158,6 +177,7 @@ def test_tenant_create(tmp_path):
 
 def test_tenant_create_duplicate_fails(tmp_path):
     from largestack._cli.cli_v09 import cmd_tenant
+
     cmd_tenant("create", "x", str(tmp_path))
     rc = cmd_tenant("create", "x", str(tmp_path))
     assert rc == 1
@@ -165,6 +185,7 @@ def test_tenant_create_duplicate_fails(tmp_path):
 
 def test_tenant_list(tmp_path, capsys):
     from largestack._cli.cli_v09 import cmd_tenant
+
     cmd_tenant("create", "alpha", str(tmp_path))
     cmd_tenant("create", "beta", str(tmp_path))
     capsys.readouterr()  # clear
@@ -177,6 +198,7 @@ def test_tenant_list(tmp_path, capsys):
 
 def test_tenant_delete(tmp_path):
     from largestack._cli.cli_v09 import cmd_tenant
+
     cmd_tenant("create", "todelete", str(tmp_path))
     rc = cmd_tenant("delete", "todelete", str(tmp_path))
     assert rc == 0
@@ -187,29 +209,30 @@ def test_tenant_delete(tmp_path):
 
 def test_tenant_delete_nonexistent(tmp_path):
     from largestack._cli.cli_v09 import cmd_tenant
+
     rc = cmd_tenant("delete", "nope", str(tmp_path))
     assert rc == 1
 
 
 def test_tenant_create_requires_name(tmp_path):
     from largestack._cli.cli_v09 import cmd_tenant
+
     rc = cmd_tenant("create", "", str(tmp_path))
     assert rc == 1
 
 
 # -------------------- audit-export command --------------------
 
+
 def test_audit_export_collects_logs(tmp_path):
     from largestack._cli.cli_v09 import cmd_audit_export
+
     log_dir = tmp_path / "logs"
     log_dir.mkdir()
     (log_dir / "audit_20260501.log").write_text(
-        '{"event": "tool_call", "ts": 1}\n'
-        '{"event": "agent_run", "ts": 2}\n'
+        '{"event": "tool_call", "ts": 1}\n{"event": "agent_run", "ts": 2}\n'
     )
-    (log_dir / "audit_20260502.jsonl").write_text(
-        '{"event": "tool_call", "ts": 3}\n'
-    )
+    (log_dir / "audit_20260502.jsonl").write_text('{"event": "tool_call", "ts": 3}\n')
 
     out = tmp_path / "export.jsonl"
     rc = cmd_audit_export(str(out), str(log_dir))
@@ -220,6 +243,7 @@ def test_audit_export_collects_logs(tmp_path):
 
 def test_audit_export_no_logs_found(tmp_path):
     from largestack._cli.cli_v09 import cmd_audit_export
+
     empty_dir = tmp_path / "empty"
     empty_dir.mkdir()
     rc = cmd_audit_export(str(tmp_path / "out.jsonl"), str(empty_dir))
@@ -228,15 +252,18 @@ def test_audit_export_no_logs_found(tmp_path):
 
 def test_audit_export_missing_source_dir(tmp_path):
     from largestack._cli.cli_v09 import cmd_audit_export
+
     rc = cmd_audit_export(str(tmp_path / "out.jsonl"), str(tmp_path / "nope"))
     assert rc == 1
 
 
 # -------------------- eval command --------------------
 
+
 def test_eval_runs_yaml_suite(tmp_path):
     pytest.importorskip("yaml")
     from largestack._cli.cli_v09 import cmd_eval
+
     suite = tmp_path / "suite.yaml"
     suite.write_text("""\
 cases:
@@ -253,20 +280,24 @@ cases:
 
 def test_eval_missing_suite():
     from largestack._cli.cli_v09 import cmd_eval
+
     rc = cmd_eval("/nonexistent/suite.yaml")
     assert rc == 1
 
 
 # -------------------- argparse main --------------------
 
+
 def test_cli_main_init(tmp_path):
     from largestack._cli.cli_v09 import main
+
     rc = main(["init", "simple_agent", str(tmp_path / "p1")])
     assert rc == 0
 
 
 def test_cli_main_pii_scan(tmp_path):
     from largestack._cli.cli_v09 import main
+
     f = tmp_path / "x.txt"
     f.write_text("clean")
     rc = main(["pii-scan", str(f)])
@@ -275,11 +306,13 @@ def test_cli_main_pii_scan(tmp_path):
 
 def test_cli_main_tenant_list(tmp_path, capsys):
     from largestack._cli.cli_v09 import main
+
     rc = main(["tenant", "list", "--tenant-dir", str(tmp_path)])
     assert rc == 0
 
 
 def test_cli_main_unknown_command():
     from largestack._cli.cli_v09 import main
+
     with pytest.raises(SystemExit):  # argparse exits on unknown
         main(["nonexistent-cmd"])

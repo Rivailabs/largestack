@@ -1,4 +1,5 @@
 """Apache Tika loader tests."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -38,11 +39,13 @@ def _patch_httpx_client(monkeypatch, routes):
             return None
 
         async def put(self, url, *, content=None, headers=None):
-            calls.append({
-                "url": str(url),
-                "content": content,
-                "headers": headers or {},
-            })
+            calls.append(
+                {
+                    "url": str(url),
+                    "content": content,
+                    "headers": headers or {},
+                }
+            )
             response = routes[str(url)]
             return response() if callable(response) else response
 
@@ -76,25 +79,30 @@ async def test_http_tika_text_extraction(tmp_path, monkeypatch):
     path = tmp_path / "doc.txt"
     path.write_text("raw text", encoding="utf-8")
 
-    calls = _patch_httpx_client(monkeypatch, {
-        "http://127.0.0.1:9998/tika/text": _FakeResponse(
-            200,
-            text="Parsed by Tika",
-        ),
-    })
+    calls = _patch_httpx_client(
+        monkeypatch,
+        {
+            "http://127.0.0.1:9998/tika/text": _FakeResponse(
+                200,
+                text="Parsed by Tika",
+            ),
+        },
+    )
     docs = await load_with_tika(path, include_metadata=False)
 
-    assert docs == [{
-        "content": "Parsed by Tika",
-        "metadata": {
-            "source": str(path),
-            "format": "txt",
-            "parser": "tika",
-            "backend": "http",
-            "tika_endpoint": "/tika/text",
-            "tika_server_url": "http://127.0.0.1:9998",
-        },
-    }]
+    assert docs == [
+        {
+            "content": "Parsed by Tika",
+            "metadata": {
+                "source": str(path),
+                "format": "txt",
+                "parser": "tika",
+                "backend": "http",
+                "tika_endpoint": "/tika/text",
+                "tika_server_url": "http://127.0.0.1:9998",
+            },
+        }
+    ]
     assert calls[0]["headers"]["resourceName"] == "doc.txt"
 
 
@@ -105,16 +113,21 @@ async def test_http_tika_rmeta_extraction(tmp_path, monkeypatch):
     path = tmp_path / "doc.pdf"
     path.write_bytes(b"%PDF-1.4 fake")
 
-    _patch_httpx_client(monkeypatch, {
-        "http://127.0.0.1:9998/rmeta/text": _FakeResponse(
-            200,
-            json=[{
-                "X-TIKA:content": "Main body",
-                "Content-Type": "application/pdf",
-                "dc:title": "Quarterly report",
-            }],
-        ),
-    })
+    _patch_httpx_client(
+        monkeypatch,
+        {
+            "http://127.0.0.1:9998/rmeta/text": _FakeResponse(
+                200,
+                json=[
+                    {
+                        "X-TIKA:content": "Main body",
+                        "Content-Type": "application/pdf",
+                        "dc:title": "Quarterly report",
+                    }
+                ],
+            ),
+        },
+    )
     docs = await load_with_tika(path)
 
     assert len(docs) == 1
@@ -134,18 +147,21 @@ async def test_http_tika_rmeta_embedded_docs(tmp_path, monkeypatch):
     path = tmp_path / "slides.pptx"
     path.write_bytes(b"fake pptx")
 
-    _patch_httpx_client(monkeypatch, {
-        "http://127.0.0.1:9998/rmeta/text": _FakeResponse(
-            200,
-            json=[
-                {
-                    "X-TIKA:content": "Deck summary",
-                    "Content-Type": "application/vnd.ms-powerpoint",
-                },
-                {"X-TIKA:content": "Embedded note", "resourceName": "notes.txt"},
-            ],
-        ),
-    })
+    _patch_httpx_client(
+        monkeypatch,
+        {
+            "http://127.0.0.1:9998/rmeta/text": _FakeResponse(
+                200,
+                json=[
+                    {
+                        "X-TIKA:content": "Deck summary",
+                        "Content-Type": "application/vnd.ms-powerpoint",
+                    },
+                    {"X-TIKA:content": "Embedded note", "resourceName": "notes.txt"},
+                ],
+            ),
+        },
+    )
     docs = await load_with_tika(path)
 
     assert len(docs) == 2
@@ -161,10 +177,13 @@ async def test_http_tika_uses_plain_text_when_rmeta_unavailable(tmp_path, monkey
     path = tmp_path / "doc.html"
     path.write_text("<h1>Hello</h1>", encoding="utf-8")
 
-    calls = _patch_httpx_client(monkeypatch, {
-        "http://tika.local/rmeta/text": _FakeResponse(404),
-        "http://tika.local/tika/text": _FakeResponse(200, text="Hello"),
-    })
+    calls = _patch_httpx_client(
+        monkeypatch,
+        {
+            "http://tika.local/rmeta/text": _FakeResponse(404),
+            "http://tika.local/tika/text": _FakeResponse(200, text="Hello"),
+        },
+    )
     docs = await load_with_tika(path, server_url="http://tika.local")
 
     assert len(docs) == 1
@@ -184,10 +203,13 @@ async def test_http_tika_server_error_falls_back(tmp_path, monkeypatch):
     path = tmp_path / "doc.txt"
     path.write_text("fallback text", encoding="utf-8")
 
-    _patch_httpx_client(monkeypatch, {
-        "http://127.0.0.1:9998/rmeta/text": _FakeResponse(500),
-        "http://127.0.0.1:9998/tika/text": _FakeResponse(503),
-    })
+    _patch_httpx_client(
+        monkeypatch,
+        {
+            "http://127.0.0.1:9998/rmeta/text": _FakeResponse(500),
+            "http://127.0.0.1:9998/tika/text": _FakeResponse(503),
+        },
+    )
     docs = await load_with_tika(path)
 
     assert len(docs) == 1
@@ -204,10 +226,13 @@ async def test_http_tika_server_error_raises_when_fallback_disabled(tmp_path, mo
     path = tmp_path / "doc.txt"
     path.write_text("fallback text", encoding="utf-8")
 
-    _patch_httpx_client(monkeypatch, {
-        "http://127.0.0.1:9998/rmeta/text": _FakeResponse(500),
-        "http://127.0.0.1:9998/tika/text": _FakeResponse(503),
-    })
+    _patch_httpx_client(
+        monkeypatch,
+        {
+            "http://127.0.0.1:9998/rmeta/text": _FakeResponse(500),
+            "http://127.0.0.1:9998/tika/text": _FakeResponse(503),
+        },
+    )
     with pytest.raises(TikaLoaderError, match="Apache Tika"):
         await load_with_tika(path, fallback_on_error=False)
 
@@ -258,9 +283,12 @@ async def test_load_dispatcher_routes_to_tika(tmp_path, monkeypatch):
     path = tmp_path / "doc.txt"
     path.write_text("raw text", encoding="utf-8")
 
-    _patch_httpx_client(monkeypatch, {
-        "http://tika.local/tika/text": _FakeResponse(200, text="dispatcher parsed"),
-    })
+    _patch_httpx_client(
+        monkeypatch,
+        {
+            "http://tika.local/tika/text": _FakeResponse(200, text="dispatcher parsed"),
+        },
+    )
     docs = await load(
         str(path),
         parser="tika",
@@ -280,10 +308,12 @@ async def test_default_load_behavior_is_unchanged(tmp_path, monkeypatch):
     path.write_text("plain loader", encoding="utf-8")
 
     async def fake_load_text(received_path):
-        return [{
-            "content": f"plain loader from {received_path}",
-            "metadata": {"source": received_path, "format": "text"},
-        }]
+        return [
+            {
+                "content": f"plain loader from {received_path}",
+                "metadata": {"source": received_path, "format": "text"},
+            }
+        ]
 
     monkeypatch.setattr(loaders, "load_text", fake_load_text)
     docs = await loaders.load(str(path))
@@ -310,9 +340,12 @@ def test_sync_wrapper_works(tmp_path, monkeypatch):
     path = tmp_path / "doc.txt"
     path.write_text("raw text", encoding="utf-8")
 
-    _patch_httpx_client(monkeypatch, {
-        "http://127.0.0.1:9998/tika/text": _FakeResponse(200, text="sync parsed"),
-    })
+    _patch_httpx_client(
+        monkeypatch,
+        {
+            "http://127.0.0.1:9998/tika/text": _FakeResponse(200, text="sync parsed"),
+        },
+    )
     docs = load_with_tika_sync(path, include_metadata=False)
 
     assert docs[0]["content"] == "sync parsed"
