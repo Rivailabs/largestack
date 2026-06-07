@@ -47,7 +47,9 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - How It Works: how-it-works.md
   - Getting Started:
+    - Step-by-Step Guide: getting-started.md
     - Quick Start: quickstart.md
     - Installation: installation.md
     - Configuration: configuration.md
