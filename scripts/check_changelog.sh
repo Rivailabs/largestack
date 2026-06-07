@@ -5,7 +5,7 @@
 # `test_p0_fixes_v038.py` skip without `[otel]` extra installed. The CHANGELOG
 # claim is what the CI canonical environment sees (with all extras installed).
 # Local environments without optional extras may see fewer tests.
-set -e
+set -euo pipefail
 # v1.1.1: use the release interpreter (the repo venv), not whatever `python3` resolves
 # to — a system 3.10 produces a wrong count and the suite requires Python >=3.11.
 PYTHON="${PYTHON:-.venv/bin/python}"
@@ -15,7 +15,17 @@ if "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3,11) else 1
     echo "FAIL: $PYTHON is $PYVER; largestack requires Python >=3.11. Set PYTHON=/path/to/py311+."
     exit 1
 fi
-ACTUAL=$("$PYTHON" -m pytest tests/ -q --tb=no 2>&1 | grep -oE '[0-9]+ passed' | head -1 | grep -oE '[0-9]+')
+set +e
+PYTEST_OUTPUT=$("$PYTHON" -m pytest tests/ -q --tb=no 2>&1)
+PYTEST_STATUS=$?
+set -e
+if [ "$PYTEST_STATUS" -ne 0 ]; then
+    echo "$PYTEST_OUTPUT"
+    echo "FAIL: pytest exited with status $PYTEST_STATUS; refusing to validate CHANGELOG count."
+    exit "$PYTEST_STATUS"
+fi
+
+ACTUAL=$(printf '%s\n' "$PYTEST_OUTPUT" | grep -oE '[0-9]+ passed' | head -1 | grep -oE '[0-9]+' || true)
 if [ -z "$ACTUAL" ]; then
     echo "Could not parse test count from pytest output"
     exit 1
