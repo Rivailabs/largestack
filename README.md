@@ -24,7 +24,7 @@ Largestack requires Python 3.11+.
 
 It is designed for developers building support agents, RAG assistants, code reviewers, and workflow automations who want structure (typed agents, tools, retrieval, guardrails, observability) instead of a blank file.
 
-> **Status: Beta (v1.1.0), maintained by a single developer.** Largestack installs and runs, ships a large test suite, and is a good fit for prototypes, internal experiments, and learning. It has **not** been independently audited, load-tested at scale, or certified for any regulated or enterprise use. The checks listed below are internal smoke/soak runs on the maintainer's own machines, not third-party validation — evaluate it for your own use case before relying on it.
+> **Status: Beta (v1.1.1), maintained by a single developer.** Largestack installs and runs, ships a large test suite, and is a good fit for prototypes, internal experiments, and learning. It has **not** been independently audited, load-tested at scale, or certified for any regulated or enterprise use. The checks listed below are internal smoke/soak runs on the maintainer's own machines, not third-party validation — evaluate it for your own use case before relying on it.
 
 See [`docs/known-limitations.md`](docs/known-limitations.md) for an honest, up-to-date list of what is and isn't proven.
 
@@ -352,7 +352,7 @@ Largestack should not yet be marketed as:
 
 - fully BFSI-certified,
 - SOC2/ISO-certified,
-- full LangChain/LangGraph ecosystem replacement,
+- a full substitute for the LangChain/LangGraph ecosystem,
 - public SaaS production platform without load tests, external VAPT, and real Kubernetes install proof.
 
 Known limitations are tracked in [`docs/known-limitations.md`](docs/known-limitations.md). Review that file before publishing release, SaaS, BFSI, or regulated-enterprise claims.

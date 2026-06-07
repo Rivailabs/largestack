@@ -47,31 +47,68 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Quick Start: quickstart.md
+  - Getting Started:
+    - Quick Start: quickstart.md
+    - Installation: installation.md
+    - Configuration: configuration.md
   - Architecture: architecture.md
-  - Testing and Validation: testing-and-validation.md
-  - Examples and Use Cases: examples-and-use-cases.md
-  - Security and Governance: security-governance.md
-  - OWASP & Red-Team: owasp-coverage.md
-  - Deployment: deployment.md
-  - Roadmap: roadmap.md
   - Concepts:
     - Agents: concepts/agents.md
     - Tools: concepts/tools.md
     - Memory: concepts/memory.md
     - Workflows: concepts/workflows.md
     - Guardrails: concepts/guardrails.md
+  - Tutorials:
+    - First Agent: tutorials/01_first_agent.md
+    - Tools & Functions: tutorials/02_tools_and_functions.md
+    - Multi-Agent Teams: tutorials/03_multi_agent_teams.md
+    - Guardrails: tutorials/04_guardrails.md
+    - RAG Knowledge: tutorials/05_rag_knowledge.md
+  - Guides:
+    - Custom Tools: guides/custom_tools.md
+    - Secure RAG Agent: guides/secure_rag.md
+    - Cost Control: guides/cost_control.md
+    - Testing Agents: guides/testing_agents.md
+    - Production Deployment: guides/production_deployment.md
+  - Core Topics:
+    - RAG: rag.md
+    - Orchestration: orchestration-guide.md
+    - Durable Orchestration: durable-orchestration.md
+    - Observability & Monitoring: observability-monitoring.md
+    - Errors: errors.md
+    - Fine-tuning: fine_tuning.md
   - Cookbook:
     - cookbook/index.md
     - Customer Support: cookbook/support-bot.md
     - RAG with PDFs: cookbook/rag-pdf.md
     - Apache Tika Loader: cookbook/tika-loader.md
     - Multi-Agent: cookbook/multi-agent.md
+    - Structured Output: cookbook/structured-output.md
+    - Streaming: cookbook/streaming.md
+    - Testing: cookbook/testing.md
+    - MCP Server: cookbook/mcp-server.md
   - Protocols:
     - MCP: protocols/mcp.md
     - A2A: protocols/a2a.md
     - AG-UI: protocols/agui.md
-  - API Reference:
-    - Agent: api/agent.md
-    - Decorators: api/decorators.md
-    - Testing: api/testing.md
+  - Providers:
+    - Provider Support: provider-support.md
+    - Local LLM (Ollama): local-llm.md
+  - Security & Governance:
+    - Security and Governance: security-governance.md
+    - OWASP & Red-Team: owasp-coverage.md
+    - Security Policy: compliance/SECURITY_POLICY.md
+    - Incident Response: compliance/INCIDENT_RESPONSE.md
+    - SOC 2 Readiness: compliance/SOC2_READINESS.md
+  - Deployment: deployment.md
+  - Reference:
+    - API Reference: api_reference.md
+    - CLI Reference: cli-reference.md
+    - Migration: migration.md
+  - Testing and Validation: testing-and-validation.md
+  - Examples and Use Cases: examples-and-use-cases.md
+  - Troubleshooting: troubleshooting.md
+  - Known Limitations: known-limitations.md
+  - Positioning: competitive-positioning.md
+  - Roadmap: roadmap.md
+  - Changelog: changelog.md

@@ -8,7 +8,16 @@ verification (Ollama: chat, tools, guardrails, sandbox, structured-fallback). Fi
 real bugs found, implements several claimed-but-missing capabilities, and corrects
 over-claims so docs match behavior. See `REVIEW_2026-06-06.md` for the full findings.
 
-- **2638 passing** (tests/, canonical CI environment, all extras installed).
+- **2609 passing** (tests/, canonical CI environment, all extras installed).
+
+**Documentation cleanup:** removed ~60 internal/point-in-time/duplicate doc files
+(release-ops reports, `FINAL_*`/`*_READINESS`/archive, marketing copy, the broken India
+cookbook that imported non-existent modules, and unverifiable case studies), merged
+duplicate pages into canonical ones (provider/security/api/changelog/roadmap), rebuilt
+the mkdocs nav into a complete 56-entry structure (surfacing installation, configuration,
+errors, rag, orchestration, observability, known-limitations, providers, OWASP), and
+added a **CLI reference**, a **Secure RAG guide**, and a fresh changelog page. Fixed
+version drift (README/SECURITY now v1.1.x). `mkdocs build --strict` passes.
 
 **Gap-closing (the documented ⚠️/❌ items, now closed by code):**
 - **RAG BM25 stemming** — `"refund"` now matches `"Refunds"` (conservative suffix stemmer, no dep); `create_rag(dense="auto")` uses a local embedder when available. (`_rag/retriever.py`, `_rag/pipeline.py`)

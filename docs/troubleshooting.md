@@ -71,3 +71,22 @@ largestack doctor        # Check Python, API keys, Ollama, dependencies
 largestack trace         # View recent traces
 largestack cost          # View cost breakdown per agent
 ```
+
+## Installation issues
+
+```bash
+pip install cryptography>=42.0      # if cryptography is missing
+pip install "httpx[http2]"          # if HTTP/2 transport errors appear
+```
+
+## Debug logging
+
+```bash
+export LARGESTACK_LOG_LEVEL=DEBUG
+export LARGESTACK_LOG_CONTENT=1     # also logs prompts/outputs — PII risk, dev only
+```
+
+## Get help
+
+- GitHub Issues: https://github.com/Rivailabs/largestack/issues
+- Email: support@largestack.ai

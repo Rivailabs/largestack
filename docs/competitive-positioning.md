@@ -1,6 +1,6 @@
-# Competitive Positioning: Better by Differentiation, Not by Replacement
+# Competitive Positioning: Better by Differentiation, Not by Supersession
 
-LARGESTACK should not claim to replace LangChain, LangGraph, LangSmith, CrewAI, LlamaIndex, AutoGen, Semantic Kernel, or PydanticAI.
+LARGESTACK should not claim to supersede LangChain, LangGraph, LangSmith, CrewAI, LlamaIndex, AutoGen, Semantic Kernel, or PydanticAI.
 
 The correct positioning is:
 
@@ -37,7 +37,7 @@ The correct positioning is:
 | LARGESTACK includes RAG and memory. | Yes | Works locally; external backends require E2E verification. |
 | LARGESTACK includes guardrails, governance, and cost controls. | Yes | Good differentiator; production policy must be configured. |
 | LARGESTACK includes local/self-hosted observability. | Yes | Dashboard/API/metrics/trace stack exists. |
-| LARGESTACK fully replaces LangChain/LangGraph/LangSmith. | No | Do not claim this. |
+| LARGESTACK fully supersedes LangChain/LangGraph/LangSmith. | No | Do not claim this. |
 | LARGESTACK is better for enterprise-controlled self-hosted agent automation. | Conditionally yes | Strong claim when governance, dashboard, and infra gates are proven. |
 
 ## Product message

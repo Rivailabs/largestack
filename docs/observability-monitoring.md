@@ -39,4 +39,4 @@ LARGESTACK observability is strong for self-hosted/local operations:
 - dashboard
 - optional OTEL/Langfuse/Phoenix export
 
-It is not a full LangSmith replacement yet because LangSmith provides a managed platform for projects, traces, datasets, evals, annotation queues, alerts, and automations.
+It does not yet match LangSmith's managed-platform scope for projects, traces, datasets, evals, annotation queues, alerts, and automations.
