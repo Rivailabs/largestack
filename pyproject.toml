@@ -68,7 +68,10 @@ tika = ["tika>=3.1.0"]
 largestack = "largestack._cli.main:app"
 
 [tool.setuptools.packages.find]
-include = ["largestack*"]
+# v1.1.1: exact package + submodules only. The previous prefix glob "largestack*"
+# also matched sibling dirs like "largestack-enterprise-deepseek-…", contaminating
+# the built wheel/sdist with generated deliverables.
+include = ["largestack", "largestack.*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -78,6 +81,9 @@ testpaths = ["tests"]
 # method works for asyncio tests that don't respond to signals.
 timeout = 120
 timeout_method = "thread"
+markers = [
+    "integration: needs network or external services; auto-skipped offline (see tests/integration/conftest.py)",
+]
 
 [tool.ruff]
 line-length = 100

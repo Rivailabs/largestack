@@ -34,7 +34,7 @@ This table is the public claim source. Keep it aligned with
 |---|---|---|---|
 | OpenAI | validated | Primary adapter path and local tests | Fresh live E2E for chosen public model |
 | DeepSeek | validated | Live difficult-project evidence plus OpenAI-compatible path | Repeat on release branch with current key |
-| Anthropic | validated | Native adapter and tool mapping tests | Fresh live E2E for chosen Claude model |
+| Anthropic | adapter-only | Native adapter + tool-mapping tests; **not** live-verified (no key tested) | Run a live E2E with a real `sk-ant-` key to reach "validated" |
 | LiteLLM | compatible | Gateway integration present | Per-downstream-provider live E2E |
 | local OpenAI-compatible | compatible | Generic OpenAI-compatible path | Validate target runtime/model tool behavior |
 | Ollama native | compatible | Native chat path | Tool/structured output proof via compatible path |

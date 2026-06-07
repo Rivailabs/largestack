@@ -168,7 +168,7 @@ specific provider/model you depend on.
 | Provider/API path | Model string example | Env/config | Status |
 |---|---|---|---|
 | OpenAI / GPT | `openai/gpt-4o-mini` | `LARGESTACK_OPENAI_API_KEY` | Verified primary adapter path |
-| Anthropic / Claude | `anthropic/claude-sonnet-4-6` | `LARGESTACK_ANTHROPIC_API_KEY` | Verified native adapter path |
+| Anthropic / Claude | `anthropic/claude-sonnet-4-6` | `LARGESTACK_ANTHROPIC_API_KEY` | Adapter-only — native adapter implemented, **not** live-verified (run `check_connection` with your key) |
 | DeepSeek | `deepseek/deepseek-chat` | `LARGESTACK_DEEPSEEK_API_KEY` | Live E2E validated |
 | LiteLLM gateway | `litellm/<provider>/<model>` | Provider-specific LiteLLM env vars | Partial; downstream capability varies |
 | Local OpenAI-compatible | `local/<model>` | `LARGESTACK_OPENAI_COMPATIBLE_BASE_URL` | Partial; gateway/model capability varies |

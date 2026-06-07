@@ -82,3 +82,7 @@ release_evidence/**
 !release_evidence/**/SUMMARY.md
 !release_evidence/**/FINAL*_SUMMARY.md
 !release_evidence/**/MAC_FIX_VALIDATION_REPORT.md
+
+# generated enterprise deliverables (never package these)
+largestack-enterprise-*/
+largestack-enterprise-*.zip
