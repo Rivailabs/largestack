@@ -361,6 +361,7 @@ def test_dashboard_escapes_agent_name_in_traces(monkeypatch, tmp_path):
     # into the tmp_path. Avoids the previous monkeypatch.setattr on
     # os.path.expanduser which leaked module state into later tests.
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))  # Windows: expanduser uses USERPROFILE
     largestack_dir = tmp_path / ".largestack"
     largestack_dir.mkdir(exist_ok=True)
     trace_db = largestack_dir / "traces.db"

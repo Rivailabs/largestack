@@ -28,6 +28,7 @@ XSS_PAYLOADS = [
 @pytest.fixture
 def auth_env(monkeypatch, tmp_path):
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))  # Windows: expanduser uses USERPROFILE
     monkeypatch.setenv("LARGESTACK_DASHBOARD_KEY", "test-key")
     monkeypatch.setenv("LARGESTACK_RATE_LIMIT_DISABLE", "1")
     monkeypatch.delenv("LARGESTACK_RBAC_ENABLED", raising=False)

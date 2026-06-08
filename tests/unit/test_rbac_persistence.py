@@ -161,6 +161,7 @@ def test_rbac_db_path_expanduser(tmp_path, monkeypatch):
     from largestack._enterprise.rbac import RBAC
 
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))  # Windows: expanduser uses USERPROFILE
     r = RBAC(db_path="~/rbac.db")
     r.add_user("alice", roles=["admin"])
     assert (tmp_path / "rbac.db").exists()
