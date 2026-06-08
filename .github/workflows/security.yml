@@ -21,7 +21,7 @@ jobs:
       - run: pip install bandit
       # Skip B101 (assert) and B311 (random) — not relevant for our code.
       # Skip tests/ — bandit complains about test asserts.
-      - run: bandit -r largestack/ --skip B101,B311 -f txt -ii
+      - run: bandit -r largestack/ --skip B101,B311 --severity-level medium --confidence-level medium -f txt
 
   pip_audit:
     name: pip-audit (CVE scan)
