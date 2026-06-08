@@ -300,7 +300,7 @@ class ToolExecutor:
         if entry is None:
             return None
         content, ts = entry
-        if time.time() - ts > self._IDEM_TTL_SECONDS:
+        if time.time() - ts >= self._IDEM_TTL_SECONDS:
             # Expired — drop and miss
             self._idem.pop(key, None)
             return None
