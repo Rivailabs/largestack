@@ -13,7 +13,10 @@ import asyncio
 import json
 import os
 import re
-import resource
+try:
+    import resource  # Unix-only; absent on Windows
+except ImportError:  # pragma: no cover - Windows
+    resource = None
 import sqlite3
 import sys
 import time
@@ -159,6 +162,8 @@ def percentile(values: list[float], pct: float) -> float:
 
 
 def peak_rss_mb() -> float:
+    if resource is None:  # Windows: `resource` unavailable
+        return 0.0
     raw = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     if sys.platform == "darwin":
         return raw / (1024 * 1024)
